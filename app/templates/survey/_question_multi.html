@@ -1,0 +1,15 @@
+{% set selected = saved_value or [] %}
+{# Native checkboxes styled as tappable cards; selected state via :checked + sibling CSS. #}
+<div class="row g-3" role="group" aria-label="{{ question.prompt }}">
+  {% for option in question.options %}
+  <div class="col-12 col-sm-6">
+    <input class="visually-hidden option-card-input" type="checkbox"
+           id="{{ question.id }}_{{ option.index }}"
+           name="{{ question.id }}" value="{{ option.index }}"
+           {% if option.index in selected %}checked{% endif %}>
+    <label class="option-card" for="{{ question.id }}_{{ option.index }}">
+      {{ option.label }}
+    </label>
+  </div>
+  {% endfor %}
+</div>

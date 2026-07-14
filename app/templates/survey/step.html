@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mx-auto" style="max-width: 640px;">
+  {% include "survey/_progress.html" %}
+
+  <form method="post" novalidate>
+    <fieldset class="mb-4">
+      <legend class="h4 mb-3">{{ question.prompt }}</legend>
+
+      {% if question.type == 'single' %}
+        {% include "survey/_question_single.html" %}
+      {% elif question.type == 'multi' %}
+        {% include "survey/_question_multi.html" %}
+      {% elif question.type == 'spectrum' %}
+        {% include "survey/_question_spectrum.html" %}
+      {% elif question.type == 'short_text' %}
+        {% include "survey/_question_short_text.html" %}
+      {% endif %}
+    </fieldset>
+
+    <div class="d-flex justify-content-between">
+      {% if step > 1 %}
+        <a class="btn btn-outline-secondary" href="{{ url_for('survey.step', token=token, step=step - 1) }}">Back</a>
+      {% else %}
+        <span></span>
+      {% endif %}
+      <button type="submit" class="btn btn-success">
+        {{ 'Finish' if step == total else 'Next' }}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script nonce="{{ csp_nonce }}">
+    // Live label for the spectrum slider — the one bit of interactivity on
+    // this page. Progressive enhancement only: the native <input type=range>
+    // still submits its value with JS disabled.
+    document.querySelectorAll('input[type="range"][data-labels]').forEach(function (input) {
+      var labels = JSON.parse(input.dataset.labels);
+      var labelEl = document.getElementById(input.name + '_current_label');
+      function update() {
+        if (labelEl) {
+          labelEl.textContent = labels[Number(input.value)] || '';
+        }
+      }
+      input.addEventListener('input', update);
+      update();
+    });
+  </script>
+{% endblock %}

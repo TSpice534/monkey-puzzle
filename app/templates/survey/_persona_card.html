@@ -1,0 +1,53 @@
+{# Self-contained persona card — kept as its own partial so a later share/PDF
+   phase can reuse it without touching this markup. #}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <p class="text-uppercase small text-muted mb-1">Your sustainable who</p>
+    <h1 class="h3">{{ persona.name }}</h1>
+    <p class="lead">{{ persona.tagline }}</p>
+    <p>{{ persona.description }}</p>
+
+    {% if persona.brethren %}
+    <p class="mb-1">
+      <strong>Brethren</strong> (natural allies):
+      {% for pid in persona.brethren %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
+    </p>
+    {% endif %}
+
+    {% if persona.besties %}
+    <p class="mb-1">
+      <strong>Besties</strong> (good collaborators):
+      {% for pid in persona.besties %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
+    </p>
+    {% endif %}
+
+    {% if persona.battlers %}
+    <p class="mb-3">
+      <strong>Battlers</strong> (likely friction):
+      {% for pid in persona.battlers %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
+    </p>
+    {% endif %}
+
+    {% if persona.case_studies %}
+    <div class="mt-3">
+      <h2 class="h6">Case studies</h2>
+      <ul class="mb-0">
+        {% for cs in persona.case_studies %}
+          <li><a href="{{ cs.url }}">{{ cs.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if persona.resources %}
+    <div class="mt-3">
+      <h2 class="h6">Resources</h2>
+      <ul class="mb-0">
+        {% for r in persona.resources %}
+          <li><a href="{{ r.url }}">{{ r.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>

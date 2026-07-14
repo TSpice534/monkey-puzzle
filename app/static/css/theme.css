@@ -2,3 +2,34 @@
   --brand-primary: #2e7d32;
   --brand-primary-dark: #1b5e20;
 }
+
+/* Survey option "cards" — native radio/checkbox inputs styled via the
+   :checked + sibling selector so no JS is needed for selection state. */
+.option-card {
+  display: block;
+  padding: 1rem;
+  height: 100%;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.option-card:hover {
+  border-color: var(--brand-primary);
+}
+
+.option-card-input:checked + .option-card {
+  border-color: var(--brand-primary);
+  background-color: rgba(46, 125, 50, 0.08);
+  font-weight: 600;
+}
+
+.option-card-input:focus-visible + .option-card {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.spectrum-widget .form-range {
+  accent-color: var(--brand-primary);
+}

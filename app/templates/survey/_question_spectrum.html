@@ -1,0 +1,21 @@
+{% set current_index = saved_value if saved_value is not none else 0 %}
+{# Native range slider over the ordered options. The live label update is the
+   only JS on this page (see step.html's {% block scripts %}); with JS off,
+   the slider still submits an index and the static labels list below shows
+   every option, so the widget degrades gracefully. #}
+<div class="spectrum-widget">
+  <label class="visually-hidden" for="{{ question.id }}_range">{{ question.prompt }}</label>
+  <input type="range" class="form-range" id="{{ question.id }}_range"
+         name="{{ question.id }}"
+         min="0" max="{{ question.options | length - 1 }}" step="1"
+         value="{{ current_index }}"
+         data-labels='{{ question.options | map(attribute="label") | list | tojson }}'>
+  <p class="spectrum-current text-center fw-semibold mt-2 mb-1">
+    <span id="{{ question.id }}_current_label">{{ question.options[current_index].label }}</span>
+  </p>
+  <div class="d-flex justify-content-between small text-muted">
+    {% for option in question.options %}
+      <span>{{ option.label }}</span>
+    {% endfor %}
+  </div>
+</div>
