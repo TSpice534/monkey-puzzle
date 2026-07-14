@@ -4,3 +4,6 @@ Flask-Migrate
 python-dotenv
 psycopg2-binary
 gunicorn
+
+# Test-only
+pytest
