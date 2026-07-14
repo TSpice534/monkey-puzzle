@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Flask / app
+instance/
+.flaskenv.local
+
+# Database (local dev only — never commit prod data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+
+# Test artifacts
+.coverage
+.pytest_cache/
+
+# Environment / secrets
+.env
+*.env
+*token*.txt
+*token*.json
+
+# Per-server deploy config — SERVICE name differs per deployment;
+# never shared, never overwritten by a pull or reset. See deploy.sh.example for the template.
+deploy.sh
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Obsidian vault config
+.obsidian/
+
+# Local-only working docs (not part of the public repo)
+CLAUDE.md
+CONTEXT.md
+memory/
+.claude/
+
+# Screenshots / loose assets (not part of the app)
+*.png
+*.jpg
+*.jpeg
+*.avif
+# Always include app static assets
+!app/static/**/*.png
+!app/static/**/*.jpg
+!app/static/**/*.jpeg
+!app/static/**/*.avif
