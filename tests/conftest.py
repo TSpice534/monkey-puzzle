@@ -16,6 +16,7 @@ class TestConfig(Config):
     TESTING = True
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'  # in-memory, fresh per app instance
+    RATELIMIT_ENABLED = False  # survey.email_result is rate-limited; opt in per-test
 
 
 @pytest.fixture()
