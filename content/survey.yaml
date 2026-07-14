@@ -1,0 +1,282 @@
+# The Monkey Puzzle — placeholder survey content
+#
+# This is intentionally placeholder content (Phase 2). The real question
+# set, weights, and persona copy are owned by Rob and Andrew and will land
+# later as a pure data swap — no engine changes expected. Do not treat this
+# file's content as final; do treat its *shape* as the contract.
+
+meta:
+  version: 1
+  title: "The Monkey Puzzle"
+  personas_count: 9
+
+personas:
+  documenter:
+    name: "The Documenter"
+    tagline: "You make the invisible visible."
+    description: >
+      You track, record and organise what's actually happening — the data,
+      the decisions, the paper trail. Nothing gets lost on your watch, and
+      that record is what lets everyone else move faster with confidence.
+    brethren: [implementer, developer]
+    besties: [communicator]
+    battlers: [activist]
+    case_studies:
+      - { title: "Placeholder case study — Documenter", url: "https://example.com/case-studies/documenter" }
+    resources:
+      - { title: "Placeholder resource — building a simple tracking sheet", url: "https://example.com/resources/documenter-tracking" }
+
+  implementer:
+    name: "The Implementer"
+    tagline: "You get things actually done."
+    description: >
+      Plans are easy; follow-through is hard, and that's your specialty.
+      You take what's already known to work and make sure it happens,
+      reliably, on the ground, every time.
+    brethren: [documenter, developer]
+    besties: [cooperator]
+    battlers: [entrepreneur]
+    case_studies:
+      - { title: "Placeholder case study — Implementer", url: "https://example.com/case-studies/implementer" }
+    resources:
+      - { title: "Placeholder resource — a rollout checklist template", url: "https://example.com/resources/implementer-checklist" }
+
+  developer:
+    name: "The Developer"
+    tagline: "You build the thing that doesn't exist yet."
+    description: >
+      You're drawn to the technical and the novel — new tools, new
+      processes, new fixes. Where others adapt an existing approach, you'd
+      rather engineer a better one.
+    brethren: [documenter, implementer]
+    besties: [entrepreneur]
+    battlers: [advocate]
+    case_studies:
+      - { title: "Placeholder case study — Developer", url: "https://example.com/case-studies/developer" }
+    resources:
+      - { title: "Placeholder resource — prototyping on a small budget", url: "https://example.com/resources/developer-prototyping" }
+
+  advocate:
+    name: "The Advocate"
+    tagline: "You speak up for the bigger cause."
+    description: >
+      You keep the "why" in the room — pushing for the outcome that
+      matters even when it's inconvenient, and holding the line when
+      others are tempted to compromise it away.
+    brethren: [activist, communicator]
+    besties: [connector]
+    battlers: [developer]
+    case_studies:
+      - { title: "Placeholder case study — Advocate", url: "https://example.com/case-studies/advocate" }
+    resources:
+      - { title: "Placeholder resource — making the case internally", url: "https://example.com/resources/advocate-case-making" }
+
+  communicator:
+    name: "The Communicator"
+    tagline: "You tell the story so people actually care."
+    description: >
+      Good work that nobody hears about doesn't spread. You turn what's
+      happening into a story people want to share, follow and support.
+    brethren: [advocate, connector]
+    besties: [documenter]
+    battlers: [entrepreneur]
+    case_studies:
+      - { title: "Placeholder case study — Communicator", url: "https://example.com/case-studies/communicator" }
+    resources:
+      - { title: "Placeholder resource — a simple storytelling framework", url: "https://example.com/resources/communicator-storytelling" }
+
+  activist:
+    name: "The Activist"
+    tagline: "You push for change now, not eventually."
+    description: >
+      You're impatient in the best way — comfortable with friction if it
+      means the urgent thing actually moves, rather than waiting for the
+      perfect moment that never comes.
+    brethren: [advocate, connector]
+    besties: [cooperator]
+    battlers: [documenter]
+    case_studies:
+      - { title: "Placeholder case study — Activist", url: "https://example.com/case-studies/activist" }
+    resources:
+      - { title: "Placeholder resource — running an effective campaign", url: "https://example.com/resources/activist-campaigns" }
+
+  connector:
+    name: "The Connector"
+    tagline: "You bring the right people into the same room."
+    description: >
+      You see the gaps between people and organisations who should be
+      talking to each other, and you close them — partnerships, intros,
+      shared platforms.
+    brethren: [communicator, cooperator]
+    besties: [advocate]
+    battlers: [implementer]
+    case_studies:
+      - { title: "Placeholder case study — Connector", url: "https://example.com/case-studies/connector" }
+    resources:
+      - { title: "Placeholder resource — building a partner network", url: "https://example.com/resources/connector-network" }
+
+  cooperator:
+    name: "The Cooperator"
+    tagline: "You make the team effort actually work."
+    description: >
+      You'd rather get it right together than get credit alone. Quiet,
+      steady collaboration is where you do your best work.
+    brethren: [connector, activist]
+    besties: [implementer]
+    battlers: [entrepreneur]
+    case_studies:
+      - { title: "Placeholder case study — Cooperator", url: "https://example.com/case-studies/cooperator" }
+    resources:
+      - { title: "Placeholder resource — running a good working group", url: "https://example.com/resources/cooperator-working-groups" }
+
+  entrepreneur:
+    name: "The Entrepreneur"
+    tagline: "You'll take the risk to build something new."
+    description: >
+      You move fast, back yourself, and would rather try an imperfect
+      thing today than plan a perfect one for next year.
+    brethren: [developer, implementer]
+    besties: [connector]
+    battlers: [cooperator]
+    case_studies:
+      - { title: "Placeholder case study — Entrepreneur", url: "https://example.com/case-studies/entrepreneur" }
+    resources:
+      - { title: "Placeholder resource — testing an idea cheaply", url: "https://example.com/resources/entrepreneur-testing" }
+
+questions:
+  - id: mission_clarity
+    type: spectrum
+    prompt: "How clear is your mission right now?"
+    dimension: roots
+    options:
+      - { label: "Crystal clear", weights: { developer: 2, implementer: 1 } }
+      - { label: "Mostly clear", weights: { implementer: 1, communicator: 1 } }
+      - { label: "Still forming", weights: { documenter: 2 } }
+      - { label: "Not sure yet", weights: { activist: 1, connector: 1 } }
+
+  - id: team_appetite
+    type: single
+    prompt: "How does your team feel about trying something new?"
+    dimension: roots
+    options:
+      - { label: "Ready to go", weights: { entrepreneur: 2, developer: 1 } }
+      - { label: "Curious but cautious", weights: { cooperator: 1, implementer: 1 } }
+      - { label: "Prefer to wait and see", weights: { documenter: 2 } }
+
+  - id: motivation_source
+    type: single
+    prompt: "What mostly drives your sustainability work?"
+    dimension: requirements
+    options:
+      - { label: "Personal values", weights: { activist: 2, advocate: 1 } }
+      - { label: "Audience or community expectation", weights: { communicator: 2, connector: 1 } }
+      - { label: "Funding or compliance requirements", weights: { documenter: 1, implementer: 1 } }
+
+  - id: knowledge_confidence
+    type: spectrum
+    prompt: "How confident are you in your sustainability knowledge?"
+    dimension: requirements
+    options:
+      - { label: "Very confident", weights: { developer: 2, entrepreneur: 1 } }
+      - { label: "Fairly confident", weights: { implementer: 1 } }
+      - { label: "Still learning", weights: { documenter: 1, cooperator: 1 } }
+      - { label: "Not confident at all", weights: { activist: 1 } }
+
+  - id: comfort_zone
+    type: single
+    prompt: "Where does most of your sustainability work currently sit?"
+    dimension: comfort_stretch_stress
+    options:
+      - { label: "Comfort zone — well-established habits", weights: { documenter: 2 } }
+      - { label: "Stretch zone — new but manageable", weights: { implementer: 2, cooperator: 1 } }
+      - { label: "Stress zone — overwhelmed or firefighting", weights: { activist: 1, entrepreneur: 1 } }
+
+  - id: pace_preference
+    type: spectrum
+    prompt: "How much change can your organisation absorb at once?"
+    dimension: comfort_stretch_stress
+    options:
+      - { label: "Small, steady steps", weights: { documenter: 1, implementer: 1 } }
+      - { label: "A measured stretch", weights: { cooperator: 1, developer: 1 } }
+      - { label: "Big leaps, fast", weights: { entrepreneur: 2, activist: 1 } }
+
+  - id: strategic_focus
+    type: single
+    prompt: "Which best describes your strategic focus?"
+    dimension: strategic_domain
+    options:
+      - { label: "Giving others a platform", weights: { connector: 2, communicator: 1 } }
+      - { label: "Implementing what already works", weights: { implementer: 2 } }
+      - { label: "Inventing something new", weights: { developer: 2, entrepreneur: 1 } }
+
+  - id: change_role
+    type: multi
+    prompt: "Which of these do you actively do? Select all that apply."
+    dimension: strategic_domain
+    options:
+      - { label: "Share templates or checklists with others", weights: { documenter: 1, cooperator: 1 } }
+      - { label: "Champion causes publicly", weights: { activist: 2 } }
+      - { label: "Build partnerships between organisations", weights: { connector: 2 } }
+
+  - id: impact_focus
+    type: single
+    prompt: "Are you more focused on reducing harm or growing positive impact?"
+    dimension: footprint_handprint
+    options:
+      - { label: "Reducing our footprint (harm)", weights: { implementer: 1, documenter: 1 } }
+      - { label: "Growing our handprint (positive impact)", weights: { advocate: 2, entrepreneur: 1 } }
+      - { label: "Both, equally", weights: { cooperator: 1, connector: 1 } }
+
+  - id: footprint_tracking
+    type: spectrum
+    prompt: "How closely do you track your environmental footprint?"
+    dimension: footprint_handprint
+    options:
+      - { label: "Track everything in detail", weights: { documenter: 2, developer: 1 } }
+      - { label: "Track the big-ticket items", weights: { implementer: 1 } }
+      - { label: "Rough estimate only", weights: { activist: 1 } }
+      - { label: "Not currently tracking", weights: { entrepreneur: 1 } }
+
+  - id: comms_style
+    type: multi
+    prompt: "How do you prefer to communicate progress? Select all that apply."
+    dimension: communication_needs
+    options:
+      - { label: "Detailed written reports", weights: { documenter: 2 } }
+      - { label: "Public campaigns and storytelling", weights: { communicator: 2, advocate: 1 } }
+      - { label: "One-to-one conversations", weights: { cooperator: 1, connector: 1 } }
+
+  - id: comms_barrier
+    type: short_text
+    prompt: "What's the biggest barrier to communicating your sustainability work well?"
+    dimension: communication_needs
+
+  - id: role_preference
+    type: single
+    prompt: "Which of these sounds most like you?"
+    dimension: role_preference
+    options:
+      - { label: "I love capturing and organising what we do", weights: { documenter: 4 } }
+      - { label: "I make sure plans actually get done", weights: { implementer: 4 } }
+      - { label: "I enjoy inventing new approaches", weights: { developer: 4 } }
+      - { label: "I champion the bigger cause", weights: { advocate: 4 } }
+      - { label: "I love telling the story to the world", weights: { communicator: 4 } }
+      - { label: "I push hard for urgent change", weights: { activist: 4 } }
+      - { label: "I bring people and organisations together", weights: { connector: 4 } }
+      - { label: "I prefer working quietly alongside others", weights: { cooperator: 4 } }
+      - { label: "I take risks to build something new", weights: { entrepreneur: 4 } }
+
+scoring:
+  method: persona_vector
+  tie_break:
+    - documenter
+    - implementer
+    - developer
+    - advocate
+    - communicator
+    - activist
+    - connector
+    - cooperator
+    - entrepreneur
+  equity_modifier: { enabled: false }
+  rogers_curve: { enabled: false }

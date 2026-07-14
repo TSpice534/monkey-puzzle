@@ -27,3 +27,10 @@ class Config:
     SESSION_COOKIE_HTTPONLY  = True
     SESSION_COOKIE_SAMESITE  = 'Lax'
     SESSION_COOKIE_SECURE    = _https
+
+    # ------------------------------------------------------------------
+    # Survey content — single source of truth for questions/personas/scoring,
+    # owned by Rob and Andrew. Env-overridable so tests can point at a
+    # fixture file without touching the real content.
+    # ------------------------------------------------------------------
+    SURVEY_PATH = os.environ.get('SURVEY_PATH') or os.path.join(basedir, 'content', 'survey.yaml')
