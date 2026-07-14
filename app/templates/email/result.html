@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en-GB">
+<head><meta charset="utf-8"></head>
+<body style="font-family: Arial, Helvetica, sans-serif; color: #212529;">
+  <p style="text-transform: uppercase; font-size: 0.75rem; color: #6c757d; letter-spacing: 1px;">
+    Your sustainable who
+  </p>
+  <h1 style="font-size: 1.5rem; margin: 0 0 0.5rem 0;">{{ persona.name }}</h1>
+  <p style="font-size: 1.1rem; color: #495057;">{{ persona.tagline }}</p>
+  <p>{{ persona.description }}</p>
+  <p>Your full results, with the fingerprint chart, are attached as a PDF.</p>
+  <p>
+    You can also revisit your result online any time:<br>
+    <a href="{{ result_url }}">{{ result_url }}</a>
+  </p>
+  <p style="color: #6c757d; font-size: 0.8rem;">— The Monkey Puzzle</p>
+</body>
+</html>

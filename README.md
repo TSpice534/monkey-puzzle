@@ -18,11 +18,12 @@ studies and resources.
 
 ## Status
 
-Phases 1–4 of the build plan are done: a data-driven survey flow, persona classifier,
-and result page (with a radar "fingerprint" chart) all work end-to-end against a
-placeholder question set. Sharing/output (OG tags, share image, PDF) and deploy are not
-built yet. Forked from the Donut Toolkit as a starting framework, then diverging: no
-accounts, public/viral, single categorical persona output. See
+Phases 1–5 of the build plan are done: a data-driven survey flow, persona classifier,
+result page (with a radar "fingerprint" chart), and sharing/output all work end-to-end
+against a placeholder question set — OpenGraph/Twitter share tags, a generated PNG share
+image, a LinkedIn share link, a downloadable PDF report, and an opt-in "email me a copy".
+Only deploy (Phase 6) is left. Forked from the Donut Toolkit as a starting framework,
+then diverging: no accounts, public/viral, single categorical persona output. See
 [docs/PRODUCTION-PLAN.md](docs/PRODUCTION-PLAN.md) for the full plan and phasing.
 
 Primary pilot: the Federation of Music Conferences (32 conferences), extending later to
@@ -31,14 +32,16 @@ European cultural and business events.
 ## How it's built
 
 - **Stack:** Python 3.12 / Flask / SQLAlchemy / SQLite (dev) → Postgres (prod) /
-  WeasyPrint (PDF, planned) / Bootstrap via CDN (no build step, no Alpine.js — the
+  WeasyPrint (PDF) / Flask-Mail (optional email) / Flask-Limiter (rate limiting) /
+  cairosvg (PNG share image) / Bootstrap via CDN (no build step, no Alpine.js — the
   survey widgets are native HTML/CSS with one small vanilla script).
 - **Data-driven content:** all questions, weights, and personas live in
   `content/survey.yaml` — editable without touching code. Question set and scoring are
   designed by Rob and Andrew; the engine is built to consume whatever they deliver. The
   content shipped today is realistic placeholder content.
 - **No accounts:** submissions are anonymous, keyed by a random token that powers the
-  shareable result link and optional emailed copy.
+  shareable result link and optional emailed copy. The email address used for "email me
+  a copy" is never persisted — it's used once to send that message and then discarded.
 
 ## Running the quiz locally
 
@@ -50,7 +53,11 @@ flask run
 
 Visit `/`, click "Begin", and work through the survey — each step is one question, and
 finishing the last one classifies your answers into one of the nine personas and shows
-the result page with your fingerprint radar chart.
+the result page with your fingerprint radar chart, a downloadable PDF, and a share image.
+
+PDF generation needs libpango installed (`brew install pango` on macOS — `.flaskenv`
+already sets `DYLD_LIBRARY_PATH` for it). "Email me a copy" is a no-op with a flash
+message until `MAIL_SERVER` (and friends — see `config.py`) are set in the environment.
 
 ## Repo conventions
 

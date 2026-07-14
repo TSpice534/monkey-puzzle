@@ -34,3 +34,23 @@ class Config:
     # fixture file without touching the real content.
     # ------------------------------------------------------------------
     SURVEY_PATH = os.environ.get('SURVEY_PATH') or os.path.join(basedir, 'content', 'survey.yaml')
+
+    # ------------------------------------------------------------------
+    # Mail — optional "email me a copy" (Phase 5). Left unset by default;
+    # the email route checks MAIL_SERVER and no-ops with a flash message
+    # rather than raising if it isn't configured.
+    # ------------------------------------------------------------------
+    MAIL_SERVER   = os.environ.get('MAIL_SERVER')
+    MAIL_PORT     = int(os.environ.get('MAIL_PORT') or 587)
+    MAIL_USE_TLS  = os.environ.get('MAIL_USE_TLS', 'true').lower() == 'true'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or os.environ.get('MAIL_USERNAME')
+
+    # ------------------------------------------------------------------
+    # Rate limiting (Phase 5) — only the email-a-copy endpoint is limited;
+    # it is the one route that can send outbound mail on an anonymous,
+    # no-account request, so it is the one abuse surface worth guarding.
+    # ------------------------------------------------------------------
+    RATELIMIT_ENABLED = True
+    RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')

@@ -1,6 +1,9 @@
 import secrets
 
 from flask import Flask, g
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
@@ -8,6 +11,8 @@ from config import Config, _DEV_SECRET
 
 db = SQLAlchemy()
 migrate = Migrate()
+mail = Mail()
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
 
 
 def create_app(config_class=Config):
@@ -21,6 +26,8 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app)
+    limiter.init_app(app)
 
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)

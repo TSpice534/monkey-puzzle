@@ -11,6 +11,12 @@ from xml.sax.saxutils import escape
 # Concentric guide rings, as fractions of the outer radius.
 _RING_FRACTIONS = (0.25, 0.5, 0.75, 1.0)
 
+# Label-margin padding added around `size` by render_fingerprint_svg (see
+# there for why); callers that need the actual rendered canvas footprint
+# for a given `size` should use `size * _CANVAS_FACTOR`.
+_LABEL_PAD_FRACTION = 0.22
+_CANVAS_FACTOR = 1 + 2 * _LABEL_PAD_FRACTION
+
 
 def render_fingerprint_svg(scores: dict, personas: dict, size: int = 320) -> str:
     """Return an inline <svg> string: a radar/spider chart with one axis per
@@ -26,7 +32,13 @@ def render_fingerprint_svg(scores: dict, personas: dict, size: int = 320) -> str
     if n == 0:
         return ''
 
-    cx = cy = size / 2
+    # The canvas is padded beyond `size` so long rim labels (e.g.
+    # "Entrepreneur") never clip against the SVG's own viewport edge —
+    # nested/rasterised <svg> clips at its viewBox bounds regardless of
+    # the geometry inside it, unlike overflow-visible root-level SVG.
+    pad = size * _LABEL_PAD_FRACTION
+    canvas = size + 2 * pad
+    cx = cy = canvas / 2
     outer_radius = size * 0.36           # leave room for the rim labels
     start_angle = -math.pi / 2           # first axis points straight up
     step = (2 * math.pi) / n
@@ -96,11 +108,54 @@ def render_fingerprint_svg(scores: dict, personas: dict, size: int = 320) -> str
         )
 
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" '
-        f'viewBox="0 0 {size} {size}" role="img" aria-label="Persona fingerprint radar chart">'
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{canvas:.1f}" height="{canvas:.1f}" '
+        f'viewBox="0 0 {canvas:.1f} {canvas:.1f}" role="img" aria-label="Persona fingerprint radar chart">'
         + ''.join(rings_svg)
         + ''.join(spokes_svg)
         + score_svg
         + ''.join(labels_svg)
+        + '</svg>'
+    )
+
+
+# Standard OpenGraph image size (1200x630) so LinkedIn/Twitter/Facebook
+# crawlers render a full, uncropped preview.
+SHARE_CARD_WIDTH = 1200
+SHARE_CARD_HEIGHT = 630
+
+
+def render_share_card_svg(persona: dict, scores: dict, personas: dict) -> str:
+    """Return a self-contained 1200x630 <svg> share card: persona name +
+    tagline on the left, the fingerprint radar (nested, reusing
+    `render_fingerprint_svg` verbatim) on the right. Rasterised to PNG by
+    the caller (`app/pdf_utils.py` uses it directly as SVG)."""
+    w, h = SHARE_CARD_WIDTH, SHARE_CARD_HEIGHT
+    name = escape(persona.get('name', ''))
+    tagline = escape(persona.get('tagline', ''))
+
+    # `radar_slot` is the actual footprint we want the chart to occupy;
+    # render_fingerprint_svg pads its own canvas by _CANVAS_FACTOR, so the
+    # logical `size` passed to it must be scaled down to compensate.
+    radar_slot = 480
+    radar_svg = render_fingerprint_svg(scores, personas, size=radar_slot / _CANVAS_FACTOR)
+    radar_x = w - radar_slot - 60
+    radar_y = (h - radar_slot) / 2
+
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
+        f'viewBox="0 0 {w} {h}" role="img" aria-label="{name} — The Monkey Puzzle">'
+        f'<rect width="{w}" height="{h}" fill="#f8f9fa" />'
+        f'<rect x="0" y="0" width="14" height="{h}" fill="#2e7d32" />'
+        f'<text x="70" y="90" font-family="Arial,sans-serif" font-size="22" '
+        f'fill="#6c757d" letter-spacing="1">THE MONKEY PUZZLE</text>'
+        f'<text x="70" y="230" font-family="Arial,sans-serif" font-size="28" '
+        f'fill="#6c757d">Your sustainable who:</text>'
+        f'<text x="70" y="300" font-family="Arial,sans-serif" font-size="56" '
+        f'font-weight="700" fill="#212529">{name}</text>'
+        f'<text x="70" y="360" font-family="Arial,sans-serif" font-size="26" '
+        f'fill="#495057">{tagline}</text>'
+        f'<g transform="translate({radar_x:.1f},{radar_y:.1f})">'
+        + radar_svg
+        + '</g>'
         + '</svg>'
     )

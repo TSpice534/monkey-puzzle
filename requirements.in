@@ -6,5 +6,12 @@ psycopg2-binary
 gunicorn
 PyYAML
 
+# Phase 5 — share/output
+Flask-Mail
+Flask-Limiter
+email-validator
+weasyprint
+cairosvg
+
 # Test-only
 pytest

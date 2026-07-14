@@ -1,9 +1,13 @@
-from flask import abort, redirect, render_template, request, url_for
+import cairosvg
+from email_validator import EmailNotValidError, validate_email
+from flask import Response, abort, current_app, flash, redirect, render_template, request, url_for
 
-from app import db
+from app import db, limiter
+from app.email_utils import send_result_email
 from app.models import Submission
+from app.pdf_utils import generate_result_pdf
 from app.survey import bp
-from app.survey.charts import render_fingerprint_svg
+from app.survey.charts import render_fingerprint_svg, render_share_card_svg
 from app.survey.loader import get_survey
 from app.survey.persona import classify_submission
 
@@ -13,6 +17,18 @@ def _get_submission_or_404(token):
     if submission is None:
         abort(404)
     return submission
+
+
+def _require_classified(token):
+    """Return (submission, survey, persona) for a completed submission, or
+    404 — used by the asset routes (share image, PDF, email), which have
+    nothing sensible to render before a persona exists."""
+    submission = _get_submission_or_404(token)
+    if submission.persona_id is None:
+        abort(404)
+    survey = get_survey()
+    persona = survey['personas'][submission.persona_id]
+    return submission, survey, persona
 
 
 def _read_answer(question, form):
@@ -113,3 +129,53 @@ def result(token):
         personas=survey['personas'],
         fingerprint_svg=fingerprint_svg,
     )
+
+
+@bp.route('/<token>/share.png')
+def share_image(token):
+    submission, survey, persona = _require_classified(token)
+    svg = render_share_card_svg(persona, submission.score_vector, survey['personas'])
+    png = cairosvg.svg2png(bytestring=svg.encode(), output_width=1200, output_height=630)
+    response = Response(png, mimetype='image/png')
+    # Deterministic per submission once classified — safe to cache.
+    response.headers['Cache-Control'] = 'public, max-age=86400, immutable'
+    return response
+
+
+@bp.route('/<token>/pdf')
+def download_pdf(token):
+    submission, survey, persona = _require_classified(token)
+    fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
+    pdf_bytes = generate_result_pdf(
+        persona, survey['personas'], fingerprint_svg, base_url=request.url_root,
+    )
+    filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle.pdf"
+    response = Response(pdf_bytes, mimetype='application/pdf')
+    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@bp.route('/<token>/email', methods=['POST'])
+@limiter.limit('5 per hour')
+def email_result(token):
+    submission, survey, persona = _require_classified(token)
+
+    if not current_app.config.get('MAIL_SERVER'):
+        flash("Email isn't configured on this deployment yet.", 'warning')
+        return redirect(url_for('survey.result', token=token))
+
+    raw_email = (request.form.get('email') or '').strip()
+    try:
+        validated = validate_email(raw_email, check_deliverability=False)
+    except EmailNotValidError:
+        flash("That email address doesn't look right — please check it and try again.", 'danger')
+        return redirect(url_for('survey.result', token=token))
+
+    fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
+    result_url = url_for('survey.result', token=token, _external=True)
+    send_result_email(
+        validated.normalized, persona, survey['personas'], fingerprint_svg,
+        result_url, base_url=request.url_root,
+    )
+    flash('Sent! Check your inbox in a minute or two.', 'success')
+    return redirect(url_for('survey.result', token=token))

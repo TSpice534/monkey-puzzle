@@ -1,5 +1,26 @@
 {% extends "base.html" %}
 
+{# Set at template scope (not inside a block) so both {% block head %} and
+   {% block content %} can see it — Jinja block bodies don't share {% set %}
+   variables with each other. #}
+{% set result_url = url_for('survey.result', token=submission.token, _external=True) %}
+{% set share_image_url = url_for('survey.share_image', token=submission.token, _external=True) %}
+
+{% block head %}
+{{ super() }}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ persona.name }} — The Monkey Puzzle">
+<meta property="og:description" content="{{ persona.tagline }}">
+<meta property="og:url" content="{{ result_url }}">
+<meta property="og:image" content="{{ share_image_url }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ persona.name }} — The Monkey Puzzle">
+<meta name="twitter:description" content="{{ persona.tagline }}">
+<meta name="twitter:image" content="{{ share_image_url }}">
+{% endblock %}
+
 {% block content %}
 <div class="mx-auto" style="max-width: 720px;">
   <div class="text-center mb-4">
@@ -7,6 +28,34 @@
   </div>
 
   {% include "survey/_persona_card.html" %}
+
+  <div class="card shadow-sm mt-3">
+    <div class="card-body">
+      <h2 class="h6">Share or save your result</h2>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <a class="btn btn-outline-secondary btn-sm"
+           href="https://www.linkedin.com/sharing/share-offsite/?url={{ result_url | urlencode }}"
+           target="_blank" rel="noopener">
+          Share on LinkedIn
+        </a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('survey.download_pdf', token=submission.token) }}">
+          Download PDF
+        </a>
+      </div>
+
+      <form method="post" action="{{ url_for('survey.email_result', token=submission.token) }}"
+            class="row row-cols-auto g-2 align-items-center">
+        <div class="col">
+          <label for="email" class="visually-hidden">Email address</label>
+          <input type="email" class="form-control form-control-sm" id="email" name="email"
+                 placeholder="you@example.com" required>
+        </div>
+        <div class="col">
+          <button type="submit" class="btn btn-secondary btn-sm">Email me a copy</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <div class="text-center mt-4">
     <a class="btn btn-outline-secondary" href="{{ url_for('survey.start') }}">Start again</a>
