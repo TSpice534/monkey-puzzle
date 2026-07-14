@@ -1,0 +1,260 @@
+"""content/survey.yaml loader: schema validation, normalisation, and the
+data-driven contract (editing a weight changes scoring without engine
+changes)."""
+import copy
+import os
+
+import pytest
+import yaml
+
+from app.survey.loader import SurveyConfigError, load_survey
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REAL_SURVEY_PATH = os.path.join(REPO_ROOT, 'content', 'survey.yaml')
+
+PERSONA_IDS = [
+    'documenter', 'implementer', 'developer', 'advocate', 'communicator',
+    'activist', 'connector', 'cooperator', 'entrepreneur',
+]
+
+
+def _base_config():
+    """A minimal-but-valid config dict, mirroring tests/fixtures/survey_min.yaml,
+    used as a starting point for malformed-YAML mutation tests."""
+    personas = {
+        pid: {'name': f'The {pid.title()}', 'tagline': 'Tagline', 'description': 'Description'}
+        for pid in PERSONA_IDS
+    }
+    return {
+        'meta': {'version': 1, 'title': 'Fixture Survey', 'personas_count': 9},
+        'personas': personas,
+        'questions': [
+            {
+                'id': 'q_single',
+                'type': 'single',
+                'prompt': 'Pick one',
+                'dimension': 'roots',
+                'options': [
+                    {'label': 'Option A', 'weights': {'developer': 2}},
+                    {'label': 'Option B', 'weights': {'documenter': 2}},
+                ],
+            },
+            {
+                'id': 'q_short_text',
+                'type': 'short_text',
+                'prompt': 'Anything else?',
+                'dimension': 'communication_needs',
+            },
+        ],
+        'scoring': {
+            'method': 'persona_vector',
+            'tie_break': list(PERSONA_IDS),
+            'equity_modifier': {'enabled': False},
+            'rogers_curve': {'enabled': False},
+        },
+    }
+
+
+def _write_yaml(tmp_path, data, name='survey.yaml'):
+    path = tmp_path / name
+    path.write_text(yaml.safe_dump(data), encoding='utf-8')
+    return str(path)
+
+
+# ---------------------------------------------------------------------------
+# Valid content
+# ---------------------------------------------------------------------------
+
+def test_real_placeholder_survey_loads_without_error():
+    config = load_survey(REAL_SURVEY_PATH)
+    assert set(config['personas'].keys()) == set(PERSONA_IDS)
+    assert 10 <= len(config['questions']) <= 15
+
+
+def test_valid_config_normalises_persona_ids(tmp_path):
+    path = _write_yaml(tmp_path, _base_config())
+    config = load_survey(path)
+    for pid, persona in config['personas'].items():
+        assert persona['id'] == pid
+
+
+def test_valid_config_attaches_option_indices(tmp_path):
+    path = _write_yaml(tmp_path, _base_config())
+    config = load_survey(path)
+    single_q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert [opt['index'] for opt in single_q['options']] == [0, 1]
+
+
+def test_short_text_question_has_no_options(tmp_path):
+    path = _write_yaml(tmp_path, _base_config())
+    config = load_survey(path)
+    text_q = next(q for q in config['questions'] if q['id'] == 'q_short_text')
+    assert 'options' not in text_q or not text_q['options']
+
+
+def test_persona_relation_defaults_are_empty_lists(tmp_path):
+    path = _write_yaml(tmp_path, _base_config())
+    config = load_survey(path)
+    documenter = config['personas']['documenter']
+    assert documenter['brethren'] == []
+    assert documenter['besties'] == []
+    assert documenter['battlers'] == []
+    assert documenter['case_studies'] == []
+    assert documenter['resources'] == []
+
+
+def test_negative_option_weight_is_valid(tmp_path):
+    """The spec mirrors Donut's negative-weight support — a negative weight
+    must load cleanly, not be rejected as 'non-numeric'."""
+    data = _base_config()
+    data['questions'][0]['options'][0]['weights'] = {'developer': -2}
+    config = load_survey(_write_yaml(tmp_path, data))
+    single_q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert single_q['options'][0]['weights']['developer'] == -2
+
+
+def test_editing_a_weight_changes_scoring_result(tmp_path):
+    """The data-driven contract: change a weight in the YAML, re-run the same
+    answers, and the winning persona should change — no engine change needed."""
+    from app.survey.persona import classify_submission
+
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    answers = {'q_single': 0}  # picks "Option A" -> developer: 2
+    result = classify_submission(answers, config)
+    assert result.persona_id == 'developer'
+
+    mutated = _base_config()
+    mutated['questions'][0]['options'][0]['weights'] = {'documenter': 5}
+    config2 = load_survey(_write_yaml(tmp_path, mutated, name='survey2.yaml'))
+    result2 = classify_submission(answers, config2)
+    assert result2.persona_id == 'documenter'
+
+
+# ---------------------------------------------------------------------------
+# Malformed YAML -> SurveyConfigError
+# ---------------------------------------------------------------------------
+
+def test_missing_yaml_file_raises_survey_config_error(tmp_path):
+    with pytest.raises(SurveyConfigError):
+        load_survey(str(tmp_path / 'does-not-exist.yaml'))
+
+
+def test_non_mapping_yaml_raises_survey_config_error(tmp_path):
+    path = tmp_path / 'survey.yaml'
+    path.write_text('- just\n- a\n- list\n', encoding='utf-8')
+    with pytest.raises(SurveyConfigError):
+        load_survey(str(path))
+
+
+def test_missing_top_level_key_raises(tmp_path):
+    data = _base_config()
+    del data['scoring']
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_wrong_persona_count_raises(tmp_path):
+    data = _base_config()
+    del data['personas']['entrepreneur']
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_persona_missing_required_field_raises(tmp_path):
+    data = _base_config()
+    del data['personas']['documenter']['tagline']
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_persona_bad_brethren_reference_raises(tmp_path):
+    data = _base_config()
+    data['personas']['documenter']['brethren'] = ['not-a-real-persona']
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_persona_case_study_missing_url_raises(tmp_path):
+    data = _base_config()
+    data['personas']['documenter']['case_studies'] = [{'title': 'No URL'}]
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_duplicate_question_id_raises(tmp_path):
+    data = _base_config()
+    data['questions'].append(copy.deepcopy(data['questions'][0]))
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_invalid_question_type_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['type'] = 'not-a-real-type'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_scored_question_with_one_option_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'] = [{'label': 'Only one', 'weights': {'documenter': 1}}]
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_option_weight_referencing_unknown_persona_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['weights'] = {'not-a-real-persona': 1}
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_option_weight_non_numeric_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['weights'] = {'documenter': 'a lot'}
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_boolean_weight_raises(tmp_path):
+    """bool is a subclass of int in Python — guard against `weights: {x: true}`
+    silently passing the numeric check."""
+    data = _base_config()
+    data['questions'][0]['options'][0]['weights'] = {'documenter': True}
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_short_text_with_options_raises(tmp_path):
+    data = _base_config()
+    data['questions'][1]['options'] = [{'label': 'Should not be here', 'weights': {'documenter': 1}}]
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_wrong_scoring_method_raises(tmp_path):
+    data = _base_config()
+    data['scoring']['method'] = 'something_else'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_tie_break_not_a_permutation_raises(tmp_path):
+    data = _base_config()
+    data['scoring']['tie_break'] = PERSONA_IDS[:-1]  # missing one id
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_tie_break_with_duplicate_raises(tmp_path):
+    data = _base_config()
+    data['scoring']['tie_break'] = PERSONA_IDS[:-1] + [PERSONA_IDS[0]]
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_scoring_hook_missing_enabled_key_raises(tmp_path):
+    data = _base_config()
+    data['scoring']['equity_modifier'] = {}
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))

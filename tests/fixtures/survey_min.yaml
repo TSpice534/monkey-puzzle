@@ -1,0 +1,90 @@
+# Minimal fixture survey for tests — small enough to drive the full
+# step->step->result flow in a handful of requests, but still a valid
+# nine-persona config so loader/scoring validation exercises the real rules.
+meta:
+  version: 1
+  title: "Fixture Survey"
+  personas_count: 9
+
+personas:
+  documenter:
+    name: "The Documenter"
+    tagline: "Tagline"
+    description: "Description"
+  implementer:
+    name: "The Implementer"
+    tagline: "Tagline"
+    description: "Description"
+  developer:
+    name: "The Developer"
+    tagline: "Tagline"
+    description: "Description"
+  advocate:
+    name: "The Advocate"
+    tagline: "Tagline"
+    description: "Description"
+  communicator:
+    name: "The Communicator"
+    tagline: "Tagline"
+    description: "Description"
+  activist:
+    name: "The Activist"
+    tagline: "Tagline"
+    description: "Description"
+  connector:
+    name: "The Connector"
+    tagline: "Tagline"
+    description: "Description"
+  cooperator:
+    name: "The Cooperator"
+    tagline: "Tagline"
+    description: "Description"
+  entrepreneur:
+    name: "The Entrepreneur"
+    tagline: "Tagline"
+    description: "Description"
+
+questions:
+  - id: q_single
+    type: single
+    prompt: "Pick one"
+    dimension: roots
+    options:
+      - { label: "Option A", weights: { developer: 2 } }
+      - { label: "Option B", weights: { documenter: 2 } }
+
+  - id: q_multi
+    type: multi
+    prompt: "Pick any"
+    dimension: strategic_domain
+    options:
+      - { label: "Option A", weights: { implementer: 1 } }
+      - { label: "Option B", weights: { communicator: 1 } }
+
+  - id: q_spectrum
+    type: spectrum
+    prompt: "Where on the scale?"
+    dimension: comfort_stretch_stress
+    options:
+      - { label: "Low", weights: { activist: 1 } }
+      - { label: "High", weights: { entrepreneur: 1 } }
+
+  - id: q_short_text
+    type: short_text
+    prompt: "Anything else?"
+    dimension: communication_needs
+
+scoring:
+  method: persona_vector
+  tie_break:
+    - documenter
+    - implementer
+    - developer
+    - advocate
+    - communicator
+    - activist
+    - connector
+    - cooperator
+    - entrepreneur
+  equity_modifier: { enabled: false }
+  rogers_curve: { enabled: false }
