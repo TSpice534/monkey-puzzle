@@ -41,6 +41,11 @@ remaining question set is repurposed, not removed: it now positions the responde
 Rogers' innovation curve, plus a couple of other indicators (details TBC with
 Rob/Andrew).
 
+**Flow position confirmed by Tom (2026-07-15):** the real survey is 11 steps total, and
+the grid is step 8 of 11. This is a smaller step count than the current 16-question
+placeholder (`content/survey.yaml`) — the real question set replaces the placeholder
+rather than extending it.
+
 ## Investigation
 Docs-first (CLAUDE.md, CONTEXT.md, docs/PRODUCTION-PLAN.md), confirmed exact names with
 targeted greps of `persona.py`, `loader.py`, and the survey templates.
@@ -82,7 +87,6 @@ be resolved before /ship builds this):**
   now a fingerprint *of*, given persona is no longer derived from the score vector.
 - Rogers' innovation curve categories/scoring logic, and what "a couple of other
   indicators" means — undefined so far.
-- Where the grid step sits in the flow (immediately after the audience router, or later).
 
 ## Notes
 - **Breaking change to the current classifier**: `classify()`/`classify_submission()`
@@ -99,5 +103,7 @@ be resolved before /ship builds this):**
   of other indicators" are undefined — flag for Rob/Andrew before implementing that part.
   Recommend `/ship` scopes its first pass to the grid UI + direct persona pick, and
   treats Rogers-curve wiring as a closely related fast-follow once that logic is defined.
-- Where in the survey flow the grid step sits (right after the audience router, or
-  later) is unspecified — default to right after the router unless Tom says otherwise.
+- Flow position confirmed: 11 steps total, grid is step 8 of 11 (see grid above) — no
+  longer an open question. The real question set is shorter than the current 16-question
+  placeholder, so `content/survey.yaml` gets replaced, not extended, when the real
+  content lands.
