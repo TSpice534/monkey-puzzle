@@ -9,7 +9,7 @@ from app.pdf_utils import generate_result_pdf
 from app.survey import bp
 from app.survey.charts import render_fingerprint_svg, render_share_card_svg
 from app.survey.loader import effective_questions, get_survey
-from app.survey.persona import classify_submission, resolve_innovation_curve
+from app.survey.persona import classify_submission, resolve_innovation_curve, resolve_now_next
 
 
 def _get_submission_or_404(token):
@@ -81,6 +81,12 @@ def _innovation_context(submission, survey):
         'tagline': band.get('tagline'),
         'description': band.get('description'),
     }
+
+
+def _now_next_context(submission, survey):
+    """{'now': <str|None>, 'next': <str|None>} for the result surfaces, or
+    None when the survey has no now_next config."""
+    return resolve_now_next(submission.answers, survey, submission.audience)
 
 
 @bp.route('/start')
@@ -204,6 +210,7 @@ def result(token):
         grid_question=grid_question,
         grid_selected=grid_selected,
         innovation=_innovation_context(submission, survey),
+        now_next=_now_next_context(submission, survey),
         audience=submission.audience,
     )
 
@@ -224,9 +231,10 @@ def download_pdf(token):
     submission, survey, persona = _require_classified(token)
     fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
     innovation = _innovation_context(submission, survey)
+    now_next = _now_next_context(submission, survey)
     pdf_bytes = generate_result_pdf(
         persona, survey['personas'], fingerprint_svg,
-        innovation=innovation, base_url=request.url_root, audience=submission.audience,
+        innovation=innovation, now_next=now_next, base_url=request.url_root, audience=submission.audience,
     )
     filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle.pdf"
     response = Response(pdf_bytes, mimetype='application/pdf')
@@ -253,9 +261,11 @@ def email_result(token):
     fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
     result_url = url_for('survey.result', token=token, _external=True)
     innovation = _innovation_context(submission, survey)
+    now_next = _now_next_context(submission, survey)
     send_result_email(
         validated.normalized, persona, survey['personas'], fingerprint_svg,
-        result_url, innovation=innovation, base_url=request.url_root, audience=submission.audience,
+        result_url, innovation=innovation, now_next=now_next, base_url=request.url_root,
+        audience=submission.audience,
     )
     flash('Sent! Check your inbox in a minute or two.', 'success')
     return redirect(url_for('survey.result', token=token))

@@ -5,6 +5,7 @@ Reuses Donut Toolkit's scoring *helper style* (small pure functions,
 negative-weight support) — not its per-section band thresholds, which do
 not apply here.
 """
+import string
 from dataclasses import dataclass
 
 
@@ -139,6 +140,87 @@ def resolve_innovation_curve(answers: dict, config: dict, persona_id: str | None
         band = bands[0] if total < bands[0]['min'] else bands[-1]
 
     return InnovationCurveResult(score=total, band=band['name'], colour=band['colour'])
+
+
+def _statement_phrase(option: dict, audience: str | None) -> str:
+    """statement_phrase_organisation (org track only) > statement_phrase > label.
+    Mirrors the option_label() macro's fallback chain."""
+    if audience == 'organisation' and option.get('statement_phrase_organisation'):
+        return option['statement_phrase_organisation']
+    return option.get('statement_phrase') or option['label']
+
+
+def _join_phrases(phrases: list[str]) -> str:
+    """Oxford-comma join: [] -> '', [a] -> 'a', [a,b] -> 'a and b',
+    [a,b,c] -> 'a, b, and c'."""
+    if not phrases:
+        return ''
+    if len(phrases) == 1:
+        return phrases[0]
+    if len(phrases) == 2:
+        return f'{phrases[0]} and {phrases[1]}'
+    return ', '.join(phrases[:-1]) + f', and {phrases[-1]}'
+
+
+def resolve_now_next(answers: dict, config: dict, audience: str | None) -> dict | None:
+    """Assemble the Now/Next narrative statements from the `output: now` /
+    `output: next` question answers. Returns None when the survey has no
+    `now_next` construct (e.g. the small test fixtures). Otherwise returns
+    {'now': <str|None>, 'next': <str|None>}: each statement is None when any
+    placeholder its template needs has no resolvable answer (defensive — the
+    single/triangle source questions are skippable in the UI, so a completed
+    submission may still be missing one)."""
+    nn = config.get('now_next')
+    if not nn:
+        return None
+
+    phrase_map = {}
+    for question in config['questions']:
+        if question.get('output') not in ('now', 'next'):
+            continue
+        qid = question['id']
+        answer = answers.get(qid)
+        if answer is None:
+            continue
+
+        options = question.get('options', [])
+        options_by_index = {opt['index']: opt for opt in options}
+
+        if question['type'] in ('multi', 'multi_exact'):
+            if not isinstance(answer, list):
+                continue
+            phrases = []
+            for index in answer:
+                option = options_by_index.get(index)
+                if option is not None:
+                    phrases.append(_statement_phrase(option, audience))
+            if not phrases:
+                continue
+            phrase_map[qid] = _join_phrases(phrases)
+        else:
+            if not isinstance(answer, int) or isinstance(answer, bool):
+                continue
+            option = options_by_index.get(answer)
+            if option is None:
+                continue
+            phrase_map[qid] = _statement_phrase(option, audience)
+
+    result = {}
+    for key, template_key, org_key in (('now', 'now', 'now_organisation'), ('next', 'next', 'next_organisation')):
+        template = nn.get(org_key) if audience == 'organisation' and nn.get(org_key) else nn.get(template_key)
+        if not template:
+            result[key] = None
+            continue
+        placeholders = {
+            field_name for _, field_name, _, _ in string.Formatter().parse(template)
+            if field_name is not None
+        }
+        if placeholders <= phrase_map.keys():
+            result[key] = template.format(**phrase_map)
+        else:
+            result[key] = None
+
+    return result
 
 
 def classify_submission(answers: dict, config: dict) -> PersonaResult:

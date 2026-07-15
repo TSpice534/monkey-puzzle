@@ -267,18 +267,18 @@ questions:
     output: next
     prompt: "What do you need most to progress?"
     options:
-      - { label: "More capacity" }
-      - { label: "More knowledge" }
-      - { label: "More support" }
+      - { label: "More capacity", statement_phrase: "capacity" }
+      - { label: "More knowledge", statement_phrase: "knowledge" }
+      - { label: "More support", statement_phrase: "support" }
 
   - id: have_enough
     type: triangle
     output: now
     prompt: "What do you already have enough of?"
     options:
-      - { label: "Capacity" }
-      - { label: "Knowledge" }
-      - { label: "Support" }
+      - { label: "Capacity", statement_phrase: "capacity" }
+      - { label: "Knowledge", statement_phrase: "knowledge" }
+      - { label: "Support", statement_phrase: "support" }
 
   - id: profile_grid
     type: grid
@@ -330,20 +330,20 @@ questions:
     output: next
     prompt: "What type of support do you desire?"
     options:
-      - { label: "Information" }
-      - { label: "Training" }
-      - { label: "Mentoring" }
+      - { label: "Information", statement_phrase: "information" }
+      - { label: "Training", statement_phrase: "training" }
+      - { label: "Mentoring", statement_phrase: "mentoring" }
 
   - id: target_groups
     type: single
     output: next
     prompt: "What target groups would you like to collaborate with the most?"
     options:
-      - { label: "I want to engage my audience",                  label_organisation: "We want to engage our audience" }
-      - { label: "I want to partner with my suppliers",           label_organisation: "We want to partner with our suppliers" }
-      - { label: "I want to collaborate with knowledge partners", label_organisation: "We want to collaborate with knowledge partners" }
-      - { label: "I want to entice policy makers",                label_organisation: "We want to entice policy makers" }
-      - { label: "I want to focus on own organisation first",     label_organisation: "We want to focus on our own organisation first" }
+      - { label: "I want to engage my audience",                  label_organisation: "We want to engage our audience",                  statement_phrase: "with your audience" }
+      - { label: "I want to partner with my suppliers",           label_organisation: "We want to partner with our suppliers",           statement_phrase: "with suppliers" }
+      - { label: "I want to collaborate with knowledge partners", label_organisation: "We want to collaborate with knowledge partners", statement_phrase: "with knowledge partners" }
+      - { label: "I want to entice policy makers",                label_organisation: "We want to entice policy makers",                 statement_phrase: "with policy makers" }
+      - { label: "I want to focus on own organisation first",     label_organisation: "We want to focus on our own organisation first",  statement_phrase: "within your own organisation" }
 
 scoring:
   method: persona_vector
@@ -436,3 +436,21 @@ innovation_curve:
         scientific sources and interaction with other innovators. Their risk
         tolerance allows them to adopt technologies that may ultimately fail.
         Financial resources help absorb these failures.
+
+# Now / Next narrative statements (backlog #0007) — assembled from the
+# `output: now` / `output: next` question answers by
+# app/survey/persona.py::resolve_now_next. Copy lives here (not in code) so
+# Rob/Andrew can edit without a deploy, same rationale as innovation_curve.
+# Placeholders are question ids; each resolves to that question's selected
+# option phrase(s) (see per-option `statement_phrase` below). `_organisation`
+# variants are optional and fall back to the default, same pattern as
+# label_organisation / description_organisation.
+now_next:
+  now: >-
+    Your current sustainability focus is {topics}, where you feel you have a
+    good amount of {have_enough} to help achieve your goals.
+  next: >-
+    In order to progress your ambitions, you are looking for more {need_most}.
+    This could be achieved by accessing more {support_type} to address this
+    challenge. In terms of collaboration ambitions, you are keen to engage more
+    {target_groups}.
