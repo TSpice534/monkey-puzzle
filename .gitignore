@@ -65,3 +65,6 @@ memory/
 !app/static/**/*.jpg
 !app/static/**/*.jpeg
 !app/static/**/*.avif
+
+# Ship pipeline scratch handoff (never part of the shipped history)
+.pipeline/
