@@ -2,9 +2,9 @@
 id: 0005
 title: Vector icons for persona cards and grid
 type: feature
-status: todo
+status: in-progress
 created: 2026-07-15
-branch:
+branch: feature/persona-icons
 ---
 
 ## Request
@@ -45,13 +45,18 @@ mark paired with the persona name).
   "blank until answered" grid — flagging it, not blocking on it, since Tom picked "grids too."
 
 **Decisions from Tom:**
-1. **Icon source — placeholder now, swap later.** Ship with Bootstrap Icons (or similarly
-   simple stock icons) as a stand-in per persona, structured so swapping in final custom SVG
-   art later is a small follow-up (just change the `icon:` value/asset path, no template
-   rework). Do not attempt to hand-draw a custom icon set matching the screenshot's exact
-   line-art style — that requires real design assets Tom doesn't have yet.
-2. **Scope — card + both grid views.** Icons appear on the result persona card, the labelled
-   result grid, and the blank question-time grid.
+1. **Icon source — SVG-per-persona file, placeholder now, swap later.** `icon:` in
+   `content/survey.yaml` points to an SVG file (e.g. `app/static/icons/developer.svg`), one per
+   persona id. Content is placeholder art for now (simple line-art, can source from Bootstrap
+   Icons' SVG markup since it's already a dependency) — closer to the screenshot's bespoke
+   combined-mark style than a class name, and swapping in final custom art later is just
+   replacing the file at the same path, no template rework. Do not attempt to hand-draw a
+   custom icon set matching the screenshot's exact style — that requires real design assets
+   Tom doesn't have yet.
+2. **Scope — card + labelled result grid only, NOT the question-time grid.** Icons appear on
+   the result persona card and the labelled result grid (`_result_grid.html`). Confirmed at
+   `/ship` time (2026-07-15): `_question_grid.html` stays blank-until-answered as today — do
+   not add icons there, that's out of scope for this item.
 
 ## Notes
 
