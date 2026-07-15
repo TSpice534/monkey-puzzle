@@ -26,8 +26,10 @@
               {% set cell = grid_question.cells | selectattr('x', 'equalto', x) | selectattr('y', 'equalto', y) | first %}
               {% set cell_persona = personas[cell.persona] %}
               {% set is_selected = grid_selected == [x, y] %}
-              <td class="grid-cell grid-cell--result {{ 'grid-cell--selected' if is_selected else 'grid-cell--muted' }}">
-                {{ cell_persona.name }}
+              <td class="persona-grid-cell-wrap">
+                <div class="grid-cell grid-cell--result {{ 'grid-cell--selected' if is_selected else 'grid-cell--muted' }}">
+                  {{ cell_persona.name }}
+                </div>
               </td>
             {% endfor %}
           </tr>
