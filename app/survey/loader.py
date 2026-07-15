@@ -38,6 +38,7 @@ def load_survey(path: str) -> dict:
         _validate_questions(raw)
         _validate_scoring(raw)
         _validate_innovation_curve(raw)
+        _validate_now_next(raw)
         return _normalise(raw)
     except SurveyConfigError:
         raise
@@ -238,6 +239,19 @@ def _validate_questions(raw):
                     f"question '{qid}' option {i} 'unlabelled', if present, must be a boolean"
                 )
 
+            statement_phrase = opt.get('statement_phrase')
+            if statement_phrase is not None and (not isinstance(statement_phrase, str) or not statement_phrase):
+                raise SurveyConfigError(
+                    f"question '{qid}' option {i} 'statement_phrase', if present, must be a non-empty string"
+                )
+            statement_phrase_organisation = opt.get('statement_phrase_organisation')
+            if statement_phrase_organisation is not None and (
+                not isinstance(statement_phrase_organisation, str) or not statement_phrase_organisation
+            ):
+                raise SurveyConfigError(
+                    f"question '{qid}' option {i} 'statement_phrase_organisation', if present, must be a non-empty string"
+                )
+
             if is_router:
                 audience_value = opt.get('audience_value')
                 if audience_value not in _VALID_AUDIENCES:
@@ -411,6 +425,33 @@ def _validate_innovation_curve(raw):
                 raise SurveyConfigError(
                     f"survey.yaml 'innovation_curve.bands' entry {i} must have a non-empty string '{field}'"
                 )
+
+
+def _validate_now_next(raw):
+    """Optional top-level `now_next` construct (backlog #0007) — the two
+    Now/Next narrative statement templates for `resolve_now_next`. Absent is
+    valid (the small test fixtures have no now_next); placeholder names
+    aren't cross-checked against question ids here — resolution is
+    defensive (missing/unknown placeholder -> that statement renders as
+    None), same spirit as innovation_curve not re-listing its scored
+    questions."""
+    nn = raw.get('now_next')
+    if nn is None:
+        return
+
+    if not isinstance(nn, dict):
+        raise SurveyConfigError("survey.yaml 'now_next' must be a mapping")
+
+    for field in ('now', 'next'):
+        if not nn.get(field) or not isinstance(nn[field], str):
+            raise SurveyConfigError(f"survey.yaml 'now_next' must have a non-empty string '{field}'")
+
+    for field in ('now_organisation', 'next_organisation'):
+        value = nn.get(field)
+        if value is not None and (not isinstance(value, str) or not value):
+            raise SurveyConfigError(
+                f"survey.yaml 'now_next' field '{field}', if present, must be a non-empty string"
+            )
 
 
 def _normalise(raw):

@@ -422,6 +422,30 @@ def test_result_page_renders_the_innovation_band_card_after_the_grid(client):
     assert grid_pos < innovation_pos < share_pos
 
 
+def test_result_page_renders_the_now_next_card_in_the_persona_card(client):
+    """backlog #0007 (moved per Tom's follow-up feedback): the Now/Next
+    block sits inside the persona card ('Your sustainable who'), directly
+    below the persona description and above 'Natural allies' — not as its
+    own card after the innovation-curve block."""
+    # _complete_survey defaults: topics=[0,1,2] (Water/Food & Drinks/Energy),
+    # have_enough=need_most=support_type=target_groups=0.
+    token, _ = _complete_survey(client)
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Now and next' in body
+    # Auto-escaped, not | safe — 'Food & Drinks' must render as '&amp;'.
+    assert 'Water, Food &amp; Drinks, and Energy' in body
+    assert 'you are looking for more capacity' in body
+
+    description_pos = body.index('Your sustainable who')
+    now_next_pos = body.index('Now and next')
+    allies_pos = body.index('Natural allies')
+    grid_pos = body.index('Your position on the grid')
+    assert description_pos < now_next_pos < allies_pos < grid_pos
+
+
 def test_result_grid_table_structure_is_a_real_3x3_not_a_stacked_column(client):
     """Regression test: `.grid-cell` (display:flex) was once applied directly
     to the result grid's <td>, which overrides the browser's default
@@ -481,6 +505,52 @@ def test_pdf_result_template_renders_the_innovation_band_name(app):
     assert 'Late Majority' in html
 
 
+def test_pdf_result_template_renders_the_now_next_statements(app):
+    """generate_result_pdf threads `now_next` into `pdf/result.html` — the
+    simplest robust check that the partial is included is rendering the
+    template directly with a `now_next` context and asserting the statement
+    text is present (WeasyPrint's rasterised PDF bytes aren't
+    text-greppable)."""
+    from flask import render_template
+
+    persona = {
+        'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd',
+        'natural_allies': [], 'friends': [], 'necessity': [], 'case_studies': [], 'resources': [],
+    }
+    now_next = {'now': 'Now sentence.', 'next': 'Next sentence.'}
+
+    with app.app_context():
+        html = render_template(
+            'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
+            fingerprint_svg='<svg></svg>', now_next=now_next, audience=None,
+        )
+    assert 'Now and next' in html
+    assert 'Now sentence.' in html
+    assert 'Next sentence.' in html
+
+
+def test_pdf_result_template_autoescapes_ampersand_in_now_next_statement(app):
+    """The now_next partial has no `| safe` — a statement text containing a
+    raw '&' (e.g. from a 'Food & Drinks' topic label baked into the resolved
+    sentence) must render as '&amp;' in the PDF's source HTML, not leak
+    unescaped markup."""
+    from flask import render_template
+
+    persona = {
+        'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd',
+        'natural_allies': [], 'friends': [], 'necessity': [], 'case_studies': [], 'resources': [],
+    }
+    now_next = {'now': 'Your focus is Water, Food & Drinks, and Energy.', 'next': None}
+
+    with app.app_context():
+        html = render_template(
+            'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
+            fingerprint_svg='<svg></svg>', now_next=now_next, audience=None,
+        )
+    assert 'Water, Food &amp; Drinks, and Energy' in html
+    assert 'Food & Drinks' not in html
+
+
 def test_email_templates_render_the_innovation_band_name(app):
     """Unit-level check (mirroring how test_sharing.py exercises email
     bodies) that both email/result.txt and email/result.html render the
@@ -502,6 +572,57 @@ def test_email_templates_render_the_innovation_band_name(app):
 
     assert 'Late Majority' in text_body
     assert 'Late Majority' in html_body
+
+
+def test_email_templates_render_the_now_next_statements(app):
+    """Unit-level check (mirroring how the innovation-curve email test
+    works) that both email/result.txt and email/result.html render the
+    Now/Next statements when given a `now_next` context."""
+    from flask import render_template
+
+    persona = {'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd'}
+    now_next = {'now': 'Now sentence.', 'next': 'Next sentence.'}
+
+    with app.app_context():
+        text_body = render_template(
+            'email/result.txt', persona=persona, result_url='https://example.com/r',
+            now_next=now_next, audience=None,
+        )
+        html_body = render_template(
+            'email/result.html', persona=persona, result_url='https://example.com/r',
+            now_next=now_next, audience=None,
+        )
+
+    assert 'Now sentence.' in text_body
+    assert 'Next sentence.' in text_body
+    assert 'Now sentence.' in html_body
+    assert 'Next sentence.' in html_body
+
+
+def test_email_html_template_autoescapes_ampersand_in_now_next_statement(app):
+    """email/result.html has no `| safe` on now_next.now/next either — a
+    statement containing a raw '&' must escape to '&amp;' there too, not
+    just on the web result page. The plain-text sibling (result.txt) is not
+    HTML and must NOT escape it."""
+    from flask import render_template
+
+    persona = {'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd'}
+    now_next = {'now': 'Your focus is Water, Food & Drinks, and Energy.', 'next': None}
+
+    with app.app_context():
+        html_body = render_template(
+            'email/result.html', persona=persona, result_url='https://example.com/r',
+            now_next=now_next, audience=None,
+        )
+        text_body = render_template(
+            'email/result.txt', persona=persona, result_url='https://example.com/r',
+            now_next=now_next, audience=None,
+        )
+
+    assert 'Water, Food &amp; Drinks, and Energy' in html_body
+    assert 'Food & Drinks' not in html_body
+    # Plain text: no HTML entity encoding expected.
+    assert 'Water, Food & Drinks, and Energy' in text_body
 
 
 def test_email_result_route_reachable_against_real_content(client, app):

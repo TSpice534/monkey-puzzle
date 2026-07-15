@@ -18,17 +18,17 @@ from app.pdf_utils import generate_result_pdf
 
 
 def _send_async(app, msg_kwargs, persona, personas, fingerprint_svg, result_url, innovation=None,
-                 base_url=None, audience=None) -> None:
+                 now_next=None, base_url=None, audience=None) -> None:
     with app.app_context():
         msg = Message(**msg_kwargs)
         msg.body = render_template('email/result.txt', persona=persona, result_url=result_url,
-                                    innovation=innovation, audience=audience)
+                                    innovation=innovation, now_next=now_next, audience=audience)
         msg.html = render_template('email/result.html', persona=persona, result_url=result_url,
-                                    innovation=innovation, audience=audience)
+                                    innovation=innovation, now_next=now_next, audience=audience)
 
         try:
             pdf_bytes = generate_result_pdf(persona, personas, fingerprint_svg, innovation=innovation,
-                                             base_url=base_url, audience=audience)
+                                             now_next=now_next, base_url=base_url, audience=audience)
             filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle.pdf"
             msg.attach(filename, 'application/pdf', pdf_bytes)
         except Exception:
@@ -41,17 +41,19 @@ def _send_async(app, msg_kwargs, persona, personas, fingerprint_svg, result_url,
 
 
 def send_result_email(recipient_email: str, persona: dict, personas: dict, fingerprint_svg: str,
-                       result_url: str, innovation: dict = None, base_url: str = None,
-                       audience: str = None) -> threading.Thread:
+                       result_url: str, innovation: dict = None, now_next: dict = None,
+                       base_url: str = None, audience: str = None) -> threading.Thread:
     """Fire-and-forget: email `recipient_email` a copy of their result + PDF.
 
     `innovation` (backlog #0002) is the optional {'band', 'score', 'colour'}
     context for the innovation-curve band block, threaded into both email
-    bodies and the attached PDF. `audience` (backlog #0004) is the
-    submission's 'individual'/'organisation'/None routing, threaded into
-    both email bodies and the attached PDF so the persona description can
-    resolve `description_organisation`. Both default to `None` so callers
-    that omit them still work.
+    bodies and the attached PDF. `now_next` (backlog #0007) is the optional
+    {'now', 'next'} context for the Now/Next narrative statements, threaded
+    the same way. `audience` (backlog #0004) is the submission's
+    'individual'/'organisation'/None routing, threaded into both email
+    bodies and the attached PDF so the persona description can resolve
+    `description_organisation`. All default to `None` so callers that omit
+    them still work.
 
     Returns the background `Thread` — the route ignores it, but tests can
     `.join()` it for a deterministic assertion point instead of racing the
@@ -65,7 +67,8 @@ def send_result_email(recipient_email: str, persona: dict, personas: dict, finge
     )
     thread = threading.Thread(
         target=_send_async,
-        args=(app, msg_kwargs, persona, personas, fingerprint_svg, result_url, innovation, base_url, audience),
+        args=(app, msg_kwargs, persona, personas, fingerprint_svg, result_url, innovation, now_next,
+              base_url, audience),
         daemon=True,
     )
     thread.start()

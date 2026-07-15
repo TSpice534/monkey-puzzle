@@ -866,3 +866,150 @@ def test_real_survey_loads_the_innovation_curve_construct():
     config = load_survey(REAL_SURVEY_PATH)
     assert config['innovation_curve']['persona_modifiers']['accountant'] == 0
     assert config['innovation_curve']['bands'][0]['name'] == 'Laggards'
+
+
+# ---------------------------------------------------------------------------
+# Option 'statement_phrase' / 'statement_phrase_organisation' fields, and the
+# top-level 'now_next' construct (backlog #0007 — Now/Next narrative result
+# statements). Mirrors the label_organisation / innovation_curve checks above.
+# ---------------------------------------------------------------------------
+
+def test_non_string_statement_phrase_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['statement_phrase'] = 123
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_empty_statement_phrase_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['statement_phrase'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_valid_statement_phrase_loads(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['statement_phrase'] = 'capacity'
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert q['options'][0]['statement_phrase'] == 'capacity'
+
+
+def test_non_string_statement_phrase_organisation_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['statement_phrase_organisation'] = 123
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_empty_statement_phrase_organisation_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['statement_phrase_organisation'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_valid_statement_phrase_organisation_loads(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['statement_phrase_organisation'] = 'organisational capacity'
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert q['options'][0]['statement_phrase_organisation'] == 'organisational capacity'
+
+
+def test_absent_statement_phrase_is_valid(tmp_path):
+    """statement_phrase(_organisation) is optional — the fixture builder
+    never sets it, and load_survey must not raise or invent a default."""
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    assert config['questions'][0]['options'][0].get('statement_phrase') is None
+
+
+def _now_next_construct():
+    return {
+        'now': 'Your focus is {topics}.',
+        'next': 'You need {need_most}.',
+    }
+
+
+def test_absent_now_next_is_valid(tmp_path):
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    assert config.get('now_next') is None
+
+
+def test_valid_now_next_loads(tmp_path):
+    data = _base_config()
+    data['now_next'] = _now_next_construct()
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['now_next']['now'] == 'Your focus is {topics}.'
+    assert config['now_next']['next'] == 'You need {need_most}.'
+
+
+def test_now_next_not_a_mapping_raises(tmp_path):
+    data = _base_config()
+    data['now_next'] = 'not a mapping'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+@pytest.mark.parametrize('missing_field', ['now', 'next'])
+def test_now_next_missing_required_field_raises(tmp_path, missing_field):
+    data = _base_config()
+    nn = _now_next_construct()
+    del nn[missing_field]
+    data['now_next'] = nn
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+@pytest.mark.parametrize('empty_field', ['now', 'next'])
+def test_now_next_empty_required_field_raises(tmp_path, empty_field):
+    data = _base_config()
+    nn = _now_next_construct()
+    nn[empty_field] = ''
+    data['now_next'] = nn
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_now_next_valid_organisation_overrides_load(tmp_path):
+    data = _base_config()
+    nn = _now_next_construct()
+    nn['now_organisation'] = 'Our focus is {topics}.'
+    nn['next_organisation'] = 'We need {need_most}.'
+    data['now_next'] = nn
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['now_next']['now_organisation'] == 'Our focus is {topics}.'
+    assert config['now_next']['next_organisation'] == 'We need {need_most}.'
+
+
+def test_now_next_empty_organisation_override_raises(tmp_path):
+    data = _base_config()
+    nn = _now_next_construct()
+    nn['now_organisation'] = ''
+    data['now_next'] = nn
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_now_next_non_string_organisation_override_raises(tmp_path):
+    data = _base_config()
+    nn = _now_next_construct()
+    nn['next_organisation'] = 123
+    data['now_next'] = nn
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_real_survey_loads_the_now_next_construct():
+    config = load_survey(REAL_SURVEY_PATH)
+    assert config['now_next']['now'] == (
+        'Your current sustainability focus is {topics}, where you feel you have a '
+        'good amount of {have_enough} to help achieve your goals.'
+    )
+    assert config['now_next']['next'] == (
+        'In order to progress your ambitions, you are looking for more {need_most}. '
+        'This could be achieved by accessing more {support_type} to address this '
+        'challenge. In terms of collaboration ambitions, you are keen to engage more '
+        '{target_groups}.'
+    )

@@ -9,8 +9,9 @@ import pytest
 
 from app.survey.loader import load_survey
 from app.survey.persona import (
-    InnovationCurveResult, PersonaResult, apply_modifiers, classify, classify_submission,
-    resolve_innovation_curve, resolve_profile_persona, score_submission,
+    InnovationCurveResult, PersonaResult, _join_phrases, _statement_phrase, apply_modifiers, classify,
+    classify_submission, resolve_innovation_curve, resolve_now_next, resolve_profile_persona,
+    score_submission,
 )
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -295,3 +296,131 @@ def test_resolve_innovation_curve_unknown_persona_id_contributes_zero_modifier(c
     answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
     result = resolve_innovation_curve(answers, config, 'not-a-real-persona')
     assert result.score == 3
+
+
+# ---------------------------------------------------------------------------
+# _join_phrases — Oxford-comma joining helper
+# ---------------------------------------------------------------------------
+
+def test_join_phrases_empty_list():
+    assert _join_phrases([]) == ''
+
+
+def test_join_phrases_one_item():
+    assert _join_phrases(['Water']) == 'Water'
+
+
+def test_join_phrases_two_items_no_oxford_comma():
+    assert _join_phrases(['Water', 'Energy']) == 'Water and Energy'
+
+
+def test_join_phrases_three_items_oxford_comma():
+    assert _join_phrases(['Water', 'Energy', 'Food']) == 'Water, Energy, and Food'
+
+
+# ---------------------------------------------------------------------------
+# _statement_phrase — statement_phrase_organisation > statement_phrase > label
+# ---------------------------------------------------------------------------
+
+def test_statement_phrase_falls_back_to_label_when_absent():
+    option = {'label': 'Water'}
+    assert _statement_phrase(option, None) == 'Water'
+    assert _statement_phrase(option, 'organisation') == 'Water'
+
+
+def test_statement_phrase_used_when_present():
+    option = {'label': 'Capacity', 'statement_phrase': 'capacity'}
+    assert _statement_phrase(option, None) == 'capacity'
+
+
+def test_statement_phrase_organisation_only_wins_on_org_track():
+    option = {
+        'label': 'Capacity', 'statement_phrase': 'capacity',
+        'statement_phrase_organisation': 'organisational capacity',
+    }
+    assert _statement_phrase(option, 'organisation') == 'organisational capacity'
+    assert _statement_phrase(option, 'individual') == 'capacity'
+    assert _statement_phrase(option, None) == 'capacity'
+
+
+def test_statement_phrase_organisation_absent_falls_back_to_statement_phrase():
+    """OPEN QUESTION 1 (backlog #0007): no org-register copy has been
+    supplied for the real survey — confirm the fallback chain still resolves
+    to the individual-register statement_phrase on the org track."""
+    option = {'label': 'Capacity', 'statement_phrase': 'capacity'}
+    assert _statement_phrase(option, 'organisation') == 'capacity'
+
+
+# ---------------------------------------------------------------------------
+# resolve_now_next — Now/Next narrative statement assembly (backlog #0007),
+# exercised against the real config so worked examples cross-check the real
+# content/survey.yaml copy and per-option statement_phrase values.
+# ---------------------------------------------------------------------------
+
+def test_resolve_now_next_returns_none_when_survey_has_no_now_next(weighted_config):
+    assert resolve_now_next({}, weighted_config, None) is None
+
+
+def test_resolve_now_next_now_sentence_joins_three_topics_and_have_enough_phrase(config):
+    answers = {
+        'topics': [0, 1, 2],       # Water, Food & Drinks, Energy
+        'have_enough': 0,          # Capacity -> statement_phrase 'capacity'
+    }
+    result = resolve_now_next(answers, config, None)
+    assert result['now'] == (
+        'Your current sustainability focus is Water, Food & Drinks, and Energy, '
+        'where you feel you have a good amount of capacity to help achieve your goals.'
+    )
+
+
+def test_resolve_now_next_next_sentence_joins_three_phrases(config):
+    answers = {
+        'need_most': 0,        # More capacity -> 'capacity'
+        'support_type': 0,     # Information -> 'information'
+        'target_groups': 0,    # I want to engage my audience -> 'with your audience'
+    }
+    result = resolve_now_next(answers, config, None)
+    assert result['next'] == (
+        'In order to progress your ambitions, you are looking for more capacity. '
+        'This could be achieved by accessing more information to address this '
+        'challenge. In terms of collaboration ambitions, you are keen to engage more '
+        'with your audience.'
+    )
+
+
+def test_resolve_now_next_now_is_none_when_topics_missing(config):
+    answers = {'have_enough': 0}
+    result = resolve_now_next(answers, config, None)
+    assert result['now'] is None
+
+
+def test_resolve_now_next_now_is_none_when_have_enough_missing(config):
+    answers = {'topics': [0, 1, 2]}
+    result = resolve_now_next(answers, config, None)
+    assert result['now'] is None
+
+
+def test_resolve_now_next_next_is_none_when_a_required_answer_is_missing(config):
+    answers = {'need_most': 0, 'support_type': 0}  # target_groups missing
+    result = resolve_now_next(answers, config, None)
+    assert result['next'] is None
+
+
+def test_resolve_now_next_both_none_when_no_source_answers(config):
+    result = resolve_now_next({}, config, None)
+    assert result == {'now': None, 'next': None}
+
+
+def test_resolve_now_next_organisation_falls_back_to_individual_copy(config):
+    """No org-register now_next copy is supplied (OPEN QUESTION 1) — the
+    organisation track must render the same statements as the individual
+    track via the fallback chain, not blank out."""
+    answers = {
+        'topics': [0, 1, 2], 'have_enough': 0,
+        'need_most': 0, 'support_type': 0, 'target_groups': 0,
+    }
+    individual = resolve_now_next(answers, config, 'individual')
+    organisation = resolve_now_next(answers, config, 'organisation')
+    assert individual == organisation
+    assert organisation['now'] is not None
+    assert organisation['next'] is not None
