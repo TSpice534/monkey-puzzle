@@ -320,6 +320,26 @@ def test_result_page_renders_the_labelled_grid_with_the_chosen_persona(client):
     assert 'grid-cell--selected' in body
 
 
+def test_result_grid_table_structure_is_a_real_3x3_not_a_stacked_column(client):
+    """Regression test: `.grid-cell` (display:flex) was once applied directly
+    to the result grid's <td>, which overrides the browser's default
+    table-cell display and breaks the table out of row/column layout —
+    visually all 9 personas stacked into a single column instead of 3x3.
+    Guard both ends: the <td> itself must stay a plain, unstyled table cell
+    (only `persona-grid-cell-wrap`, which is padding-only in theme.css), and
+    the flex-styled `.grid-cell` must live on a nested element instead."""
+    token, _ = _complete_survey(client, grid='2,0')  # -> activist
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert '<td class="grid-cell' not in body
+    assert body.count('<td class="persona-grid-cell-wrap">') == 9
+    assert body.count('class="grid-cell grid-cell--result') == 9
+    # 3 data rows (one per y), each headed by its own y-axis row label.
+    assert body.count('<th scope="row">') == 3
+
+
 def test_share_image_returns_png_against_real_content(client):
     token, _ = _complete_survey(client)
     response = client.get(f'/survey/{token}/share.png')
