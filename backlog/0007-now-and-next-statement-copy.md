@@ -2,7 +2,7 @@
 id: 0007
 title: Now and Next statement copy
 type: feature
-status: in-progress
+status: shipped
 created: 2026-07-15
 branch: feature/now-and-next-statement-copy
 ---
