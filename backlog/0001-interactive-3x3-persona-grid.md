@@ -29,16 +29,11 @@ individuals, "Find your organisation on this grid and select" for organisations.
 | Implement existing solutions           | Implementer | Entrepreneur | Connector  |
 | Create a stage and address the topic   | Documenter  | Communicator | Activist   |
 
-Tom gave this as a plain top/middle/bottom, left/right grid without naming which row is
-which y-axis option or which column is which x-axis option. The row/column labels above
-are an inferred mapping, not something Tom stated explicitly — inferred from the literal
-name matches (Developer sits top-left, Implementer sits middle-left; both only make
-sense if that column is "Internal" and those rows are "Develop"/"Implement"
-respectively). Note this means row order is the *reverse* of how the y-axis options were
-originally listed (Create-stage, Implement, Develop) — top row is "Develop," not
-"Create a stage." **Flag for Rob/Andrew to confirm before this ships** — if the
-row/column assignment is wrong, every respondent lands on a different persona than
-intended.
+Axis correspondence confirmed by Tom (2026-07-15): x-axis left-to-right = Internal,
+Sector, Society; y-axis bottom-to-top = Create a stage and address the topic, Implement
+existing solutions, Develop new ideas and ways to progress. Note the y-axis runs
+bottom-to-top, the reverse of the order the options were originally listed in — the top
+row is "Develop," not "Create a stage."
 
 This **replaces** the existing weighted-scoring classifier (`score_submission` + argmax
 in `app/survey/persona.py`) as the mechanism that determines the winning persona. The
@@ -96,10 +91,8 @@ be resolved before /ship builds this):**
   directly. Confirm with Rob/Andrew whether/how the radar "fingerprint" chart
   (currently rendered from that same score vector) should keep working once persona
   selection no longer depends on it.
-- The 3x3 → persona mapping is confirmed (see grid above) but the row/column-to-axis
-  correspondence is Tom's + my inference, not something Rob/Andrew have signed off on —
-  get their confirmation before `/ship` builds the real `content/survey.yaml` grid, since
-  getting it backwards silently swaps who lands on which persona.
+- The 3x3 → persona mapping and the axis correspondence are both confirmed by Tom (see
+  grid above) — no longer an open question for this item.
 - Rogers' innovation curve logic has a scaffolded but disabled hook already:
   `apply_modifiers()`'s `scoring.rogers_curve.enabled` in `app/survey/persona.py` — this
   request is what turns it on. Exact adopter categories / scoring rules and the "couple
