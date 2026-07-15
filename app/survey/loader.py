@@ -76,6 +76,11 @@ def _validate_personas(raw):
         for field in ('name', 'tagline', 'description'):
             if not persona.get(field):
                 raise SurveyConfigError(f"persona '{persona_id}' is missing a non-empty '{field}'")
+        icon = persona.get('icon')
+        if icon is not None and (not isinstance(icon, str) or not icon):
+            raise SurveyConfigError(
+                f"persona '{persona_id}' field 'icon', if present, must be a non-empty string"
+            )
         for rel in ('brethren', 'besties', 'battlers'):
             refs = persona.get(rel, [])
             if not isinstance(refs, list):

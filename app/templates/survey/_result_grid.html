@@ -28,6 +28,7 @@
               {% set is_selected = grid_selected == [x, y] %}
               <td class="persona-grid-cell-wrap">
                 <div class="grid-cell grid-cell--result {{ 'grid-cell--selected' if is_selected else 'grid-cell--muted' }}">
+                  {% if cell_persona.icon %}<span class="persona-icon persona-icon--grid">{{ persona_icon(cell_persona) }}</span>{% endif %}
                   {{ cell_persona.name }}
                 </div>
               </td>

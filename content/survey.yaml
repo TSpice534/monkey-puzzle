@@ -25,6 +25,7 @@ personas:
   accountant:
     name: "The Accountant"
     tagline: "You make the numbers tell the truth."
+    icon: "icons/accountant.svg"
     description: >
       You measure what's actually happening, not what people hope is
       happening — real figures, honestly kept, so nobody's guessing at
@@ -40,6 +41,7 @@ personas:
   implementer:
     name: "The Implementer"
     tagline: "You get things actually done."
+    icon: "icons/implementer.svg"
     description: >
       Plans are easy; follow-through is hard, and that's your specialty.
       You take what's already known to work and make sure it happens,
@@ -55,6 +57,7 @@ personas:
   developer:
     name: "The Developer"
     tagline: "You build the thing that doesn't exist yet."
+    icon: "icons/developer.svg"
     description: >
       You're drawn to the technical and the novel — new tools, new
       processes, new fixes. Where others adapt an existing approach, you'd
@@ -70,6 +73,7 @@ personas:
   advocate:
     name: "The Advocate"
     tagline: "You speak up for the bigger cause."
+    icon: "icons/advocate.svg"
     description: >
       You keep the "why" in the room — pushing for the outcome that
       matters even when it's inconvenient, and holding the line when
@@ -85,6 +89,7 @@ personas:
   communicator:
     name: "The Communicator"
     tagline: "You tell the story so people actually care."
+    icon: "icons/communicator.svg"
     description: >
       Good work that nobody hears about doesn't spread. You turn what's
       happening into a story people want to share, follow and support.
@@ -99,6 +104,7 @@ personas:
   activist:
     name: "The Activist"
     tagline: "You push for change now, not eventually."
+    icon: "icons/activist.svg"
     description: >
       You're impatient in the best way — comfortable with friction if it
       means the urgent thing actually moves, rather than waiting for the
@@ -114,6 +120,7 @@ personas:
   connector:
     name: "The Connector"
     tagline: "You bring the right people into the same room."
+    icon: "icons/connector.svg"
     description: >
       You see the gaps between people and organisations who should be
       talking to each other, and you close them — partnerships, intros,
@@ -129,6 +136,7 @@ personas:
   cooperator:
     name: "The Cooperator"
     tagline: "You make the team effort actually work."
+    icon: "icons/cooperator.svg"
     description: >
       You'd rather get it right together than get credit alone. Quiet,
       steady collaboration is where you do your best work.
@@ -143,6 +151,7 @@ personas:
   entrepreneur:
     name: "The Entrepreneur"
     tagline: "You'll take the risk to build something new."
+    icon: "icons/entrepreneur.svg"
     description: >
       You move fast, back yourself, and would rather try an imperfect
       thing today than plan a perfect one for next year.
