@@ -39,3 +39,8 @@ Docs-first — no new reads beyond what #0001 already covered (`CLAUDE.md`, `CON
   couple of other indicators" actually are.
 - Not blocking #0001 — that item can ship (grid UI + direct persona pick) with this
   logic left as the existing no-op hook.
+- **#0003** now has the confirmed real survey template (`docs/SURVEY-TEMPLATE.md`) —
+  the "couple of other indicators" are specifically the **NOW** and **NEXT** Output
+  sections (Innovation-Curve is its own, separate Output category). Adopter categories
+  and exact scoring are still open, but the shape of "what the other indicators are" is
+  no longer a mystery.

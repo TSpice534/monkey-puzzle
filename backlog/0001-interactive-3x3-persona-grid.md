@@ -122,3 +122,6 @@ before /ship builds this):**
 - Grid visual states confirmed: blank at question time, labelled + chosen-persona
   highlighted + others greyed out on the result page (see grid-visual-states note above)
   — this is decided regardless of how the open radar-chart question resolves.
+- **#0003** now has the confirmed real survey template (`docs/SURVEY-TEMPLATE.md`) —
+  it independently confirms this grid as one combined `Format: Matrix` question
+  (score 1-9) at step 8 of 11, matching this item exactly.
