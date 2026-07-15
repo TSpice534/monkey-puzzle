@@ -140,7 +140,7 @@ def test_individual_track_shows_individual_only_question(client):
 def test_individual_track_completes_with_four_steps(client, db):
     token = _start_new(client)
     client.post(f'/survey/{token}/step/1', data={'respondent_type': str(INDIVIDUAL)})
-    client.post(f'/survey/{token}/step/2', data={'q_shared': '1'})   # documenter: 2
+    client.post(f'/survey/{token}/step/2', data={'q_shared': '1'})   # accountant: 2
     client.post(f'/survey/{token}/step/3', data={'q_ind_1': '1'})    # cooperator: 1
     final = client.post(f'/survey/{token}/step/4', data={'q_short_text': 'done'})
 
@@ -148,7 +148,7 @@ def test_individual_track_completes_with_four_steps(client, db):
     assert final.headers['Location'].endswith(f'/survey/{token}/result')
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert submission.persona_id == 'documenter'
+    assert submission.persona_id == 'accountant'
     assert submission.audience == 'individual'
 
 

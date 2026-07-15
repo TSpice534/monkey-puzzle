@@ -10,8 +10,8 @@ meta:
 respondent_type_question: respondent_type
 
 personas:
-  documenter:
-    name: "The Documenter"
+  accountant:
+    name: "The Accountant"
     tagline: "Tagline"
     description: "Description"
   implementer:
@@ -61,7 +61,7 @@ questions:
     dimension: roots
     options:
       - { label: "Option A", weights: { developer: 2 } }
-      - { label: "Option B", weights: { documenter: 2 } }
+      - { label: "Option B", weights: { accountant: 2 } }
 
   - id: q_org_1
     type: single
@@ -98,7 +98,7 @@ questions:
 scoring:
   method: persona_vector
   tie_break:
-    - documenter
+    - accountant
     - implementer
     - developer
     - advocate

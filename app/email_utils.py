@@ -17,14 +17,15 @@ from app import mail
 from app.pdf_utils import generate_result_pdf
 
 
-def _send_async(app, msg_kwargs, persona, personas, fingerprint_svg, result_url, base_url) -> None:
+def _send_async(app, msg_kwargs, persona, personas, fingerprint_svg, result_url, innovation=None,
+                 base_url=None) -> None:
     with app.app_context():
         msg = Message(**msg_kwargs)
-        msg.body = render_template('email/result.txt', persona=persona, result_url=result_url)
-        msg.html = render_template('email/result.html', persona=persona, result_url=result_url)
+        msg.body = render_template('email/result.txt', persona=persona, result_url=result_url, innovation=innovation)
+        msg.html = render_template('email/result.html', persona=persona, result_url=result_url, innovation=innovation)
 
         try:
-            pdf_bytes = generate_result_pdf(persona, personas, fingerprint_svg, base_url=base_url)
+            pdf_bytes = generate_result_pdf(persona, personas, fingerprint_svg, innovation=innovation, base_url=base_url)
             filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle.pdf"
             msg.attach(filename, 'application/pdf', pdf_bytes)
         except Exception:
@@ -37,8 +38,13 @@ def _send_async(app, msg_kwargs, persona, personas, fingerprint_svg, result_url,
 
 
 def send_result_email(recipient_email: str, persona: dict, personas: dict, fingerprint_svg: str,
-                       result_url: str, base_url: str = None) -> threading.Thread:
+                       result_url: str, innovation: dict = None, base_url: str = None) -> threading.Thread:
     """Fire-and-forget: email `recipient_email` a copy of their result + PDF.
+
+    `innovation` (backlog #0002) is the optional {'band', 'score', 'colour'}
+    context for the innovation-curve band block, threaded into both email
+    bodies and the attached PDF. Defaults to `None` so callers that omit it
+    still work.
 
     Returns the background `Thread` — the route ignores it, but tests can
     `.join()` it for a deterministic assertion point instead of racing the
@@ -52,7 +58,7 @@ def send_result_email(recipient_email: str, persona: dict, personas: dict, finge
     )
     thread = threading.Thread(
         target=_send_async,
-        args=(app, msg_kwargs, persona, personas, fingerprint_svg, result_url, base_url),
+        args=(app, msg_kwargs, persona, personas, fingerprint_svg, result_url, innovation, base_url),
         daemon=True,
     )
     thread.start()

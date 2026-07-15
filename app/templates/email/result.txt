@@ -3,7 +3,9 @@ Your sustainable who: {{ persona.name }}
 {{ persona.tagline }}
 
 {{ persona.description }}
-
+{% if innovation %}
+Where you sit on the innovation curve: {{ innovation.band }}
+{% endif %}
 Your full results, with the fingerprint chart, are attached as a PDF.
 
 You can also revisit your result online any time:

@@ -9,7 +9,7 @@ from app.pdf_utils import generate_result_pdf
 from app.survey import bp
 from app.survey.charts import render_fingerprint_svg, render_share_card_svg
 from app.survey.loader import effective_questions, get_survey
-from app.survey.persona import classify_submission
+from app.survey.persona import classify_submission, resolve_innovation_curve
 
 
 def _get_submission_or_404(token):
@@ -62,6 +62,16 @@ def _read_answer(question, form):
         return int(raw)
     except (TypeError, ValueError):
         return None
+
+
+def _innovation_context(submission, survey):
+    """Return {'band', 'score', 'colour'} for the result surfaces, or None when the survey
+    has no innovation_curve config or this submission has no stored band."""
+    ic_cfg = survey.get('innovation_curve')
+    if not ic_cfg or submission.innovation_band is None:
+        return None
+    colour = next((b['colour'] for b in ic_cfg['bands'] if b['name'] == submission.innovation_band), None)
+    return {'band': submission.innovation_band, 'score': submission.innovation_score, 'colour': colour}
 
 
 @bp.route('/start')
@@ -129,6 +139,10 @@ def step(token, step):
         result = classify_submission(submission.answers, survey)
         submission.persona_id = result.persona_id
         submission.score_vector = result.scores
+        ic = resolve_innovation_curve(submission.answers, survey, result.persona_id)
+        if ic is not None:
+            submission.innovation_band = ic.band
+            submission.innovation_score = ic.score
         db.session.commit()
         return redirect(url_for('survey.result', token=token))
 
@@ -180,6 +194,7 @@ def result(token):
         fingerprint_svg=fingerprint_svg,
         grid_question=grid_question,
         grid_selected=grid_selected,
+        innovation=_innovation_context(submission, survey),
     )
 
 
@@ -198,8 +213,9 @@ def share_image(token):
 def download_pdf(token):
     submission, survey, persona = _require_classified(token)
     fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
+    innovation = _innovation_context(submission, survey)
     pdf_bytes = generate_result_pdf(
-        persona, survey['personas'], fingerprint_svg, base_url=request.url_root,
+        persona, survey['personas'], fingerprint_svg, innovation=innovation, base_url=request.url_root,
     )
     filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle.pdf"
     response = Response(pdf_bytes, mimetype='application/pdf')
@@ -225,9 +241,10 @@ def email_result(token):
 
     fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
     result_url = url_for('survey.result', token=token, _external=True)
+    innovation = _innovation_context(submission, survey)
     send_result_email(
         validated.normalized, persona, survey['personas'], fingerprint_svg,
-        result_url, base_url=request.url_root,
+        result_url, innovation=innovation, base_url=request.url_root,
     )
     flash('Sent! Check your inbox in a minute or two.', 'success')
     return redirect(url_for('survey.result', token=token))

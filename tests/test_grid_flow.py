@@ -84,14 +84,14 @@ def test_grid_step_with_no_selection_rerenders_without_advancing(client, db):
 def test_grid_step_with_a_valid_cell_advances(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    response = client.post(f'/survey/{token}/step/5', data={'profile_grid': '0,0'})  # -> documenter
+    response = client.post(f'/survey/{token}/step/5', data={'profile_grid': '0,0'})  # -> accountant
 
     assert response.status_code == 302
     assert response.headers['Location'].endswith(f'/survey/{token}/result')
 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.answers['profile_grid'] == [0, 0]
-    assert submission.persona_id == 'documenter'
+    assert submission.persona_id == 'accountant'
 
 
 # ---------------------------------------------------------------------------

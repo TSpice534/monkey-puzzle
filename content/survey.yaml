@@ -22,20 +22,20 @@ respondent_type_question: respondent_type
 profile_question: profile_grid
 
 personas:
-  documenter:
-    name: "The Documenter"
-    tagline: "You make the invisible visible."
+  accountant:
+    name: "The Accountant"
+    tagline: "You make the numbers tell the truth."
     description: >
-      You track, record and organise what's actually happening — the data,
-      the decisions, the paper trail. Nothing gets lost on your watch, and
-      that record is what lets everyone else move faster with confidence.
+      You measure what's actually happening, not what people hope is
+      happening — real figures, honestly kept, so nobody's guessing at
+      progress. Decisions rest on what you can show, not what you can claim.
     brethren: [implementer, developer]
     besties: [communicator]
     battlers: [activist]
     case_studies:
-      - { title: "Placeholder case study — Documenter", url: "https://example.com/case-studies/documenter" }
+      - { title: "Placeholder case study — Accountant", url: "https://example.com/case-studies/accountant" }
     resources:
-      - { title: "Placeholder resource — building a simple tracking sheet", url: "https://example.com/resources/documenter-tracking" }
+      - { title: "Placeholder resource — building a simple impact-tracking sheet", url: "https://example.com/resources/accountant-tracking" }
 
   implementer:
     name: "The Implementer"
@@ -44,7 +44,7 @@ personas:
       Plans are easy; follow-through is hard, and that's your specialty.
       You take what's already known to work and make sure it happens,
       reliably, on the ground, every time.
-    brethren: [documenter, developer]
+    brethren: [accountant, developer]
     besties: [cooperator]
     battlers: [entrepreneur]
     case_studies:
@@ -59,7 +59,7 @@ personas:
       You're drawn to the technical and the novel — new tools, new
       processes, new fixes. Where others adapt an existing approach, you'd
       rather engineer a better one.
-    brethren: [documenter, implementer]
+    brethren: [accountant, implementer]
     besties: [entrepreneur]
     battlers: [advocate]
     case_studies:
@@ -89,7 +89,7 @@ personas:
       Good work that nobody hears about doesn't spread. You turn what's
       happening into a story people want to share, follow and support.
     brethren: [advocate, connector]
-    besties: [documenter]
+    besties: [accountant]
     battlers: [entrepreneur]
     case_studies:
       - { title: "Placeholder case study — Communicator", url: "https://example.com/case-studies/communicator" }
@@ -105,7 +105,7 @@ personas:
       perfect moment that never comes.
     brethren: [advocate, connector]
     besties: [cooperator]
-    battlers: [documenter]
+    battlers: [accountant]
     case_studies:
       - { title: "Placeholder case study — Activist", url: "https://example.com/case-studies/activist" }
     resources:
@@ -171,29 +171,33 @@ questions:
     output: innovation_curve
     prompt: "What is your motivation to work in sustainability?"
     options:
-      - { label: "I feel the need to act on this topic",     label_organisation: "We feel we must act on this topic" }
-      - { label: "I understand I need to act on this topic", label_organisation: "We understand we need to act on this topic" }
-      - { label: "It is part of my role",                    label_organisation: "We must meet our legal responsibilities" }
+      - { label: "I feel the need to act on this topic",     label_organisation: "We feel we must act on this topic",         score: 1 }
+      - { label: "Intermediate position",                    unlabelled: true,                                                score: 2 }
+      - { label: "I understand I need to act on this topic", label_organisation: "We understand we need to act on this topic", score: 3 }
+      - { label: "Intermediate position",                    unlabelled: true,                                                score: 4 }
+      - { label: "It is part of my role",                    label_organisation: "We must meet our legal responsibilities",    score: 5 }
 
   - id: ambition
     type: spectrum
     output: innovation_curve
     prompt: "How ambitious are you?"
     options:
-      - { label: "I want my work to be sector leading",                      label_organisation: "We want our work to be sector leading" }
-      - { label: "I want to be progressive and innovative",                  label_organisation: "We want to be progressive and innovative" }
-      - { label: "I want to make sure I'm keeping pace with those around me", label_organisation: "We want to make sure we're keeping pace with those around us" }
-      - { label: "I want to get my work done",                               label_organisation: "We want to meet our legal obligations" }
+      - { label: "I want my work to be sector leading",                          label_organisation: "We want our work to be sector leading",                                    score: 1 }
+      - { label: "I want to be progressive and innovative",                      label_organisation: "We want to be progressive and innovative",                                 score: 3 }
+      - { label: "I want to adopt and implement the latest innovative practice", label_organisation: "We want to be adopting and implementing the latest innovative practice",    score: 5 }
+      - { label: "I want to make sure I'm keeping pace with those around me",     label_organisation: "We want to make sure we're keeping pace with those around us",              score: 3 }
+      - { label: "I want to get my work done",                                   label_organisation: "We want to meet our legal obligations",                                    score: 1 }
 
   - id: space_to_progress
     type: spectrum
     output: innovation_curve
     prompt: "How much space do you have to progress?"
     options:
-      - { label: "A lot, I'm still operating in my comfort zone",                           label_organisation: "A lot, we're still operating in our comfort zone" }
-      - { label: "Some space, I am busy but still have capacity",                           label_organisation: "Some space, we are busy but still have capacity" }
-      - { label: "Very little, I am highly committed and further progress is out of scope", label_organisation: "Very little, we are highly committed and further progress is out of scope" }
-      - { label: "None" }
+      - { label: "A lot, I'm still operating in my comfort zone",                            label_organisation: "A lot, we're still operating in our comfort zone",                          score: 1 }
+      - { label: "Some space, I am busy but still have capacity",                            label_organisation: "Some space, we are busy but still have capacity",                           score: 3 }
+      - { label: "I feel I have good balance between my capacity and commitments",                                                                                                            score: 5 }
+      - { label: "Very little, I am highly committed and further progress is out of scope",  label_organisation: "Very little, we are highly committed and further progress is out of scope", score: 3 }
+      - { label: "None",                                                                                                                                                                     score: 1 }
 
   - id: need_most
     type: triangle
@@ -239,7 +243,7 @@ questions:
       - { x: 0, y: 1, persona: implementer }
       - { x: 1, y: 1, persona: entrepreneur }
       - { x: 2, y: 1, persona: connector }
-      - { x: 0, y: 0, persona: documenter }
+      - { x: 0, y: 0, persona: accountant }
       - { x: 1, y: 0, persona: communicator }
       - { x: 2, y: 0, persona: activist }
 
@@ -281,7 +285,7 @@ questions:
 scoring:
   method: persona_vector
   tie_break:
-    - documenter
+    - accountant
     - implementer
     - developer
     - advocate
@@ -292,3 +296,27 @@ scoring:
     - entrepreneur
   equity_modifier: { enabled: false }
   rogers_curve: { enabled: false }
+
+# Rogers' innovation-curve scoring (backlog #0002) — sums the `score` of the
+# selected option on each `output: innovation_curve` question (motivation,
+# ambition, space_to_progress), adds a persona modifier, then bands the
+# total. See `app/survey/persona.py::resolve_innovation_curve`. Bands +
+# colours live here (not in code) so Rob/Andrew can retune without a
+# deploy; defaults chosen to sit alongside `--brand-primary` (#2e7d32).
+innovation_curve:
+  persona_modifiers:
+    cooperator: 2
+    connector: 1
+    activist: 4
+    advocate: 2
+    entrepreneur: 2
+    communicator: 1
+    developer: 4
+    implementer: 1
+    accountant: 0
+  bands:
+    - { name: "Laggards",       min: 0,  max: 2,  colour: "#c0392b" }   # Red
+    - { name: "Late Majority",  min: 3,  max: 7,  colour: "#e67e22" }   # Amber
+    - { name: "Early Majority", min: 8,  max: 12, colour: "#f1c40f" }   # Yellow
+    - { name: "Early Adopters", min: 13, max: 14, colour: "#7cb342" }   # Light Green
+    - { name: "Innovators",     min: 15, max: 20, colour: "#2e7d32" }   # Green

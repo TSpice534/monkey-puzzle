@@ -1,0 +1,18 @@
+{# Innovation-curve band card (backlog #0002) — shared partial for the web
+   result page and the PDF; email uses inline markup instead (see
+   templates/email/result.html|txt), matching the persona-card reuse
+   pattern. Self-contained, guarded on `innovation`. The band **name** text
+   is always present alongside the colour accent (left border + swatch) —
+   never colour alone, for accessibility and WeasyPrint/email safety. #}
+{% if innovation %}
+<div class="card shadow-sm mt-3" style="border-left: 6px solid {{ innovation.colour }};">
+  <div class="card-body">
+    <h2 class="h6">Where you sit on the innovation curve</h2>
+    <p class="mb-0">
+      <span style="display:inline-block; width:0.9rem; height:0.9rem; border-radius:50%;
+                   background-color:{{ innovation.colour }}; vertical-align:middle;"></span>
+      <strong>{{ innovation.band }}</strong>
+    </p>
+  </div>
+</div>
+{% endif %}

@@ -37,6 +37,7 @@ def load_survey(path: str) -> dict:
         _validate_personas(raw)
         _validate_questions(raw)
         _validate_scoring(raw)
+        _validate_innovation_curve(raw)
         return _normalise(raw)
     except SurveyConfigError:
         raise
@@ -215,6 +216,18 @@ def _validate_questions(raw):
                     f"question '{qid}' option {i} 'label_organisation', if present, must be a non-empty string"
                 )
 
+            score = opt.get('score')
+            if score is not None and (not isinstance(score, int) or isinstance(score, bool)):
+                raise SurveyConfigError(
+                    f"question '{qid}' option {i} 'score', if present, must be an integer"
+                )
+
+            unlabelled = opt.get('unlabelled')
+            if unlabelled is not None and not isinstance(unlabelled, bool):
+                raise SurveyConfigError(
+                    f"question '{qid}' option {i} 'unlabelled', if present, must be a boolean"
+                )
+
             if is_router:
                 audience_value = opt.get('audience_value')
                 if audience_value not in _VALID_AUDIENCES:
@@ -334,6 +347,55 @@ def _validate_scoring(raw):
             raise SurveyConfigError(
                 f"survey.yaml 'scoring.{hook}' must be a mapping with a boolean 'enabled'"
             )
+
+
+def _validate_innovation_curve(raw):
+    """Optional top-level `innovation_curve` construct (backlog #0002) —
+    persona modifiers + Rogers-curve bands for `resolve_innovation_curve`.
+    Absent is valid (the small test fixtures have no innovation curve); the
+    scored questions themselves aren't re-listed here — the aggregation
+    derives them from `output == 'innovation_curve'`."""
+    ic = raw.get('innovation_curve')
+    if ic is None:
+        return
+
+    if not isinstance(ic, dict):
+        raise SurveyConfigError("survey.yaml 'innovation_curve' must be a mapping")
+
+    valid_persona_ids = set(raw['personas'].keys())
+
+    modifiers = ic.get('persona_modifiers')
+    if not isinstance(modifiers, dict):
+        raise SurveyConfigError("survey.yaml 'innovation_curve.persona_modifiers' must be a mapping")
+    for persona_id, modifier in modifiers.items():
+        if persona_id not in valid_persona_ids:
+            raise SurveyConfigError(
+                f"survey.yaml 'innovation_curve.persona_modifiers' references unknown persona id '{persona_id}'"
+            )
+        if not isinstance(modifier, (int, float)) or isinstance(modifier, bool):
+            raise SurveyConfigError(
+                f"survey.yaml 'innovation_curve.persona_modifiers' value for '{persona_id}' must be a number"
+            )
+
+    bands = ic.get('bands')
+    if not isinstance(bands, list) or not bands:
+        raise SurveyConfigError("survey.yaml 'innovation_curve.bands' must be a non-empty list")
+    for i, band in enumerate(bands):
+        if not isinstance(band, dict):
+            raise SurveyConfigError(f"survey.yaml 'innovation_curve.bands' entry {i} must be a mapping")
+        if not band.get('name') or not isinstance(band['name'], str):
+            raise SurveyConfigError(f"survey.yaml 'innovation_curve.bands' entry {i} must have a non-empty string 'name'")
+        band_min, band_max = band.get('min'), band.get('max')
+        if (
+            not isinstance(band_min, int) or isinstance(band_min, bool)
+            or not isinstance(band_max, int) or isinstance(band_max, bool)
+            or band_min > band_max
+        ):
+            raise SurveyConfigError(
+                f"survey.yaml 'innovation_curve.bands' entry {i} must have integer 'min' <= 'max'"
+            )
+        if not band.get('colour') or not isinstance(band['colour'], str):
+            raise SurveyConfigError(f"survey.yaml 'innovation_curve.bands' entry {i} must have a non-empty string 'colour'")
 
 
 def _normalise(raw):

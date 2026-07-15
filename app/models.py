@@ -22,6 +22,10 @@ class Submission(db.Model):
     persona_id: db.Mapped[Optional[str]] = db.mapped_column(db.String(32), nullable=True)
     # Nine-dim persona vector — unset until Phase 4
     score_vector: db.Mapped[Optional[dict]] = db.mapped_column(db.JSON, nullable=True)
+    # Rogers' innovation-curve result (backlog #0002) — unset until the survey completes;
+    # None for surveys with no `innovation_curve` config (e.g. test fixtures).
+    innovation_band: db.Mapped[Optional[str]] = db.mapped_column(db.String(32), nullable=True)
+    innovation_score: db.Mapped[Optional[int]] = db.mapped_column(db.Integer, nullable=True)
     created_at: db.Mapped[datetime] = db.mapped_column(
         db.DateTime(timezone=True),
         index=True,

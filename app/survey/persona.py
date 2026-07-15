@@ -99,6 +99,48 @@ def resolve_profile_persona(answers: dict, config: dict) -> str | None:
     return None
 
 
+@dataclass(frozen=True)
+class InnovationCurveResult:
+    score: int      # summed question scores + persona modifier
+    band: str       # band name, e.g. "Early Majority"
+    colour: str     # band colour hex, e.g. "#f1c40f"
+
+
+def resolve_innovation_curve(answers: dict, config: dict, persona_id: str | None) -> InnovationCurveResult | None:
+    """Sum the selected-option `score` of every `output: innovation_curve` question, add the
+    persona modifier for `persona_id`, and band the total. Returns None when the survey has no
+    `innovation_curve` construct (e.g. the small test fixtures) so classification still works.
+    Defensive: a missing/unanswered/malformed question or option contributes 0; an unknown
+    persona_id contributes a 0 modifier."""
+    ic = config.get('innovation_curve')
+    if not ic:
+        return None
+
+    total = 0
+    for question in config['questions']:
+        if question.get('output') != 'innovation_curve':
+            continue
+        answer = answers.get(question['id'])
+        if not isinstance(answer, int) or isinstance(answer, bool):
+            continue
+        options = question.get('options', [])
+        options_by_index = {opt['index']: opt for opt in options}
+        option = options_by_index.get(answer)
+        if option is None:
+            continue
+        total += option.get('score', 0)
+
+    if persona_id is not None:
+        total += ic['persona_modifiers'].get(persona_id, 0)
+
+    bands = ic['bands']
+    band = next((b for b in bands if b['min'] <= total <= b['max']), None)
+    if band is None:
+        band = bands[0] if total < bands[0]['min'] else bands[-1]
+
+    return InnovationCurveResult(score=total, band=band['name'], colour=band['colour'])
+
+
 def classify_submission(answers: dict, config: dict) -> PersonaResult:
     """Convenience: score_submission -> apply_modifiers -> classify, preferring
     the profile grid's direct persona resolution when available (defensive

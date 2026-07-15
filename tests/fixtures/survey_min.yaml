@@ -7,8 +7,8 @@ meta:
   personas_count: 9
 
 personas:
-  documenter:
-    name: "The Documenter"
+  accountant:
+    name: "The Accountant"
     tagline: "Tagline"
     description: "Description"
   implementer:
@@ -51,7 +51,7 @@ questions:
     dimension: roots
     options:
       - { label: "Option A", weights: { developer: 2 } }
-      - { label: "Option B", weights: { documenter: 2 } }
+      - { label: "Option B", weights: { accountant: 2 } }
 
   - id: q_multi
     type: multi
@@ -77,7 +77,7 @@ questions:
 scoring:
   method: persona_vector
   tie_break:
-    - documenter
+    - accountant
     - implementer
     - developer
     - advocate

@@ -259,13 +259,13 @@ def test_send_async_falls_back_without_attachment_if_pdf_generation_fails(app, m
 # ---------------------------------------------------------------------------
 
 def test_render_share_card_svg_contains_persona_name_and_tagline():
-    persona = {'name': 'The Documenter', 'tagline': 'You make the invisible visible.'}
-    personas = {'documenter': persona, 'developer': {'name': 'The Developer'}}
-    scores = {'documenter': 5, 'developer': 1}
+    persona = {'name': 'The Accountant', 'tagline': 'You make the numbers tell the truth.'}
+    personas = {'accountant': persona, 'developer': {'name': 'The Developer'}}
+    scores = {'accountant': 5, 'developer': 1}
 
     svg = render_share_card_svg(persona, scores, personas)
-    assert 'The Documenter' in svg
-    assert 'You make the invisible visible.' in svg
+    assert 'The Accountant' in svg
+    assert 'You make the numbers tell the truth.' in svg
     assert svg.startswith('<svg')
 
 
@@ -286,7 +286,7 @@ def test_render_fingerprint_svg_rim_labels_stay_within_canvas_bounds():
 
     personas = {
         'entrepreneur': {'name': 'The Entrepreneur'},  # longest short name
-        'documenter': {'name': 'The Documenter'},
+        'accountant': {'name': 'The Accountant'},
         'developer': {'name': 'The Developer'},
     }
     scores = {pid: 1 for pid in personas}

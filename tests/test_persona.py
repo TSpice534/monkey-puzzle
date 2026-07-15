@@ -9,8 +9,8 @@ import pytest
 
 from app.survey.loader import load_survey
 from app.survey.persona import (
-    PersonaResult, apply_modifiers, classify, classify_submission,
-    resolve_profile_persona, score_submission,
+    InnovationCurveResult, PersonaResult, apply_modifiers, classify, classify_submission,
+    resolve_innovation_curve, resolve_profile_persona, score_submission,
 )
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,7 +18,7 @@ REAL_SURVEY_PATH = os.path.join(REPO_ROOT, 'content', 'survey.yaml')
 MIN_FIXTURE_PATH = os.path.join(REPO_ROOT, 'tests', 'fixtures', 'survey_min.yaml')
 
 PERSONA_IDS = [
-    'documenter', 'implementer', 'developer', 'advocate', 'communicator',
+    'accountant', 'implementer', 'developer', 'advocate', 'communicator',
     'activist', 'connector', 'cooperator', 'entrepreneur',
 ]
 
@@ -31,7 +31,7 @@ GRID_CELLS = [
     (0, 1, 'implementer'),
     (1, 1, 'entrepreneur'),
     (2, 1, 'connector'),
-    (0, 0, 'documenter'),
+    (0, 0, 'accountant'),
     (1, 0, 'communicator'),
     (2, 0, 'activist'),
 ]
@@ -213,13 +213,13 @@ def _negative_weight_config():
                 'options': [
                     {
                         'index': 0,
-                        'label': 'Boosts developer, penalises documenter',
-                        'weights': {'developer': 2, 'documenter': -3},
+                        'label': 'Boosts developer, penalises accountant',
+                        'weights': {'developer': 2, 'accountant': -3},
                     },
                     {
                         'index': 1,
                         'label': 'Neutral',
-                        'weights': {'documenter': 1},
+                        'weights': {'accountant': 1},
                     },
                 ],
             },
@@ -237,14 +237,61 @@ def test_score_submission_applies_negative_weights():
     config = _negative_weight_config()
     scores = score_submission({'q1': 0}, config)
     assert scores['developer'] == 2
-    assert scores['documenter'] == -3
+    assert scores['accountant'] == -3
 
 
 def test_classify_lets_a_negative_weight_change_the_winner():
-    """documenter starts ahead from an earlier (hypothetical) answer, but a
+    """accountant starts ahead from an earlier (hypothetical) answer, but a
     negative weight on this question should be able to pull it below
     developer and flip the winner."""
     config = _negative_weight_config()
     result = classify_submission({'q1': 0}, config)
     assert result.persona_id == 'developer'
-    assert result.scores['documenter'] == -3
+    assert result.scores['accountant'] == -3
+
+
+# ---------------------------------------------------------------------------
+# resolve_innovation_curve — Rogers' innovation-curve aggregation (backlog
+# #0002), exercised against the real config so worked examples cross-check
+# the real content/survey.yaml scores/modifiers/bands.
+# ---------------------------------------------------------------------------
+
+def test_resolve_innovation_curve_low_scores_and_entrepreneur_modifier_gives_late_majority(config):
+    # motivation=0 (1), ambition=0 (1), space_to_progress=0 (1) -> sum 3;
+    # entrepreneur modifier +2 -> total 5 -> Late Majority (3-7).
+    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
+    result = resolve_innovation_curve(answers, config, 'entrepreneur')
+    assert isinstance(result, InnovationCurveResult)
+    assert result.score == 5
+    assert result.band == 'Late Majority'
+
+
+def test_resolve_innovation_curve_high_scores_and_developer_modifier_gives_innovators(config):
+    # motivation=4 (5), ambition=2 (5), space_to_progress=2 (5) -> sum 15;
+    # developer modifier +4 -> total 19 -> Innovators (15-20).
+    answers = {'motivation': 4, 'ambition': 2, 'space_to_progress': 2}
+    result = resolve_innovation_curve(answers, config, 'developer')
+    assert result.score == 19
+    assert result.band == 'Innovators'
+
+
+def test_resolve_innovation_curve_accountant_gives_a_zero_modifier(config):
+    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
+    result = resolve_innovation_curve(answers, config, 'accountant')
+    assert result.score == 3  # no modifier added
+
+
+def test_resolve_innovation_curve_returns_none_when_survey_has_no_innovation_curve(weighted_config):
+    assert resolve_innovation_curve({}, weighted_config, 'developer') is None
+
+
+def test_resolve_innovation_curve_missing_answers_contribute_zero(config):
+    result = resolve_innovation_curve({}, config, 'accountant')
+    assert result.score == 0
+    assert result.band == 'Laggards'
+
+
+def test_resolve_innovation_curve_unknown_persona_id_contributes_zero_modifier(config):
+    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
+    result = resolve_innovation_curve(answers, config, 'not-a-real-persona')
+    assert result.score == 3

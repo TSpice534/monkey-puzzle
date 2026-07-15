@@ -13,7 +13,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REAL_SURVEY_PATH = os.path.join(REPO_ROOT, 'content', 'survey.yaml')
 
 PERSONA_IDS = [
-    'documenter', 'implementer', 'developer', 'advocate', 'communicator',
+    'accountant', 'implementer', 'developer', 'advocate', 'communicator',
     'activist', 'connector', 'cooperator', 'entrepreneur',
 ]
 
@@ -36,7 +36,7 @@ def _base_config():
                 'dimension': 'roots',
                 'options': [
                     {'label': 'Option A', 'weights': {'developer': 2}},
-                    {'label': 'Option B', 'weights': {'documenter': 2}},
+                    {'label': 'Option B', 'weights': {'accountant': 2}},
                 ],
             },
             {
@@ -118,12 +118,12 @@ def test_short_text_question_has_no_options(tmp_path):
 def test_persona_relation_defaults_are_empty_lists(tmp_path):
     path = _write_yaml(tmp_path, _base_config())
     config = load_survey(path)
-    documenter = config['personas']['documenter']
-    assert documenter['brethren'] == []
-    assert documenter['besties'] == []
-    assert documenter['battlers'] == []
-    assert documenter['case_studies'] == []
-    assert documenter['resources'] == []
+    accountant = config['personas']['accountant']
+    assert accountant['brethren'] == []
+    assert accountant['besties'] == []
+    assert accountant['battlers'] == []
+    assert accountant['case_studies'] == []
+    assert accountant['resources'] == []
 
 
 def test_negative_option_weight_is_valid(tmp_path):
@@ -147,10 +147,10 @@ def test_editing_a_weight_changes_scoring_result(tmp_path):
     assert result.persona_id == 'developer'
 
     mutated = _base_config()
-    mutated['questions'][0]['options'][0]['weights'] = {'documenter': 5}
+    mutated['questions'][0]['options'][0]['weights'] = {'accountant': 5}
     config2 = load_survey(_write_yaml(tmp_path, mutated, name='survey2.yaml'))
     result2 = classify_submission(answers, config2)
-    assert result2.persona_id == 'documenter'
+    assert result2.persona_id == 'accountant'
 
 
 # ---------------------------------------------------------------------------
@@ -185,21 +185,21 @@ def test_wrong_persona_count_raises(tmp_path):
 
 def test_persona_missing_required_field_raises(tmp_path):
     data = _base_config()
-    del data['personas']['documenter']['tagline']
+    del data['personas']['accountant']['tagline']
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
 
 def test_persona_bad_brethren_reference_raises(tmp_path):
     data = _base_config()
-    data['personas']['documenter']['brethren'] = ['not-a-real-persona']
+    data['personas']['accountant']['brethren'] = ['not-a-real-persona']
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
 
 def test_persona_case_study_missing_url_raises(tmp_path):
     data = _base_config()
-    data['personas']['documenter']['case_studies'] = [{'title': 'No URL'}]
+    data['personas']['accountant']['case_studies'] = [{'title': 'No URL'}]
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
@@ -220,7 +220,7 @@ def test_invalid_question_type_raises(tmp_path):
 
 def test_scored_question_with_one_option_raises(tmp_path):
     data = _base_config()
-    data['questions'][0]['options'] = [{'label': 'Only one', 'weights': {'documenter': 1}}]
+    data['questions'][0]['options'] = [{'label': 'Only one', 'weights': {'accountant': 1}}]
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
@@ -234,7 +234,7 @@ def test_option_weight_referencing_unknown_persona_raises(tmp_path):
 
 def test_option_weight_non_numeric_raises(tmp_path):
     data = _base_config()
-    data['questions'][0]['options'][0]['weights'] = {'documenter': 'a lot'}
+    data['questions'][0]['options'][0]['weights'] = {'accountant': 'a lot'}
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
@@ -243,14 +243,14 @@ def test_boolean_weight_raises(tmp_path):
     """bool is a subclass of int in Python — guard against `weights: {x: true}`
     silently passing the numeric check."""
     data = _base_config()
-    data['questions'][0]['options'][0]['weights'] = {'documenter': True}
+    data['questions'][0]['options'][0]['weights'] = {'accountant': True}
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
 
 def test_short_text_with_options_raises(tmp_path):
     data = _base_config()
-    data['questions'][1]['options'] = [{'label': 'Should not be here', 'weights': {'documenter': 1}}]
+    data['questions'][1]['options'] = [{'label': 'Should not be here', 'weights': {'accountant': 1}}]
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
@@ -323,7 +323,7 @@ def test_router_question_must_be_first(tmp_path):
 
 def test_router_question_options_must_not_declare_weights(tmp_path):
     data = _config_with_router()
-    data['questions'][0]['options'][0]['weights'] = {'documenter': 1}
+    data['questions'][0]['options'][0]['weights'] = {'accountant': 1}
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
@@ -451,7 +451,7 @@ def _grid_question(qid='profile_grid'):
             {'x': 0, 'y': 1, 'persona': 'implementer'},
             {'x': 1, 'y': 1, 'persona': 'entrepreneur'},
             {'x': 2, 'y': 1, 'persona': 'connector'},
-            {'x': 0, 'y': 0, 'persona': 'documenter'},
+            {'x': 0, 'y': 0, 'persona': 'accountant'},
             {'x': 1, 'y': 0, 'persona': 'communicator'},
             {'x': 2, 'y': 0, 'persona': 'activist'},
         ],
@@ -672,3 +672,120 @@ def test_valid_label_organisation_loads(tmp_path):
     config = load_survey(_write_yaml(tmp_path, data))
     q = next(q for q in config['questions'] if q['id'] == 'q_single')
     assert q['options'][0]['label_organisation'] == 'We prefer this wording'
+
+
+# ---------------------------------------------------------------------------
+# Option 'score' / 'unlabelled' fields, and the top-level 'innovation_curve'
+# construct (backlog #0002 — Rogers' innovation-curve scoring)
+# ---------------------------------------------------------------------------
+
+def test_valid_option_score_loads(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['score'] = 1
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert q['options'][0]['score'] == 1
+
+
+def test_non_int_option_score_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['score'] = 'one'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_boolean_option_score_raises(tmp_path):
+    """bool is a subclass of int — guard against `score: true`."""
+    data = _base_config()
+    data['questions'][0]['options'][0]['score'] = True
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_valid_option_unlabelled_loads(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['unlabelled'] = True
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert q['options'][0]['unlabelled'] is True
+
+
+def test_non_boolean_option_unlabelled_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['unlabelled'] = 'yes'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def _innovation_curve_construct():
+    return {
+        'persona_modifiers': {'accountant': 0, 'developer': 4},
+        'bands': [
+            {'name': 'Laggards', 'min': 0, 'max': 2, 'colour': '#c0392b'},
+            {'name': 'Innovators', 'min': 3, 'max': 20, 'colour': '#2e7d32'},
+        ],
+    }
+
+
+def test_absent_innovation_curve_is_valid(tmp_path):
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    assert config.get('innovation_curve') is None
+
+
+def test_valid_innovation_curve_loads(tmp_path):
+    data = _base_config()
+    data['innovation_curve'] = _innovation_curve_construct()
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['innovation_curve']['bands'][0]['name'] == 'Laggards'
+
+
+def test_innovation_curve_unknown_persona_modifier_key_raises(tmp_path):
+    data = _base_config()
+    ic = _innovation_curve_construct()
+    ic['persona_modifiers']['not-a-real-persona'] = 1
+    data['innovation_curve'] = ic
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_innovation_curve_non_number_modifier_raises(tmp_path):
+    data = _base_config()
+    ic = _innovation_curve_construct()
+    ic['persona_modifiers']['accountant'] = 'zero'
+    data['innovation_curve'] = ic
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_innovation_curve_empty_bands_raises(tmp_path):
+    data = _base_config()
+    ic = _innovation_curve_construct()
+    ic['bands'] = []
+    data['innovation_curve'] = ic
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+@pytest.mark.parametrize('missing_field', ['name', 'min', 'max', 'colour'])
+def test_innovation_curve_band_missing_field_raises(tmp_path, missing_field):
+    data = _base_config()
+    ic = _innovation_curve_construct()
+    del ic['bands'][0][missing_field]
+    data['innovation_curve'] = ic
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_innovation_curve_band_non_int_min_max_raises(tmp_path):
+    data = _base_config()
+    ic = _innovation_curve_construct()
+    ic['bands'][0]['min'] = 'zero'
+    data['innovation_curve'] = ic
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_real_survey_loads_the_innovation_curve_construct():
+    config = load_survey(REAL_SURVEY_PATH)
+    assert config['innovation_curve']['persona_modifiers']['accountant'] == 0
+    assert config['innovation_curve']['bands'][0]['name'] == 'Laggards'
