@@ -1,0 +1,6 @@
+{# Audience-aware option label helper. `label_organisation` (optional) wins
+   only once `audience == 'organisation'`; before routing (`audience` is
+   None) or on the individual track, `label` (the default) is used. #}
+{% macro option_label(option, audience) -%}
+{{ option.label_organisation if audience == 'organisation' and option.label_organisation else option.label }}
+{%- endmacro %}

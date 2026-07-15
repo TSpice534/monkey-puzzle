@@ -1,0 +1,39 @@
+{# Result-page labelled 3x3 persona grid — additive alongside the radar
+   fingerprint chart. Static (no form inputs); the chosen cell is
+   highlighted, the other 8 are muted. Guarded on `grid_question` so surveys
+   without a `profile_question` render nothing here. #}
+{% if grid_question %}
+<div class="card shadow-sm mt-3">
+  <div class="card-body">
+    <h2 class="h6">Your position on the grid</h2>
+    <table class="persona-grid persona-grid--result">
+      <caption class="visually-hidden">{{ grid_question.x_axis.label }} / {{ grid_question.y_axis.label }}</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="persona-grid-corner">
+            <span class="visually-hidden">{{ grid_question.y_axis.label }}</span>
+          </th>
+          {% for x_label in grid_question.x_axis.options %}
+            <th scope="col">{{ x_label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for y in [2, 1, 0] %}
+          <tr>
+            <th scope="row">{{ grid_question.y_axis.options[y] }}</th>
+            {% for x in [0, 1, 2] %}
+              {% set cell = grid_question.cells | selectattr('x', 'equalto', x) | selectattr('y', 'equalto', y) | first %}
+              {% set cell_persona = personas[cell.persona] %}
+              {% set is_selected = grid_selected == [x, y] %}
+              <td class="grid-cell grid-cell--result {{ 'grid-cell--selected' if is_selected else 'grid-cell--muted' }}">
+                {{ cell_persona.name }}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}

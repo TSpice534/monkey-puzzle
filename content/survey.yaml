@@ -1,9 +1,8 @@
-# The Monkey Puzzle — placeholder survey content
+# The Monkey Puzzle — real survey content
 #
-# This is intentionally placeholder content (Phase 2). The real question
-# set, weights, and persona copy are owned by Rob and Andrew and will land
-# later as a pure data swap — no engine changes expected. Do not treat this
-# file's content as final; do treat its *shape* as the contract.
+# The 11-step survey from docs/SURVEY-TEMPLATE.md, owned by Rob and Andrew.
+# `personas`/`scoring` below are unchanged from the earlier placeholder
+# content; only `questions:` and the new `profile_question` key changed.
 
 meta:
   version: 1
@@ -17,6 +16,10 @@ meta:
 # `audience: [individual]` / `[organisation]` only show on that track;
 # untagged questions are shared by both.
 respondent_type_question: respondent_type
+
+# The interactive 3x3 persona grid (question 8, `profile_grid`) directly
+# resolves the winning persona — see `app/survey/persona.py::resolve_profile_persona`.
+profile_question: profile_grid
 
 personas:
   documenter:
@@ -159,149 +162,121 @@ questions:
       - { label: "As an individual", audience_value: individual }
       - { label: "On behalf of an organisation", audience_value: organisation }
 
-  - id: mission_clarity
-    type: spectrum
-    prompt: "How clear is your mission right now?"
-    dimension: roots
-    options:
-      - { label: "Crystal clear", weights: { developer: 2, implementer: 1 } }
-      - { label: "Mostly clear", weights: { implementer: 1, communicator: 1 } }
-      - { label: "Still forming", weights: { documenter: 2 } }
-      - { label: "Not sure yet", weights: { activist: 1, connector: 1 } }
-
-  - id: team_appetite
-    type: single
-    prompt: "How does your team feel about trying something new?"
-    dimension: roots
-    audience: [organisation]
-    options:
-      - { label: "Ready to go", weights: { entrepreneur: 2, developer: 1 } }
-      - { label: "Curious but cautious", weights: { cooperator: 1, implementer: 1 } }
-      - { label: "Prefer to wait and see", weights: { documenter: 2 } }
-
-  - id: personal_appetite
-    type: single
-    prompt: "How do you feel about trying something new yourself?"
-    dimension: roots
-    audience: [individual]
-    options:
-      - { label: "Ready to go", weights: { entrepreneur: 2, developer: 1 } }
-      - { label: "Curious but cautious", weights: { cooperator: 1, implementer: 1 } }
-      - { label: "Prefer to wait and see", weights: { documenter: 2 } }
-
-  - id: motivation_source
-    type: single
-    prompt: "What mostly drives your sustainability work?"
-    dimension: requirements
-    options:
-      - { label: "Personal values", weights: { activist: 2, advocate: 1 } }
-      - { label: "Audience or community expectation", weights: { communicator: 2, connector: 1 } }
-      - { label: "Funding or compliance requirements", weights: { documenter: 1, implementer: 1 } }
-
-  - id: knowledge_confidence
-    type: spectrum
-    prompt: "How confident are you in your sustainability knowledge?"
-    dimension: requirements
-    options:
-      - { label: "Very confident", weights: { developer: 2, entrepreneur: 1 } }
-      - { label: "Fairly confident", weights: { implementer: 1 } }
-      - { label: "Still learning", weights: { documenter: 1, cooperator: 1 } }
-      - { label: "Not confident at all", weights: { activist: 1 } }
-
-  - id: comfort_zone
-    type: single
-    prompt: "Where does most of your sustainability work currently sit?"
-    dimension: comfort_stretch_stress
-    options:
-      - { label: "Comfort zone — well-established habits", weights: { documenter: 2 } }
-      - { label: "Stretch zone — new but manageable", weights: { implementer: 2, cooperator: 1 } }
-      - { label: "Stress zone — overwhelmed or firefighting", weights: { activist: 1, entrepreneur: 1 } }
-
-  - id: pace_preference
-    type: spectrum
-    prompt: "How much change can your organisation absorb at once?"
-    dimension: comfort_stretch_stress
-    audience: [organisation]
-    options:
-      - { label: "Small, steady steps", weights: { documenter: 1, implementer: 1 } }
-      - { label: "A measured stretch", weights: { cooperator: 1, developer: 1 } }
-      - { label: "Big leaps, fast", weights: { entrepreneur: 2, activist: 1 } }
-
-  - id: personal_pace
-    type: spectrum
-    prompt: "How much change can you personally take on at once?"
-    dimension: comfort_stretch_stress
-    audience: [individual]
-    options:
-      - { label: "Small, steady steps", weights: { documenter: 1, implementer: 1 } }
-      - { label: "A measured stretch", weights: { cooperator: 1, developer: 1 } }
-      - { label: "Big leaps, fast", weights: { entrepreneur: 2, activist: 1 } }
-
-  - id: strategic_focus
-    type: single
-    prompt: "Which best describes your strategic focus?"
-    dimension: strategic_domain
-    options:
-      - { label: "Giving others a platform", weights: { connector: 2, communicator: 1 } }
-      - { label: "Implementing what already works", weights: { implementer: 2 } }
-      - { label: "Inventing something new", weights: { developer: 2, entrepreneur: 1 } }
-
-  - id: change_role
-    type: multi
-    prompt: "Which of these do you actively do? Select all that apply."
-    dimension: strategic_domain
-    options:
-      - { label: "Share templates or checklists with others", weights: { documenter: 1, cooperator: 1 } }
-      - { label: "Champion causes publicly", weights: { activist: 2 } }
-      - { label: "Build partnerships between organisations", weights: { connector: 2 } }
-
-  - id: impact_focus
-    type: single
-    prompt: "Are you more focused on reducing harm or growing positive impact?"
-    dimension: footprint_handprint
-    options:
-      - { label: "Reducing our footprint (harm)", weights: { implementer: 1, documenter: 1 } }
-      - { label: "Growing our handprint (positive impact)", weights: { advocate: 2, entrepreneur: 1 } }
-      - { label: "Both, equally", weights: { cooperator: 1, connector: 1 } }
-
-  - id: footprint_tracking
-    type: spectrum
-    prompt: "How closely do you track your environmental footprint?"
-    dimension: footprint_handprint
-    options:
-      - { label: "Track everything in detail", weights: { documenter: 2, developer: 1 } }
-      - { label: "Track the big-ticket items", weights: { implementer: 1 } }
-      - { label: "Rough estimate only", weights: { activist: 1 } }
-      - { label: "Not currently tracking", weights: { entrepreneur: 1 } }
-
-  - id: comms_style
-    type: multi
-    prompt: "How do you prefer to communicate progress? Select all that apply."
-    dimension: communication_needs
-    options:
-      - { label: "Detailed written reports", weights: { documenter: 2 } }
-      - { label: "Public campaigns and storytelling", weights: { communicator: 2, advocate: 1 } }
-      - { label: "One-to-one conversations", weights: { cooperator: 1, connector: 1 } }
-
-  - id: comms_barrier
+  - id: why_reason
     type: short_text
-    prompt: "What's the biggest barrier to communicating your sustainability work well?"
-    dimension: communication_needs
+    prompt: "Do you have a \"why\"? A reason why this topic is relevant or important for you?"
 
-  - id: role_preference
-    type: single
-    prompt: "Which of these sounds most like you?"
-    dimension: role_preference
+  - id: motivation
+    type: spectrum
+    output: innovation_curve
+    prompt: "What is your motivation to work in sustainability?"
     options:
-      - { label: "I love capturing and organising what we do", weights: { documenter: 4 } }
-      - { label: "I make sure plans actually get done", weights: { implementer: 4 } }
-      - { label: "I enjoy inventing new approaches", weights: { developer: 4 } }
-      - { label: "I champion the bigger cause", weights: { advocate: 4 } }
-      - { label: "I love telling the story to the world", weights: { communicator: 4 } }
-      - { label: "I push hard for urgent change", weights: { activist: 4 } }
-      - { label: "I bring people and organisations together", weights: { connector: 4 } }
-      - { label: "I prefer working quietly alongside others", weights: { cooperator: 4 } }
-      - { label: "I take risks to build something new", weights: { entrepreneur: 4 } }
+      - { label: "I feel the need to act on this topic",     label_organisation: "We feel we must act on this topic" }
+      - { label: "I understand I need to act on this topic", label_organisation: "We understand we need to act on this topic" }
+      - { label: "It is part of my role",                    label_organisation: "We must meet our legal responsibilities" }
+
+  - id: ambition
+    type: spectrum
+    output: innovation_curve
+    prompt: "How ambitious are you?"
+    options:
+      - { label: "I want my work to be sector leading",                      label_organisation: "We want our work to be sector leading" }
+      - { label: "I want to be progressive and innovative",                  label_organisation: "We want to be progressive and innovative" }
+      - { label: "I want to make sure I'm keeping pace with those around me", label_organisation: "We want to make sure we're keeping pace with those around us" }
+      - { label: "I want to get my work done",                               label_organisation: "We want to meet our legal obligations" }
+
+  - id: space_to_progress
+    type: spectrum
+    output: innovation_curve
+    prompt: "How much space do you have to progress?"
+    options:
+      - { label: "A lot, I'm still operating in my comfort zone",                           label_organisation: "A lot, we're still operating in our comfort zone" }
+      - { label: "Some space, I am busy but still have capacity",                           label_organisation: "Some space, we are busy but still have capacity" }
+      - { label: "Very little, I am highly committed and further progress is out of scope", label_organisation: "Very little, we are highly committed and further progress is out of scope" }
+      - { label: "None" }
+
+  - id: need_most
+    type: triangle
+    output: next
+    prompt: "What do you need most to progress?"
+    options:
+      - { label: "More capacity" }
+      - { label: "More knowledge" }
+      - { label: "More support" }
+
+  - id: have_enough
+    type: triangle
+    output: now
+    prompt: "What do you already have enough of?"
+    options:
+      - { label: "Capacity" }
+      - { label: "Knowledge" }
+      - { label: "Support" }
+
+  - id: profile_grid
+    type: grid
+    prompt: "Where would you like to act, and how?"
+    output: profile_direct
+    instructions:
+      individual: "Find yourself on this grid and select"
+      organisation: "Find your organisation on this grid and select"
+    x_axis:
+      label: "Where would you like to act?"
+      options:
+        - "Internal: own organisation and actions"
+        - "Sector: collaboration and network"
+        - "Society: storytelling and speaking out"
+    y_axis:
+      label: "What approach would you like to use?"
+      options:
+        - "Create a stage and address the topic"
+        - "Implement existing solutions"
+        - "Develop new ideas and ways to progress"
+    cells:
+      - { x: 0, y: 2, persona: developer }
+      - { x: 1, y: 2, persona: advocate }
+      - { x: 2, y: 2, persona: cooperator }
+      - { x: 0, y: 1, persona: implementer }
+      - { x: 1, y: 1, persona: entrepreneur }
+      - { x: 2, y: 1, persona: connector }
+      - { x: 0, y: 0, persona: documenter }
+      - { x: 1, y: 0, persona: communicator }
+      - { x: 2, y: 0, persona: activist }
+
+  - id: topics
+    type: multi_exact
+    choose_exactly: 3
+    output: now
+    prompt: "What three topics do you like to focus on the most?"
+    options:
+      - { label: "Water" }
+      - { label: "Food & Drinks" }
+      - { label: "Energy" }
+      - { label: "Materials & Waste" }
+      - { label: "Governance" }
+      - { label: "Travel & Transport (your own and/or audience)" }
+      - { label: "Positive Influence" }
+      - { label: "Biodiversity & Nature" }
+
+  - id: support_type
+    type: triangle
+    output: next
+    prompt: "What type of support do you desire?"
+    options:
+      - { label: "Information" }
+      - { label: "Training" }
+      - { label: "Mentoring" }
+
+  - id: target_groups
+    type: single
+    output: next
+    prompt: "What target groups would you like to collaborate with the most?"
+    options:
+      - { label: "I want to engage my audience",                  label_organisation: "We want to engage our audience" }
+      - { label: "I want to partner with my suppliers",           label_organisation: "We want to partner with our suppliers" }
+      - { label: "I want to collaborate with knowledge partners", label_organisation: "We want to collaborate with knowledge partners" }
+      - { label: "I want to entice policy makers",                label_organisation: "We want to entice policy makers" }
+      - { label: "I want to focus on own organisation first",     label_organisation: "We want to focus on our own organisation first" }
 
 scoring:
   method: persona_vector

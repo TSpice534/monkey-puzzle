@@ -1,0 +1,126 @@
+# Fixture survey exercising the new question types added for backlog #0003:
+# `grid` (profile-direct persona resolution), `triangle`, `multi_exact`, and
+# per-audience `label_organisation` wording. Small enough to drive the full
+# step->step->result flow in a handful of requests.
+meta:
+  version: 1
+  title: "Grid Fixture Survey"
+  personas_count: 9
+
+respondent_type_question: respondent_type
+profile_question: profile_grid
+
+personas:
+  documenter:
+    name: "The Documenter"
+    tagline: "Tagline"
+    description: "Description"
+  implementer:
+    name: "The Implementer"
+    tagline: "Tagline"
+    description: "Description"
+  developer:
+    name: "The Developer"
+    tagline: "Tagline"
+    description: "Description"
+  advocate:
+    name: "The Advocate"
+    tagline: "Tagline"
+    description: "Description"
+  communicator:
+    name: "The Communicator"
+    tagline: "Tagline"
+    description: "Description"
+  activist:
+    name: "The Activist"
+    tagline: "Tagline"
+    description: "Description"
+  connector:
+    name: "The Connector"
+    tagline: "Tagline"
+    description: "Description"
+  cooperator:
+    name: "The Cooperator"
+    tagline: "Tagline"
+    description: "Description"
+  entrepreneur:
+    name: "The Entrepreneur"
+    tagline: "Tagline"
+    description: "Description"
+
+questions:
+  - id: respondent_type
+    type: single
+    prompt: "Are you answering as an individual, or on behalf of an organisation?"
+    options:
+      - { label: "As an individual", audience_value: individual }
+      - { label: "On behalf of an organisation", audience_value: organisation }
+
+  - id: q_worded
+    type: single
+    prompt: "Worded question"
+    options:
+      - { label: "I want my own answer",  label_organisation: "We want our own answer" }
+      - { label: "Second option" }
+
+  - id: q_triangle
+    type: triangle
+    prompt: "Pick a corner"
+    options:
+      - { label: "Corner A" }
+      - { label: "Corner B" }
+      - { label: "Corner C" }
+
+  - id: q_multi_exact
+    type: multi_exact
+    choose_exactly: 2
+    prompt: "Pick exactly two"
+    options:
+      - { label: "Item 1" }
+      - { label: "Item 2" }
+      - { label: "Item 3" }
+      - { label: "Item 4" }
+
+  - id: profile_grid
+    type: grid
+    prompt: "Where would you like to act, and how?"
+    instructions:
+      individual: "Find yourself on this grid and select"
+      organisation: "Find your organisation on this grid and select"
+    x_axis:
+      label: "Where would you like to act?"
+      options:
+        - "Internal: own organisation and actions"
+        - "Sector: collaboration and network"
+        - "Society: storytelling and speaking out"
+    y_axis:
+      label: "What approach would you like to use?"
+      options:
+        - "Create a stage and address the topic"
+        - "Implement existing solutions"
+        - "Develop new ideas and ways to progress"
+    cells:
+      - { x: 0, y: 2, persona: developer }
+      - { x: 1, y: 2, persona: advocate }
+      - { x: 2, y: 2, persona: cooperator }
+      - { x: 0, y: 1, persona: implementer }
+      - { x: 1, y: 1, persona: entrepreneur }
+      - { x: 2, y: 1, persona: connector }
+      - { x: 0, y: 0, persona: documenter }
+      - { x: 1, y: 0, persona: communicator }
+      - { x: 2, y: 0, persona: activist }
+
+scoring:
+  method: persona_vector
+  tie_break:
+    - documenter
+    - implementer
+    - developer
+    - advocate
+    - communicator
+    - activist
+    - connector
+    - cooperator
+    - entrepreneur
+  equity_modifier: { enabled: false }
+  rogers_curve: { enabled: false }

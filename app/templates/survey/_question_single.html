@@ -1,3 +1,4 @@
+{% from "survey/_macros.html" import option_label %}
 {# Native radio inputs styled as tappable cards; selected state via :checked + sibling CSS. #}
 <div class="row g-3" role="radiogroup" aria-label="{{ question.prompt }}">
   {% for option in question.options %}
@@ -7,7 +8,7 @@
            name="{{ question.id }}" value="{{ option.index }}"
            {% if saved_value == option.index %}checked{% endif %}>
     <label class="option-card" for="{{ question.id }}_{{ option.index }}">
-      {{ option.label }}
+      {{ option_label(option, audience) }}
     </label>
   </div>
   {% endfor %}

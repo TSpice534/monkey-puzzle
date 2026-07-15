@@ -1,0 +1,19 @@
+{% from "survey/_macros.html" import option_label %}
+{# Bespoke triangle selector — exactly 3 options (loader-guaranteed), one at
+   each corner of a CSS-drawn triangle. Native radios + :checked-sibling CSS
+   only, no script (mirrors the option-card pattern used elsewhere).
+   Fixed corner mapping: options[0] -> top, options[1] -> bottom-left,
+   options[2] -> bottom-right. #}
+<div class="triangle-widget" role="radiogroup" aria-label="{{ question.prompt }}">
+  <div class="triangle-shape" aria-hidden="true"></div>
+  {% for option in question.options %}
+    {% set corner = 'top' if loop.index0 == 0 else ('bottom-left' if loop.index0 == 1 else 'bottom-right') %}
+    <input class="visually-hidden triangle-node-input" type="radio"
+           id="{{ question.id }}_{{ option.index }}"
+           name="{{ question.id }}" value="{{ option.index }}"
+           {% if saved_value == option.index %}checked{% endif %}>
+    <label class="triangle-node triangle-node--{{ corner }}" for="{{ question.id }}_{{ option.index }}">
+      {{ option_label(option, audience) }}
+    </label>
+  {% endfor %}
+</div>

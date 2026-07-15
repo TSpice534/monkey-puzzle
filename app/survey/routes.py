@@ -36,7 +36,7 @@ def _read_answer(question, form):
     qid = question['id']
     qtype = question['type']
 
-    if qtype == 'multi':
+    if qtype in ('multi', 'multi_exact'):
         indices = []
         for raw in form.getlist(qid):
             try:
@@ -48,7 +48,15 @@ def _read_answer(question, form):
     if qtype == 'short_text':
         return (form.get(qid) or '').strip()
 
-    # single / spectrum — a single chosen option index, or None if untouched
+    if qtype == 'grid':
+        raw = form.get(qid)
+        try:
+            x, y = raw.split(',')
+            return [int(x), int(y)]
+        except (AttributeError, TypeError, ValueError):
+            return None
+
+    # single / spectrum / triangle — a single chosen option index, or None if untouched
     raw = form.get(qid)
     try:
         return int(raw)
@@ -79,6 +87,28 @@ def step(token, step):
 
     if request.method == 'POST':
         value = _read_answer(question, request.form)
+
+        # multi_exact: exact count required
+        if question['type'] == 'multi_exact':
+            n = question['choose_exactly']
+            if not (isinstance(value, list) and len(value) == n):
+                flash(f'Please select exactly {n} option{"s" if n != 1 else ""}.', 'danger')
+                return render_template(
+                    'survey/step.html', title='The Monkey Puzzle',
+                    question=question, saved_value=value, step=step,
+                    total=total, token=token, audience=submission.audience,
+                )
+
+        # grid: a cell must be picked (mandatory)
+        if question['type'] == 'grid':
+            if not (isinstance(value, list) and len(value) == 2):
+                flash('Please select a position on the grid to continue.', 'danger')
+                return render_template(
+                    'survey/step.html', title='The Monkey Puzzle',
+                    question=question, saved_value=value, step=step,
+                    total=total, token=token, audience=submission.audience,
+                )
+
         # JSON columns need reassignment, not in-place mutation, to be
         # picked up reliably by SQLAlchemy.
         submission.answers = {**submission.answers, question['id']: value}
@@ -111,6 +141,7 @@ def step(token, step):
         step=step,
         total=total,
         token=token,
+        audience=submission.audience,
     )
 
 
@@ -131,6 +162,15 @@ def result(token):
     persona = survey['personas'][submission.persona_id]
     fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
 
+    grid_qid = survey.get('profile_question')
+    grid_question = None
+    grid_selected = None   # [x, y]
+    if grid_qid:
+        grid_question = next((q for q in survey['questions'] if q['id'] == grid_qid), None)
+        answer = submission.answers.get(grid_qid)
+        if isinstance(answer, list) and len(answer) == 2:
+            grid_selected = answer
+
     return render_template(
         'survey/result.html',
         title=persona['name'],
@@ -138,6 +178,8 @@ def result(token):
         persona=persona,
         personas=survey['personas'],
         fingerprint_svg=fingerprint_svg,
+        grid_question=grid_question,
+        grid_selected=grid_selected,
     )
 
 

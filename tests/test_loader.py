@@ -423,3 +423,252 @@ def test_effective_questions_filters_by_audience(tmp_path):
     assert 'q_single' in org_ids
     assert 'q_single' not in ind_ids
     assert 'respondent_type' in org_ids and 'respondent_type' in ind_ids
+
+
+# ---------------------------------------------------------------------------
+# New question types (backlog #0003): triangle, multi_exact, grid; the
+# `output` schema tag; the optional `label_organisation` option field; and
+# the `profile_question` top-level key.
+# ---------------------------------------------------------------------------
+
+def _grid_question(qid='profile_grid'):
+    return {
+        'id': qid,
+        'type': 'grid',
+        'prompt': 'Where would you like to act, and how?',
+        'x_axis': {
+            'label': 'Where would you like to act?',
+            'options': ['Internal', 'Sector', 'Society'],
+        },
+        'y_axis': {
+            'label': 'What approach would you like to use?',
+            'options': ['Create a stage', 'Implement', 'Develop'],
+        },
+        'cells': [
+            {'x': 0, 'y': 2, 'persona': 'developer'},
+            {'x': 1, 'y': 2, 'persona': 'advocate'},
+            {'x': 2, 'y': 2, 'persona': 'cooperator'},
+            {'x': 0, 'y': 1, 'persona': 'implementer'},
+            {'x': 1, 'y': 1, 'persona': 'entrepreneur'},
+            {'x': 2, 'y': 1, 'persona': 'connector'},
+            {'x': 0, 'y': 0, 'persona': 'documenter'},
+            {'x': 1, 'y': 0, 'persona': 'communicator'},
+            {'x': 2, 'y': 0, 'persona': 'activist'},
+        ],
+    }
+
+
+def _triangle_question(qid='q_triangle'):
+    return {
+        'id': qid,
+        'type': 'triangle',
+        'prompt': 'Pick a corner',
+        'options': [{'label': 'A'}, {'label': 'B'}, {'label': 'C'}],
+    }
+
+
+def _multi_exact_question(qid='q_multi_exact', choose_exactly=2):
+    return {
+        'id': qid,
+        'type': 'multi_exact',
+        'choose_exactly': choose_exactly,
+        'prompt': 'Pick exactly two',
+        'options': [{'label': 'Item 1'}, {'label': 'Item 2'}, {'label': 'Item 3'}, {'label': 'Item 4'}],
+    }
+
+
+def test_valid_grid_question_loads(tmp_path):
+    data = _base_config()
+    data['questions'].append(_grid_question())
+    config = load_survey(_write_yaml(tmp_path, data))
+    grid = next(q for q in config['questions'] if q['id'] == 'profile_grid')
+    assert len(grid['cells']) == 9
+    assert 'options' not in grid
+
+
+def test_grid_with_missing_axis_options_raises(tmp_path):
+    data = _base_config()
+    grid = _grid_question()
+    grid['x_axis']['options'] = ['Internal', 'Sector']  # only 2, needs 3
+    data['questions'].append(grid)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_grid_with_wrong_cell_count_raises(tmp_path):
+    data = _base_config()
+    grid = _grid_question()
+    grid['cells'] = grid['cells'][:-1]  # only 8 cells
+    data['questions'].append(grid)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_grid_with_duplicate_cell_coordinate_raises(tmp_path):
+    data = _base_config()
+    grid = _grid_question()
+    grid['cells'][1]['x'] = grid['cells'][0]['x']
+    grid['cells'][1]['y'] = grid['cells'][0]['y']
+    data['questions'].append(grid)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_grid_with_unknown_cell_persona_raises(tmp_path):
+    data = _base_config()
+    grid = _grid_question()
+    grid['cells'][0]['persona'] = 'not-a-real-persona'
+    data['questions'].append(grid)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_grid_with_duplicate_persona_across_cells_raises(tmp_path):
+    data = _base_config()
+    grid = _grid_question()
+    grid['cells'][1]['persona'] = grid['cells'][0]['persona']
+    data['questions'].append(grid)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_question_naming_a_non_grid_question_raises(tmp_path):
+    data = _base_config()
+    data['profile_question'] = 'q_single'  # exists but is type 'single'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_question_naming_a_missing_question_raises(tmp_path):
+    data = _base_config()
+    data['profile_question'] = 'does_not_exist'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_question_naming_a_grid_question_loads(tmp_path):
+    data = _base_config()
+    data['questions'].append(_grid_question())
+    data['profile_question'] = 'profile_grid'
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['profile_question'] == 'profile_grid'
+
+
+def test_multi_exact_valid_loads(tmp_path):
+    data = _base_config()
+    data['questions'].append(_multi_exact_question())
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_multi_exact')
+    assert q['choose_exactly'] == 2
+    assert [opt['index'] for opt in q['options']] == [0, 1, 2, 3]
+
+
+def test_multi_exact_missing_choose_exactly_raises(tmp_path):
+    data = _base_config()
+    q = _multi_exact_question()
+    del q['choose_exactly']
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_exact_non_int_choose_exactly_raises(tmp_path):
+    data = _base_config()
+    q = _multi_exact_question(choose_exactly='two')
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_exact_boolean_choose_exactly_raises(tmp_path):
+    """bool is a subclass of int — guard against `choose_exactly: true`."""
+    data = _base_config()
+    q = _multi_exact_question(choose_exactly=True)
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_exact_out_of_range_choose_exactly_raises(tmp_path):
+    data = _base_config()
+    q = _multi_exact_question(choose_exactly=5)  # only 4 options
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_triangle_valid_three_option_loads(tmp_path):
+    data = _base_config()
+    data['questions'].append(_triangle_question())
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_triangle')
+    assert len(q['options']) == 3
+
+
+def test_triangle_with_two_options_raises(tmp_path):
+    data = _base_config()
+    q = _triangle_question()
+    q['options'] = q['options'][:2]
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_triangle_with_four_options_raises(tmp_path):
+    data = _base_config()
+    q = _triangle_question()
+    q['options'].append({'label': 'D'})
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_unknown_output_value_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['output'] = 'not-a-real-output'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_absent_output_is_fine(tmp_path):
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    assert 'output' not in config['questions'][0]
+
+
+def test_valid_output_value_loads(tmp_path):
+    data = _base_config()
+    data['questions'][0]['output'] = 'now'
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['questions'][0]['output'] == 'now'
+
+
+def test_option_with_no_weights_loads_cleanly(tmp_path):
+    """Regression guard: `weights` is now optional on single/spectrum/multi/
+    triangle/multi_exact options — a missing `weights` must not raise."""
+    data = _base_config()
+    del data['questions'][0]['options'][0]['weights']
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert 'weights' not in q['options'][0]
+
+
+def test_non_string_label_organisation_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['label_organisation'] = 123
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_empty_label_organisation_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['label_organisation'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_valid_label_organisation_loads(tmp_path):
+    data = _base_config()
+    data['questions'][0]['options'][0]['label_organisation'] = 'We prefer this wording'
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert q['options'][0]['label_organisation'] == 'We prefer this wording'
