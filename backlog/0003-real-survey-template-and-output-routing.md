@@ -2,9 +2,9 @@
 id: 0003
 title: Build real survey content, Output routing, and interactive persona grid (merges #0001)
 type: feature
-status: todo
+status: in-progress
 created: 2026-07-15
-branch:
+branch: feature/real-survey-template-and-output-routing
 ---
 
 ## Request
