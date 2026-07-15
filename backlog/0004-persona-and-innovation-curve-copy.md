@@ -2,9 +2,9 @@
 id: 0004
 title: Real persona and innovation-curve copy (Natural Allies/Friends/Necessity)
 type: feature
-status: todo
+status: in-progress
 created: 2026-07-15
-branch:
+branch: feature/persona-and-innovation-curve-copy
 ---
 
 ## Request
