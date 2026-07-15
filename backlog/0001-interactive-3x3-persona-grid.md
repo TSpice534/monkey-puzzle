@@ -21,6 +21,25 @@ on the grid (not two separate radio questions). Instruction copy depends on audi
 (already-built `Submission.audience`): "Find yourself on this grid and select" for
 individuals, "Find your organisation on this grid and select" for organisations.
 
+**Confirmed 3x3 → persona mapping** (from Tom, 2026-07-15):
+
+|                  | Internal    | Sector       | Society    |
+|------------------|-------------|--------------|------------|
+| Develop new ideas and ways to progress | Developer   | Advocate     | Cooperator |
+| Implement existing solutions           | Implementer | Entrepreneur | Connector  |
+| Create a stage and address the topic   | Documenter  | Communicator | Activist   |
+
+Tom gave this as a plain top/middle/bottom, left/right grid without naming which row is
+which y-axis option or which column is which x-axis option. The row/column labels above
+are an inferred mapping, not something Tom stated explicitly — inferred from the literal
+name matches (Developer sits top-left, Implementer sits middle-left; both only make
+sense if that column is "Internal" and those rows are "Develop"/"Implement"
+respectively). Note this means row order is the *reverse* of how the y-axis options were
+originally listed (Create-stage, Implement, Develop) — top row is "Develop," not
+"Create a stage." **Flag for Rob/Andrew to confirm before this ships** — if the
+row/column assignment is wrong, every respondent lands on a different persona than
+intended.
+
 This **replaces** the existing weighted-scoring classifier (`score_submission` + argmax
 in `app/survey/persona.py`) as the mechanism that determines the winning persona. The
 remaining question set is repurposed, not removed: it now positions the respondent on
@@ -64,8 +83,6 @@ targeted greps of `persona.py`, `loader.py`, and the survey templates.
 
 **Open questions only Rob/Andrew/Tom can resolve (not blocking this filing, but should
 be resolved before /ship builds this):**
-- The actual 3x3 → persona mapping (which persona sits at each of the 9 intersections)
-  is content, owned by Rob/Andrew, not a code decision.
 - Whether the radar/fingerprint chart still renders post-grid-pick, and if so what it's
   now a fingerprint *of*, given persona is no longer derived from the score vector.
 - Rogers' innovation curve categories/scoring logic, and what "a couple of other
@@ -79,9 +96,10 @@ be resolved before /ship builds this):**
   directly. Confirm with Rob/Andrew whether/how the radar "fingerprint" chart
   (currently rendered from that same score vector) should keep working once persona
   selection no longer depends on it.
-- The exact 3x3 → persona mapping is content Rob/Andrew own (`content/survey.yaml`), not
-  yet defined — needed before `/ship` can build the real mapping (a placeholder mapping
-  can unblock the UI/mechanism work in the meantime).
+- The 3x3 → persona mapping is confirmed (see grid above) but the row/column-to-axis
+  correspondence is Tom's + my inference, not something Rob/Andrew have signed off on —
+  get their confirmation before `/ship` builds the real `content/survey.yaml` grid, since
+  getting it backwards silently swaps who lands on which persona.
 - Rogers' innovation curve logic has a scaffolded but disabled hook already:
   `apply_modifiers()`'s `scoring.rogers_curve.enabled` in `app/survey/persona.py` — this
   request is what turns it on. Exact adopter categories / scoring rules and the "couple
