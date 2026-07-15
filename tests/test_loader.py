@@ -675,6 +675,50 @@ def test_valid_label_organisation_loads(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# Persona 'icon' field (backlog #0005 — vector icons for persona cards and
+# the labelled result grid). Optional non-empty string, mirroring the
+# label_organisation checks above.
+# ---------------------------------------------------------------------------
+
+def test_non_string_icon_raises(tmp_path):
+    data = _base_config()
+    data['personas']['accountant']['icon'] = 123
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_empty_icon_raises(tmp_path):
+    data = _base_config()
+    data['personas']['accountant']['icon'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_absent_icon_loads_fine(tmp_path):
+    """icon is optional — the fixture builder never sets it, and load_survey
+    must not raise or invent a default."""
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    assert config['personas']['accountant'].get('icon') is None
+
+
+def test_valid_icon_loads(tmp_path):
+    data = _base_config()
+    data['personas']['accountant']['icon'] = 'icons/accountant.svg'
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['personas']['accountant']['icon'] == 'icons/accountant.svg'
+
+
+def test_real_survey_every_persona_has_a_non_empty_icon():
+    """Guards content completeness: the schema keeps `icon` optional, but the
+    real production content/survey.yaml must set one for every persona so
+    the card/grid icons actually show up (backlog #0005)."""
+    config = load_survey(REAL_SURVEY_PATH)
+    for pid in PERSONA_IDS:
+        icon = config['personas'][pid].get('icon')
+        assert isinstance(icon, str) and icon, f"persona '{pid}' has no non-empty icon"
+
+
+# ---------------------------------------------------------------------------
 # Option 'score' / 'unlabelled' fields, and the top-level 'innovation_curve'
 # construct (backlog #0002 — Rogers' innovation-curve scoring)
 # ---------------------------------------------------------------------------
