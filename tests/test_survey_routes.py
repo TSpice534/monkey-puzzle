@@ -10,7 +10,7 @@ from app.survey.loader import clear_survey_cache, load_survey
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), 'fixtures', 'survey_min.yaml')
 
 PERSONA_IDS = [
-    'documenter', 'implementer', 'developer', 'advocate', 'communicator',
+    'accountant', 'implementer', 'developer', 'advocate', 'communicator',
     'activist', 'connector', 'cooperator', 'entrepreneur',
 ]
 
@@ -185,7 +185,7 @@ def test_resubmitting_final_step_reclassifies_with_new_answer(client, db):
     assert submission.persona_id == 'developer'
 
     # Go back to step 1 and pick the other option, then re-complete.
-    client.post(f'/survey/{token}/step/1', data={'q_single': '1'})       # documenter: 2
+    client.post(f'/survey/{token}/step/1', data={'q_single': '1'})       # accountant: 2
     client.post(f'/survey/{token}/step/2', data={'q_multi': []})
     client.post(f'/survey/{token}/step/3', data={'q_spectrum': '0'})
     final_response = client.post(f'/survey/{token}/step/4', data={'q_short_text': ''})
@@ -194,7 +194,7 @@ def test_resubmitting_final_step_reclassifies_with_new_answer(client, db):
     assert final_response.headers['Location'].endswith(f'/survey/{token}/result')
 
     db.session.refresh(submission)
-    assert submission.persona_id == 'documenter'
+    assert submission.persona_id == 'accountant'
     assert submission.answers['q_single'] == 1
 
 

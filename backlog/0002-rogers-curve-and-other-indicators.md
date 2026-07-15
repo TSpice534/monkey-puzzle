@@ -2,9 +2,9 @@
 id: 0002
 title: Position respondents on Rogers' innovation curve (Innovation-Curve only)
 type: feature
-status: todo
+status: shipped
 created: 2026-07-15
-branch:
+branch: feature/innovation-curve-scoring
 ---
 
 ## Request

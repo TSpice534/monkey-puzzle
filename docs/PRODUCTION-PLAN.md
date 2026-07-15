@@ -4,7 +4,7 @@
 
 Tom is building a new platform, **The Monkey Puzzle** — a quick, graphical, no-login
 self-assessment that outputs a personalised sustainability *persona* ("your sustainable
-who"): one of nine profiles (Documenter, Implementer, Developer, Advocate, Communicator,
+who"): one of nine profiles (Accountant, Implementer, Developer, Advocate, Communicator,
 Activist, Connector, Cooperator, Entrepreneur). Framing is "know yourself," not
 "measure what you're doing wrong." Primary pilot: the Federation of Music Conferences
 (32 conferences), later extending to European cultural/business events.
@@ -68,8 +68,8 @@ data-driven question loader, (4) graphical front-end widgets.
 ```yaml
 meta: { version: 1, title: "The Monkey Puzzle", personas_count: 9 }
 personas:                      # the nine outcomes
-  documenter:
-    name: "The Documenter"
+  accountant:
+    name: "The Accountant"
     tagline: "..."
     description: "..."
     brethren: [implementer, developer]     # natural allies
@@ -84,7 +84,7 @@ questions:                     # 10-15, ordered
     dimension: roots           # Rob's framework axis (see below)
     options:                   # each option carries a persona-weight vector
       - { label: "Crystal clear", weights: { developer: 2, implementer: 1 } }
-      - { label: "Still forming", weights: { documenter: 2 } }
+      - { label: "Still forming", weights: { accountant: 2 } }
 scoring:
   method: persona_vector       # sum option weights across personas → argmax
   tie_break: [entrepreneur, connector, ...]   # deterministic order

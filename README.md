@@ -11,7 +11,7 @@ sweet spot. No account needed. Open source.
 
 ## The nine personas
 
-Documenter · Implementer · Developer · Advocate · Communicator · Activist · Connector ·
+Accountant · Implementer · Developer · Advocate · Communicator · Activist · Connector ·
 Cooperator · Entrepreneur
 
 Each result comes with a persona card: description, natural allies ("brethren"), good

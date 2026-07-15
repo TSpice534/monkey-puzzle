@@ -11,8 +11,8 @@ respondent_type_question: respondent_type
 profile_question: profile_grid
 
 personas:
-  documenter:
-    name: "The Documenter"
+  accountant:
+    name: "The Accountant"
     tagline: "Tagline"
     description: "Description"
   implementer:
@@ -106,14 +106,14 @@ questions:
       - { x: 0, y: 1, persona: implementer }
       - { x: 1, y: 1, persona: entrepreneur }
       - { x: 2, y: 1, persona: connector }
-      - { x: 0, y: 0, persona: documenter }
+      - { x: 0, y: 0, persona: accountant }
       - { x: 1, y: 0, persona: communicator }
       - { x: 2, y: 0, persona: activist }
 
 scoring:
   method: persona_vector
   tie_break:
-    - documenter
+    - accountant
     - implementer
     - developer
     - advocate

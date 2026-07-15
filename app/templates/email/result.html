@@ -8,6 +8,14 @@
   <h1 style="font-size: 1.5rem; margin: 0 0 0.5rem 0;">{{ persona.name }}</h1>
   <p style="font-size: 1.1rem; color: #495057;">{{ persona.tagline }}</p>
   <p>{{ persona.description }}</p>
+  {% if innovation %}
+  <p style="margin-top:1rem;">
+    <strong>Where you sit on the innovation curve:</strong>
+    <span style="display:inline-block; width:0.7rem; height:0.7rem; border-radius:50%;
+                 background-color:{{ innovation.colour }};"></span>
+    {{ innovation.band }}
+  </p>
+  {% endif %}
   <p>Your full results, with the fingerprint chart, are attached as a PDF.</p>
   <p>
     You can also revisit your result online any time:<br>

@@ -101,20 +101,29 @@ def test_full_11_step_flow_individual_completes_and_classifies_via_grid(client, 
     assert submission.score_vector['entrepreneur'] == 1.0
     assert all(v == 0.0 for pid, v in submission.score_vector.items() if pid != 'entrepreneur')
     assert set(submission.score_vector.keys()) == {
-        'documenter', 'implementer', 'developer', 'advocate', 'communicator',
+        'accountant', 'implementer', 'developer', 'advocate', 'communicator',
         'activist', 'connector', 'cooperator', 'entrepreneur',
     }
+    # Innovation-curve result (backlog #0002): motivation/ambition/space_to_progress
+    # all answered index 0 (score 1 each) -> sum 3; entrepreneur modifier +2 -> 5
+    # -> Late Majority (band 3-7).
+    assert submission.innovation_score == 5
+    assert submission.innovation_band == 'Late Majority'
 
 
 def test_full_11_step_flow_organisation_completes_and_classifies_via_grid(client, db):
-    token, final = _complete_survey(client, audience_index=ORGANISATION, grid='0,0')  # -> documenter
+    token, final = _complete_survey(client, audience_index=ORGANISATION, grid='0,0')  # -> accountant
 
     assert final.status_code == 302
     assert final.headers['Location'].endswith(f'/survey/{token}/result')
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert submission.persona_id == 'documenter'
+    assert submission.persona_id == 'accountant'
     assert submission.audience == 'organisation'
+    # accountant's persona modifier is 0, so the total is just the raw
+    # question-score sum (3) -> Late Majority (band 3-7).
+    assert submission.innovation_score == 3
+    assert submission.innovation_band == 'Late Majority'
 
 
 def test_all_nine_grid_cells_resolve_to_the_documented_persona_end_to_end(client, db):
@@ -123,13 +132,39 @@ def test_all_nine_grid_cells_resolve_to_the_documented_persona_end_to_end(client
     expected = {
         (0, 2): 'developer', (1, 2): 'advocate', (2, 2): 'cooperator',
         (0, 1): 'implementer', (1, 1): 'entrepreneur', (2, 1): 'connector',
-        (0, 0): 'documenter', (1, 0): 'communicator', (2, 0): 'activist',
+        (0, 0): 'accountant', (1, 0): 'communicator', (2, 0): 'activist',
     }
     for (x, y), persona_id in expected.items():
         token, final = _complete_survey(client, audience_index=INDIVIDUAL, grid=f'{x},{y}')
         assert final.status_code == 302
         submission = db.session.query(Submission).filter_by(token=token).one()
         assert submission.persona_id == persona_id, f'cell ({x},{y}) expected {persona_id}'
+
+
+# ---------------------------------------------------------------------------
+# Innovation-curve scoring + banding (backlog #0002) — a worked high-score
+# example (all sliders at index 4/2/2, developer's +4 modifier) end-to-end.
+# ---------------------------------------------------------------------------
+
+def test_high_scoring_answers_and_developer_modifier_classify_as_innovators(client, db):
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
+    client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '4'})
+    client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '2'})
+    client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '2'})
+    client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0'})
+    client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '0,2'})  # -> developer
+    client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
+    client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
+    final = client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+
+    assert final.status_code == 302
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert submission.persona_id == 'developer'
+    assert submission.innovation_score == 19
+    assert submission.innovation_band == 'Innovators'
 
 
 # ---------------------------------------------------------------------------
@@ -277,6 +312,33 @@ def test_grid_instruction_copy_switches_by_audience(client):
 
 
 # ---------------------------------------------------------------------------
+# motivation — now a 5-position slider with 2 unlabelled between-stops
+# (backlog #0002)
+# ---------------------------------------------------------------------------
+
+def test_motivation_slider_unlabelled_stop_label_text_is_not_rendered(client):
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    response = client.get(f'/survey/{token}/step/{STEP_MOTIVATION}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Intermediate position' not in body
+    # The 3 labelled stops are still present.
+    assert 'I feel the need to act on this topic' in body
+    assert 'I understand I need to act on this topic' in body
+    assert 'It is part of my role' in body
+
+
+@pytest.mark.parametrize('index', [0, 1, 2, 3, 4])
+def test_motivation_slider_accepts_all_five_positions(client, index):
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    response = client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': str(index)})
+    assert response.status_code == 302
+
+
+# ---------------------------------------------------------------------------
 # Triangle widget renders correctly on the real content (need_most, step 6)
 # ---------------------------------------------------------------------------
 
@@ -320,6 +382,23 @@ def test_result_page_renders_the_labelled_grid_with_the_chosen_persona(client):
     assert 'grid-cell--selected' in body
 
 
+def test_result_page_renders_the_innovation_band_card_after_the_grid(client):
+    """backlog #0002: the innovation-curve card sits directly below 'Your
+    position on the grid' (and before the share card)."""
+    token, _ = _complete_survey(client)  # motivation/ambition/space_to_progress=0, entrepreneur -> Late Majority
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Where you sit on the innovation curve' in body
+    assert 'Late Majority' in body
+
+    grid_pos = body.index('Your position on the grid')
+    innovation_pos = body.index('Where you sit on the innovation curve')
+    share_pos = body.index('Share or save your result')
+    assert grid_pos < innovation_pos < share_pos
+
+
 def test_result_grid_table_structure_is_a_real_3x3_not_a_stacked_column(client):
     """Regression test: `.grid-cell` (display:flex) was once applied directly
     to the result grid's <td>, which overrides the browser's default
@@ -355,6 +434,49 @@ def test_download_pdf_returns_pdf_against_real_content(client):
     assert response.mimetype == 'application/pdf'
     assert response.data.startswith(b'%PDF')
     assert 'Entrepreneur' in response.headers['Content-Disposition']
+
+
+def test_pdf_result_template_renders_the_innovation_band_name(app):
+    """generate_result_pdf threads `innovation` into `pdf/result.html` — the
+    simplest robust check that the partial is included is rendering the
+    template directly with an `innovation` context and asserting the band
+    name is present (WeasyPrint's rasterised PDF bytes aren't text-greppable)."""
+    from flask import render_template
+
+    persona = {
+        'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd',
+        'brethren': [], 'besties': [], 'battlers': [], 'case_studies': [], 'resources': [],
+    }
+    innovation = {'band': 'Late Majority', 'score': 5, 'colour': '#e67e22'}
+
+    with app.app_context():
+        html = render_template(
+            'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
+            fingerprint_svg='<svg></svg>', innovation=innovation,
+        )
+    assert 'Where you sit on the innovation curve' in html
+    assert 'Late Majority' in html
+
+
+def test_email_templates_render_the_innovation_band_name(app):
+    """Unit-level check (mirroring how test_sharing.py exercises email
+    bodies) that both email/result.txt and email/result.html render the
+    band name when given an `innovation` context."""
+    from flask import render_template
+
+    persona = {'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd'}
+    innovation = {'band': 'Late Majority', 'score': 5, 'colour': '#e67e22'}
+
+    with app.app_context():
+        text_body = render_template(
+            'email/result.txt', persona=persona, result_url='https://example.com/r', innovation=innovation,
+        )
+        html_body = render_template(
+            'email/result.html', persona=persona, result_url='https://example.com/r', innovation=innovation,
+        )
+
+    assert 'Late Majority' in text_body
+    assert 'Late Majority' in html_body
 
 
 def test_email_result_route_reachable_against_real_content(client, app):
