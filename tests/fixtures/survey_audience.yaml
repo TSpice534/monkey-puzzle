@@ -1,0 +1,111 @@
+# Fixture survey for testing respondent-type routing — deliberately gives
+# the two tracks different lengths (organisation: 5 steps, individual: 4
+# steps) so route tests exercise `total` actually changing after the
+# router question is answered, not just which questions show.
+meta:
+  version: 1
+  title: "Audience Routing Fixture Survey"
+  personas_count: 9
+
+respondent_type_question: respondent_type
+
+personas:
+  documenter:
+    name: "The Documenter"
+    tagline: "Tagline"
+    description: "Description"
+  implementer:
+    name: "The Implementer"
+    tagline: "Tagline"
+    description: "Description"
+  developer:
+    name: "The Developer"
+    tagline: "Tagline"
+    description: "Description"
+  advocate:
+    name: "The Advocate"
+    tagline: "Tagline"
+    description: "Description"
+  communicator:
+    name: "The Communicator"
+    tagline: "Tagline"
+    description: "Description"
+  activist:
+    name: "The Activist"
+    tagline: "Tagline"
+    description: "Description"
+  connector:
+    name: "The Connector"
+    tagline: "Tagline"
+    description: "Description"
+  cooperator:
+    name: "The Cooperator"
+    tagline: "Tagline"
+    description: "Description"
+  entrepreneur:
+    name: "The Entrepreneur"
+    tagline: "Tagline"
+    description: "Description"
+
+questions:
+  - id: respondent_type
+    type: single
+    prompt: "Individual or organisation?"
+    options:
+      - { label: "As an individual", audience_value: individual }
+      - { label: "On behalf of an organisation", audience_value: organisation }
+
+  - id: q_shared
+    type: single
+    prompt: "Shared question (both tracks see this)"
+    dimension: roots
+    options:
+      - { label: "Option A", weights: { developer: 2 } }
+      - { label: "Option B", weights: { documenter: 2 } }
+
+  - id: q_org_1
+    type: single
+    prompt: "Organisation-only question 1"
+    dimension: roots
+    audience: [organisation]
+    options:
+      - { label: "Option A", weights: { implementer: 1 } }
+      - { label: "Option B", weights: { communicator: 1 } }
+
+  - id: q_org_2
+    type: single
+    prompt: "Organisation-only question 2"
+    dimension: strategic_domain
+    audience: [organisation]
+    options:
+      - { label: "Option A", weights: { advocate: 1 } }
+      - { label: "Option B", weights: { activist: 1 } }
+
+  - id: q_ind_1
+    type: single
+    prompt: "Individual-only question 1"
+    dimension: roots
+    audience: [individual]
+    options:
+      - { label: "Option A", weights: { entrepreneur: 1 } }
+      - { label: "Option B", weights: { cooperator: 1 } }
+
+  - id: q_short_text
+    type: short_text
+    prompt: "Anything else?"
+    dimension: communication_needs
+
+scoring:
+  method: persona_vector
+  tie_break:
+    - documenter
+    - implementer
+    - developer
+    - advocate
+    - communicator
+    - activist
+    - connector
+    - cooperator
+    - entrepreneur
+  equity_modifier: { enabled: false }
+  rogers_curve: { enabled: false }

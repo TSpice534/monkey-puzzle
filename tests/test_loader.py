@@ -68,7 +68,30 @@ def _write_yaml(tmp_path, data, name='survey.yaml'):
 def test_real_placeholder_survey_loads_without_error():
     config = load_survey(REAL_SURVEY_PATH)
     assert set(config['personas'].keys()) == set(PERSONA_IDS)
-    assert 10 <= len(config['questions']) <= 15
+    # 10-15 scored questions plus the respondent-type router question.
+    assert 11 <= len(config['questions']) <= 20
+
+
+def test_real_placeholder_survey_has_a_respondent_type_router():
+    config = load_survey(REAL_SURVEY_PATH)
+    router_id = config['respondent_type_question']
+    assert config['questions'][0]['id'] == router_id
+    router = config['questions'][0]
+    values = {opt['audience_value'] for opt in router['options']}
+    assert values == {'individual', 'organisation'}
+
+
+def test_real_placeholder_survey_individual_and_organisation_tracks_are_balanced():
+    """Not a hard product requirement, just a sanity check that placeholder
+    content gives both tracks comparable depth — catches an obviously
+    lopsided edit (e.g. one branch question forgotten) without pinning an
+    exact count either track has to hit."""
+    from app.survey.loader import effective_questions
+
+    config = load_survey(REAL_SURVEY_PATH)
+    individual_total = len(effective_questions(config, 'individual'))
+    organisation_total = len(effective_questions(config, 'organisation'))
+    assert individual_total == organisation_total
 
 
 def test_valid_config_normalises_persona_ids(tmp_path):
@@ -258,3 +281,145 @@ def test_scoring_hook_missing_enabled_key_raises(tmp_path):
     data['scoring']['equity_modifier'] = {}
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
+
+
+# ---------------------------------------------------------------------------
+# Respondent-type router question + audience tagging
+# ---------------------------------------------------------------------------
+
+def _router_question():
+    return {
+        'id': 'respondent_type',
+        'type': 'single',
+        'prompt': 'Individual or organisation?',
+        'options': [
+            {'label': 'As an individual', 'audience_value': 'individual'},
+            {'label': 'On behalf of an organisation', 'audience_value': 'organisation'},
+        ],
+    }
+
+
+def _config_with_router():
+    data = _base_config()
+    data['respondent_type_question'] = 'respondent_type'
+    data['questions'].insert(0, _router_question())
+    return data
+
+
+def test_router_question_loads_and_normalises_option_indices(tmp_path):
+    config = load_survey(_write_yaml(tmp_path, _config_with_router()))
+    router = config['questions'][0]
+    assert router['id'] == config['respondent_type_question']
+    assert [opt['index'] for opt in router['options']] == [0, 1]
+
+
+def test_router_question_must_be_first(tmp_path):
+    data = _config_with_router()
+    # Move the router question to the end.
+    data['questions'].append(data['questions'].pop(0))
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_router_question_options_must_not_declare_weights(tmp_path):
+    data = _config_with_router()
+    data['questions'][0]['options'][0]['weights'] = {'documenter': 1}
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_router_question_options_must_cover_both_audiences(tmp_path):
+    data = _config_with_router()
+    data['questions'][0]['options'][1]['audience_value'] = 'individual'  # both now 'individual'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_router_question_option_bad_audience_value_raises(tmp_path):
+    data = _config_with_router()
+    data['questions'][0]['options'][0]['audience_value'] = 'not-a-real-audience'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_router_question_must_not_declare_audience(tmp_path):
+    data = _config_with_router()
+    data['questions'][0]['audience'] = ['individual']
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_router_question_must_not_be_short_text(tmp_path):
+    data = _config_with_router()
+    data['questions'][0] = {
+        'id': 'respondent_type', 'type': 'short_text', 'prompt': 'Individual or organisation?',
+    }
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_respondent_type_question_must_reference_an_existing_first_question(tmp_path):
+    data = _config_with_router()
+    data['respondent_type_question'] = 'not_the_first_question'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_question_audience_field_must_be_valid_list(tmp_path):
+    data = _config_with_router()
+    data['questions'][1]['audience'] = 'individual'  # must be a list, not a bare string
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_question_audience_field_rejects_unknown_value(tmp_path):
+    data = _config_with_router()
+    data['questions'][1]['audience'] = ['not-a-real-audience']
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_survey_without_router_question_still_loads(tmp_path):
+    """respondent_type_question is optional — backward compatible with
+    surveys (like the route-test fixture) that don't branch by audience."""
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    assert config.get('respondent_type_question') is None
+
+
+# ---------------------------------------------------------------------------
+# effective_questions
+# ---------------------------------------------------------------------------
+
+def test_effective_questions_with_no_router_returns_everything(tmp_path):
+    from app.survey.loader import effective_questions
+
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    assert [q['id'] for q in effective_questions(config, None)] == \
+        [q['id'] for q in config['questions']]
+
+
+def test_effective_questions_before_routing_excludes_audience_tagged_questions(tmp_path):
+    from app.survey.loader import effective_questions
+
+    data = _config_with_router()
+    data['questions'][1]['audience'] = ['organisation']
+    config = load_survey(_write_yaml(tmp_path, data))
+
+    ids = [q['id'] for q in effective_questions(config, None)]
+    assert 'respondent_type' in ids
+    assert 'q_single' not in ids   # organisation-only, not yet routed
+    assert 'q_short_text' in ids   # untagged — shared
+
+
+def test_effective_questions_filters_by_audience(tmp_path):
+    from app.survey.loader import effective_questions
+
+    data = _config_with_router()
+    data['questions'][1]['audience'] = ['organisation']
+    config = load_survey(_write_yaml(tmp_path, data))
+
+    org_ids = [q['id'] for q in effective_questions(config, 'organisation')]
+    ind_ids = [q['id'] for q in effective_questions(config, 'individual')]
+    assert 'q_single' in org_ids
+    assert 'q_single' not in ind_ids
+    assert 'respondent_type' in org_ids and 'respondent_type' in ind_ids
