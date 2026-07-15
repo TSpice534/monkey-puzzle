@@ -84,21 +84,32 @@
   outline-offset: 2px;
 }
 
-/* Result-page grid modifiers — static cells, no inputs. */
+/* Result-page grid modifiers — static cells, no inputs. The selected cell
+   needs to read as unmistakably "the answer" at a glance, not just a subtle
+   border/text-color shift (a thin border + darker text was tried first and
+   was too low-contrast to register as a highlight — see CHANGELOG). */
 .grid-cell--result {
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 .grid-cell--selected {
-  border-color: var(--brand-primary);
-  background-color: rgba(46, 125, 50, 0.12);
-  color: var(--brand-primary-dark);
+  border-color: var(--brand-primary-dark);
+  background-color: var(--brand-primary);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(27, 94, 32, 0.35);
+}
+
+.grid-cell--selected::before {
+  content: "\2713";
+  margin-right: 0.35rem;
 }
 
 .grid-cell--muted {
   border-color: #eee;
-  color: #adb5bd;
+  color: #ced4da;
+  opacity: 0.7;
 }
 
 /* Triangle selector (`type: triangle`) — a CSS-drawn triangle with three
