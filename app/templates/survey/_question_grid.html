@@ -1,0 +1,43 @@
+{# Question-time 3x3 persona grid — blank cells (no persona names, see
+   _result_grid.html for the labelled version on the result page). One radio
+   group named after the question id; each cell's value is "x,y". Top row
+   first (y from 2 down to 0), left-to-right columns (x from 0 to 2), per
+   the axis-indexing convention documented in content/survey.yaml. Mandatory
+   to advance — enforced by the route's block-advance guard, not here. #}
+{% set instr = question.instructions or {} %}
+<p class="text-muted small mb-2">
+  {{ instr[audience] if audience and instr.get(audience) else instr.get('individual', '') }}
+</p>
+<table class="persona-grid" role="group" aria-label="{{ question.prompt }}">
+  <caption class="visually-hidden">{{ question.x_axis.label }} / {{ question.y_axis.label }}</caption>
+  <thead>
+    <tr>
+      <th scope="col" class="persona-grid-corner">
+        <span class="visually-hidden">{{ question.y_axis.label }}</span>
+      </th>
+      {% for x_label in question.x_axis.options %}
+        <th scope="col">{{ x_label }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for y in [2, 1, 0] %}
+      <tr>
+        <th scope="row">{{ question.y_axis.options[y] }}</th>
+        {% for x in [0, 1, 2] %}
+          <td class="persona-grid-cell-wrap">
+            <input class="visually-hidden grid-cell-input" type="radio"
+                   id="{{ question.id }}_{{ x }}_{{ y }}"
+                   name="{{ question.id }}" value="{{ x }},{{ y }}"
+                   {% if saved_value == [x, y] %}checked{% endif %}>
+            <label class="grid-cell" for="{{ question.id }}_{{ x }}_{{ y }}"
+                   aria-label="{{ question.x_axis.options[x] }} — {{ question.y_axis.options[y] }}"></label>
+          </td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p class="text-muted small mt-2 mb-0">
+  <strong>{{ question.x_axis.label }}</strong> &middot; <strong>{{ question.y_axis.label }}</strong>
+</p>

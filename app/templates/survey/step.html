@@ -10,12 +10,16 @@
 
       {% if question.type == 'single' %}
         {% include "survey/_question_single.html" %}
-      {% elif question.type == 'multi' %}
+      {% elif question.type == 'triangle' %}
+        {% include "survey/_question_triangle.html" %}
+      {% elif question.type in ['multi', 'multi_exact'] %}
         {% include "survey/_question_multi.html" %}
       {% elif question.type == 'spectrum' %}
         {% include "survey/_question_spectrum.html" %}
       {% elif question.type == 'short_text' %}
         {% include "survey/_question_short_text.html" %}
+      {% elif question.type == 'grid' %}
+        {% include "survey/_question_grid.html" %}
       {% endif %}
     </fieldset>
 

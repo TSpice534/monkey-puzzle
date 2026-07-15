@@ -7,8 +7,10 @@ the YAML must conform to — it never hardcodes survey content.
 import yaml
 from flask import current_app
 
-_VALID_TYPES = {'spectrum', 'single', 'multi', 'short_text'}
+_VALID_TYPES = {'spectrum', 'single', 'multi', 'short_text', 'triangle', 'multi_exact', 'grid'}
 _VALID_AUDIENCES = {'individual', 'organisation'}
+_VALID_OUTPUTS = {'innovation_curve', 'now', 'next', 'profile_direct'}
+_TYPES_WITH_OPTIONS = {'spectrum', 'single', 'multi', 'triangle', 'multi_exact'}
 
 _cache = {}
 
@@ -113,8 +115,16 @@ def _validate_questions(raw):
                 "survey.yaml 'respondent_type_question' must be the id of the first entry in 'questions'"
             )
 
+    # `profile_question` is optional — when present, it names the id of the
+    # interactive grid question that directly resolves the winning persona
+    # (see `app/survey/persona.py::resolve_profile_persona`).
+    profile_id = raw.get('profile_question')
+    if profile_id is not None and (not isinstance(profile_id, str) or not profile_id):
+        raise SurveyConfigError("survey.yaml 'profile_question' must be a non-empty string")
+
     valid_persona_ids = set(raw['personas'].keys())
     seen_ids = set()
+    question_types = {}
     for q in questions:
         if not isinstance(q, dict):
             raise SurveyConfigError('every question must be a mapping')
@@ -130,8 +140,6 @@ def _validate_questions(raw):
             raise SurveyConfigError(f"question '{qid}' is missing a non-empty 'prompt'")
 
         is_router = qid == router_id
-        if not is_router and not q.get('dimension'):
-            raise SurveyConfigError(f"question '{qid}' is missing a non-empty 'dimension'")
 
         audience = q.get('audience')
         if audience is not None:
@@ -150,6 +158,14 @@ def _validate_questions(raw):
                 f"question '{qid}' has invalid type '{qtype}'; must be one of "
                 f'{sorted(_VALID_TYPES)}'
             )
+        question_types[qid] = qtype
+
+        output = q.get('output')
+        if output is not None and output not in _VALID_OUTPUTS:
+            raise SurveyConfigError(
+                f"question '{qid}' has invalid 'output' value '{output}'; must be one of "
+                f'{sorted(_VALID_OUTPUTS)}'
+            )
 
         if qtype == 'short_text':
             if q.get('options'):
@@ -158,14 +174,46 @@ def _validate_questions(raw):
                 raise SurveyConfigError(f"router question '{qid}' must not be type short_text")
             continue
 
+        if qtype == 'grid':
+            if is_router:
+                raise SurveyConfigError(f"router question '{qid}' must not be type grid")
+            if q.get('options'):
+                raise SurveyConfigError(f"question '{qid}' is type grid and must not have top-level 'options'")
+            _validate_grid_question(q, valid_persona_ids)
+            continue
+
         options = q.get('options')
-        if not isinstance(options, list) or len(options) < 2:
-            raise SurveyConfigError(f"question '{qid}' must have at least 2 'options'")
+        if qtype == 'triangle':
+            if not isinstance(options, list) or len(options) != 3:
+                raise SurveyConfigError(f"question '{qid}' is type triangle and must have exactly 3 'options'")
+        else:
+            if not isinstance(options, list) or len(options) < 2:
+                raise SurveyConfigError(f"question '{qid}' must have at least 2 'options'")
+
+        if qtype == 'multi_exact':
+            choose_exactly = q.get('choose_exactly')
+            if (
+                not isinstance(choose_exactly, int)
+                or isinstance(choose_exactly, bool)
+                or not (1 <= choose_exactly <= len(options))
+            ):
+                raise SurveyConfigError(
+                    f"question '{qid}' is type multi_exact and must have an integer 'choose_exactly' "
+                    f'between 1 and the number of options'
+                )
 
         router_audience_values = set()
         for i, opt in enumerate(options):
             if not isinstance(opt, dict) or not opt.get('label'):
                 raise SurveyConfigError(f"question '{qid}' option {i} must have a non-empty 'label'")
+
+            label_organisation = opt.get('label_organisation')
+            if label_organisation is not None and (
+                not isinstance(label_organisation, str) or not label_organisation
+            ):
+                raise SurveyConfigError(
+                    f"question '{qid}' option {i} 'label_organisation', if present, must be a non-empty string"
+                )
 
             if is_router:
                 audience_value = opt.get('audience_value')
@@ -183,22 +231,82 @@ def _validate_questions(raw):
                 continue
 
             weights = opt.get('weights')
-            if not isinstance(weights, dict) or not weights:
-                raise SurveyConfigError(f"question '{qid}' option {i} must have a non-empty 'weights' mapping")
-            for persona_id, weight in weights.items():
-                if persona_id not in valid_persona_ids:
-                    raise SurveyConfigError(
-                        f"question '{qid}' option {i} weights reference unknown persona id '{persona_id}'"
-                    )
-                if not isinstance(weight, (int, float)) or isinstance(weight, bool):
-                    raise SurveyConfigError(
-                        f"question '{qid}' option {i} weight for '{persona_id}' must be a number"
-                    )
+            if weights is not None:
+                if not isinstance(weights, dict):
+                    raise SurveyConfigError(f"question '{qid}' option {i} 'weights', if present, must be a mapping")
+                for persona_id, weight in weights.items():
+                    if persona_id not in valid_persona_ids:
+                        raise SurveyConfigError(
+                            f"question '{qid}' option {i} weights reference unknown persona id '{persona_id}'"
+                        )
+                    if not isinstance(weight, (int, float)) or isinstance(weight, bool):
+                        raise SurveyConfigError(
+                            f"question '{qid}' option {i} weight for '{persona_id}' must be a number"
+                        )
 
         if is_router and router_audience_values != _VALID_AUDIENCES:
             raise SurveyConfigError(
                 f"router question '{qid}' options must cover each of {sorted(_VALID_AUDIENCES)} at least once"
             )
+
+    if profile_id is not None:
+        if profile_id not in question_types:
+            raise SurveyConfigError(
+                f"survey.yaml 'profile_question' references unknown question id '{profile_id}'"
+            )
+        if question_types[profile_id] != 'grid':
+            raise SurveyConfigError(
+                f"survey.yaml 'profile_question' must name a question of type 'grid', "
+                f"but '{profile_id}' is type '{question_types[profile_id]}'"
+            )
+
+
+def _validate_grid_question(q, valid_persona_ids):
+    qid = q['id']
+
+    for axis_name in ('x_axis', 'y_axis'):
+        axis = q.get(axis_name)
+        if not isinstance(axis, dict) or not axis.get('label'):
+            raise SurveyConfigError(f"question '{qid}' '{axis_name}' must be a mapping with a non-empty 'label'")
+        axis_options = axis.get('options')
+        if (
+            not isinstance(axis_options, list)
+            or len(axis_options) != 3
+            or not all(isinstance(o, str) and o for o in axis_options)
+        ):
+            raise SurveyConfigError(
+                f"question '{qid}' '{axis_name}.options' must be a list of exactly 3 non-empty strings"
+            )
+
+    cells = q.get('cells')
+    if not isinstance(cells, list) or len(cells) != 9:
+        raise SurveyConfigError(f"question '{qid}' 'cells' must be a list of exactly 9 entries")
+
+    seen_coords = set()
+    seen_personas = set()
+    for i, cell in enumerate(cells):
+        if not isinstance(cell, dict):
+            raise SurveyConfigError(f"question '{qid}' cell {i} must be a mapping")
+        x, y, persona_id = cell.get('x'), cell.get('y'), cell.get('persona')
+        if (
+            not isinstance(x, int) or isinstance(x, bool) or not (0 <= x <= 2)
+            or not isinstance(y, int) or isinstance(y, bool) or not (0 <= y <= 2)
+        ):
+            raise SurveyConfigError(f"question '{qid}' cell {i} must have integer 'x' and 'y' in 0..2")
+        if persona_id not in valid_persona_ids:
+            raise SurveyConfigError(f"question '{qid}' cell {i} references unknown persona id '{persona_id}'")
+        coord = (x, y)
+        if coord in seen_coords:
+            raise SurveyConfigError(f"question '{qid}' has duplicate cell coordinate {coord}")
+        seen_coords.add(coord)
+        if persona_id in seen_personas:
+            raise SurveyConfigError(f"question '{qid}' has duplicate persona '{persona_id}' across cells")
+        seen_personas.add(persona_id)
+
+    # All 9 (x, y) combos must be present exactly once (no gaps).
+    expected_coords = {(x, y) for x in range(3) for y in range(3)}
+    if seen_coords != expected_coords:
+        raise SurveyConfigError(f"question '{qid}' 'cells' must cover every (x, y) combo in 0..2 exactly once")
 
 
 def _validate_scoring(raw):
@@ -238,7 +346,7 @@ def _normalise(raw):
         persona.setdefault('resources', [])
 
     for q in raw['questions']:
-        if q['type'] != 'short_text':
+        if q['type'] in _TYPES_WITH_OPTIONS:
             for index, opt in enumerate(q['options']):
                 opt['index'] = index
 

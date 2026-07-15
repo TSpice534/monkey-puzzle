@@ -32,7 +32,7 @@ def score_submission(answers: dict, config: dict) -> dict:
         options = question.get('options', [])
         options_by_index = {opt['index']: opt for opt in options}
 
-        if question['type'] == 'multi':
+        if question['type'] in ('multi', 'multi_exact'):
             indices = value if isinstance(value, list) else []
         else:
             indices = [value] if isinstance(value, int) else []
@@ -80,8 +80,36 @@ def classify(scores: dict, config: dict) -> PersonaResult:
     )
 
 
+def resolve_profile_persona(answers: dict, config: dict) -> str | None:
+    """Return the persona id the grid answer resolves to, or None if the survey
+    has no profile grid, the grid is unanswered, or the answer is malformed.
+    (The unanswered/malformed None path is defensive only — the UI makes the grid
+    mandatory, so normal completed submissions always resolve here.)"""
+    qid = config.get('profile_question')
+    if not qid:
+        return None
+    grid = next((q for q in config['questions'] if q['id'] == qid), None)
+    answer = answers.get(qid)
+    if grid is None or not (isinstance(answer, list) and len(answer) == 2):
+        return None
+    x, y = answer
+    for cell in grid.get('cells', []):
+        if cell['x'] == x and cell['y'] == y:
+            return cell['persona']
+    return None
+
+
 def classify_submission(answers: dict, config: dict) -> PersonaResult:
-    """Convenience: score_submission -> apply_modifiers -> classify."""
-    scores = score_submission(answers, config)
-    scores = apply_modifiers(scores, config)
-    return classify(scores, config)
+    """Convenience: score_submission -> apply_modifiers -> classify, preferring
+    the profile grid's direct persona resolution when available (defensive
+    fallback to the weighted classifier's tie_break-ordered argmax otherwise —
+    see `resolve_profile_persona`)."""
+    scores = score_submission(answers, config)      # keeps hook invocation below
+    scores = apply_modifiers(scores, config)         # existing no-op hooks preserved
+    winner = resolve_profile_persona(answers, config)
+    if winner is not None:
+        # Grid directly determines the persona; one-hot score_vector keeps the
+        # existing radar/fingerprint chart rendering (highlighting the winner).
+        vector = {pid: (1.0 if pid == winner else 0.0) for pid in scores}
+        return PersonaResult(persona_id=winner, persona=config['personas'][winner], scores=vector)
+    return classify(scores, config)                  # DEFENSIVE fallback (UI now blocks reaching it)

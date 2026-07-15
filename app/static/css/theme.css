@@ -33,3 +33,147 @@
 .spectrum-widget .form-range {
   accent-color: var(--brand-primary);
 }
+
+/* Persona grid (question 8, `profile_grid`) — question-time (blank cells,
+   :checked-sibling selection via native radios) and result-page (labelled,
+   static, chosen cell highlighted) share this table styling. */
+.persona-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0.5rem;
+  text-align: center;
+}
+
+.persona-grid th {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: #495057;
+  vertical-align: middle;
+}
+
+.persona-grid-corner {
+  border: none;
+}
+
+.persona-grid-cell-wrap {
+  padding: 0;
+}
+
+.grid-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.grid-cell:hover {
+  border-color: var(--brand-primary);
+}
+
+.grid-cell-input:checked + .grid-cell {
+  border-color: var(--brand-primary);
+  background-color: rgba(46, 125, 50, 0.08);
+}
+
+.grid-cell-input:focus-visible + .grid-cell {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* Result-page grid modifiers — static cells, no inputs. The selected cell
+   needs to read as unmistakably "the answer" at a glance, not just a subtle
+   border/text-color shift (a thin border + darker text was tried first and
+   was too low-contrast to register as a highlight — see CHANGELOG). */
+.grid-cell--result {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.grid-cell--selected {
+  border-color: var(--brand-primary-dark);
+  background-color: var(--brand-primary);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(27, 94, 32, 0.35);
+}
+
+.grid-cell--selected::before {
+  content: "\2713";
+  margin-right: 0.35rem;
+}
+
+.grid-cell--muted {
+  border-color: #eee;
+  color: #ced4da;
+  opacity: 0.7;
+}
+
+/* Triangle selector (`type: triangle`) — a CSS-drawn triangle with three
+   clickable corner nodes; selection via native radios + :checked-sibling
+   CSS, same pattern as .option-card / .grid-cell. Fixed corner mapping:
+   options[0] -> top, options[1] -> bottom-left, options[2] -> bottom-right
+   (see _question_triangle.html). */
+.triangle-widget {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 260px;
+  margin: 1rem auto;
+}
+
+.triangle-shape {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(46, 125, 50, 0.08);
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  border: 1px solid #dee2e6;
+}
+
+.triangle-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: block;
+  padding: 0.5rem 0.75rem;
+  min-width: 6rem;
+  text-align: center;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.triangle-node--top {
+  top: 0;
+  left: 50%;
+}
+
+.triangle-node--bottom-left {
+  top: 100%;
+  left: 0;
+}
+
+.triangle-node--bottom-right {
+  top: 100%;
+  left: 100%;
+}
+
+.triangle-node:hover {
+  border-color: var(--brand-primary);
+}
+
+.triangle-node-input:checked + .triangle-node {
+  border-color: var(--brand-primary);
+  background-color: rgba(46, 125, 50, 0.08);
+  font-weight: 600;
+}
+
+.triangle-node-input:focus-visible + .triangle-node {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
