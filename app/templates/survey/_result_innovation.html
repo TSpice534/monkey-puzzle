@@ -8,11 +8,13 @@
 <div class="card shadow-sm mt-3" style="border-left: 6px solid {{ innovation.colour }};">
   <div class="card-body">
     <h2 class="h6">Where you sit on the innovation curve</h2>
-    <p class="mb-0">
+    <p class="mb-1">
       <span style="display:inline-block; width:0.9rem; height:0.9rem; border-radius:50%;
                    background-color:{{ innovation.colour }}; vertical-align:middle;"></span>
       <strong>{{ innovation.band }}</strong>
     </p>
+    {% if innovation.tagline %}<p class="lead mb-1">{{ innovation.tagline }}</p>{% endif %}
+    {% if innovation.description %}<p class="mb-0">{{ innovation.description }}</p>{% endif %}
   </div>
 </div>
 {% endif %}

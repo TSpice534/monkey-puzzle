@@ -1,30 +1,31 @@
 {# Self-contained persona card — kept as its own partial so a later share/PDF
    phase can reuse it without touching this markup. #}
+{% from "survey/_macros.html" import persona_description %}
 <div class="card shadow-sm">
   <div class="card-body">
     <p class="text-uppercase small text-muted mb-1">Your sustainable who</p>
     <h1 class="h3">{{ persona.name }}</h1>
     <p class="lead">{{ persona.tagline }}</p>
-    <p>{{ persona.description }}</p>
+    <p>{{ persona_description(persona, audience) }}</p>
 
-    {% if persona.brethren %}
+    {% if persona.natural_allies %}
     <p class="mb-1">
-      <strong>Brethren</strong> (natural allies):
-      {% for pid in persona.brethren %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
+      <strong>Natural allies:</strong>
+      {% for pid in persona.natural_allies %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
     </p>
     {% endif %}
 
-    {% if persona.besties %}
+    {% if persona.friends %}
     <p class="mb-1">
-      <strong>Besties</strong> (good collaborators):
-      {% for pid in persona.besties %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
+      <strong>Friends:</strong>
+      {% for pid in persona.friends %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
     </p>
     {% endif %}
 
-    {% if persona.battlers %}
+    {% if persona.necessity %}
     <p class="mb-3">
-      <strong>Battlers</strong> (likely friction):
-      {% for pid in persona.battlers %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
+      <strong>Necessities:</strong>
+      {% for pid in persona.necessity %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
     </p>
     {% endif %}
 

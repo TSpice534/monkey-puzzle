@@ -371,6 +371,29 @@ def test_result_page_renders_persona_and_radar_chart(client):
     assert 'Persona fingerprint radar chart' in body
 
 
+def test_result_page_shows_organisation_wording_persona_description_on_the_org_track(client):
+    """backlog #0004: `submission.audience` reaches the web result page's
+    persona card, which resolves `description_organisation` once the
+    respondent is on the organisation track."""
+    token, _ = _complete_survey(client, audience_index=ORGANISATION, grid='1,1')  # -> entrepreneur
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Your organisation sees and acts upon the opportunities' in body
+    assert 'You see and act upon the opportunities' not in body
+
+
+def test_result_page_shows_individual_wording_persona_description_on_the_individual_track(client):
+    token, _ = _complete_survey(client, audience_index=INDIVIDUAL, grid='1,1')  # -> entrepreneur
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'You see and act upon the opportunities' in body
+    assert 'Your organisation sees and acts upon the opportunities' not in body
+
+
 def test_result_page_renders_the_labelled_grid_with_the_chosen_persona(client):
     token, _ = _complete_survey(client, grid='2,0')  # -> activist
     response = client.get(f'/survey/{token}/result')
@@ -445,14 +468,14 @@ def test_pdf_result_template_renders_the_innovation_band_name(app):
 
     persona = {
         'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd',
-        'brethren': [], 'besties': [], 'battlers': [], 'case_studies': [], 'resources': [],
+        'natural_allies': [], 'friends': [], 'necessity': [], 'case_studies': [], 'resources': [],
     }
     innovation = {'band': 'Late Majority', 'score': 5, 'colour': '#e67e22'}
 
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
-            fingerprint_svg='<svg></svg>', innovation=innovation,
+            fingerprint_svg='<svg></svg>', innovation=innovation, audience=None,
         )
     assert 'Where you sit on the innovation curve' in html
     assert 'Late Majority' in html
@@ -469,10 +492,12 @@ def test_email_templates_render_the_innovation_band_name(app):
 
     with app.app_context():
         text_body = render_template(
-            'email/result.txt', persona=persona, result_url='https://example.com/r', innovation=innovation,
+            'email/result.txt', persona=persona, result_url='https://example.com/r',
+            innovation=innovation, audience=None,
         )
         html_body = render_template(
-            'email/result.html', persona=persona, result_url='https://example.com/r', innovation=innovation,
+            'email/result.html', persona=persona, result_url='https://example.com/r',
+            innovation=innovation, audience=None,
         )
 
     assert 'Late Majority' in text_body

@@ -119,9 +119,9 @@ def test_persona_relation_defaults_are_empty_lists(tmp_path):
     path = _write_yaml(tmp_path, _base_config())
     config = load_survey(path)
     accountant = config['personas']['accountant']
-    assert accountant['brethren'] == []
-    assert accountant['besties'] == []
-    assert accountant['battlers'] == []
+    assert accountant['natural_allies'] == []
+    assert accountant['friends'] == []
+    assert accountant['necessity'] == []
     assert accountant['case_studies'] == []
     assert accountant['resources'] == []
 
@@ -190,11 +190,38 @@ def test_persona_missing_required_field_raises(tmp_path):
         load_survey(_write_yaml(tmp_path, data))
 
 
-def test_persona_bad_brethren_reference_raises(tmp_path):
+def test_persona_bad_natural_allies_reference_raises(tmp_path):
     data = _base_config()
-    data['personas']['accountant']['brethren'] = ['not-a-real-persona']
+    data['personas']['accountant']['natural_allies'] = ['not-a-real-persona']
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
+
+
+def test_persona_non_string_description_organisation_raises(tmp_path):
+    data = _base_config()
+    data['personas']['accountant']['description_organisation'] = 123
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_persona_empty_description_organisation_raises(tmp_path):
+    data = _base_config()
+    data['personas']['accountant']['description_organisation'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_persona_absent_description_organisation_is_valid(tmp_path):
+    path = _write_yaml(tmp_path, _base_config())
+    config = load_survey(path)
+    assert 'description_organisation' not in config['personas']['accountant']
+
+
+def test_persona_valid_description_organisation_loads(tmp_path):
+    data = _base_config()
+    data['personas']['accountant']['description_organisation'] = 'Your organisation wording'
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['personas']['accountant']['description_organisation'] == 'Your organisation wording'
 
 
 def test_persona_case_study_missing_url_raises(tmp_path):
@@ -721,8 +748,14 @@ def _innovation_curve_construct():
     return {
         'persona_modifiers': {'accountant': 0, 'developer': 4},
         'bands': [
-            {'name': 'Laggards', 'min': 0, 'max': 2, 'colour': '#c0392b'},
-            {'name': 'Innovators', 'min': 3, 'max': 20, 'colour': '#2e7d32'},
+            {
+                'name': 'Laggards', 'min': 0, 'max': 2, 'colour': '#c0392b',
+                'tagline': 'Laggard tagline', 'description': 'Laggard description',
+            },
+            {
+                'name': 'Innovators', 'min': 3, 'max': 20, 'colour': '#2e7d32',
+                'tagline': 'Innovator tagline', 'description': 'Innovator description',
+            },
         ],
     }
 

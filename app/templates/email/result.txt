@@ -1,10 +1,13 @@
+{% from "survey/_macros.html" import persona_description -%}
 Your sustainable who: {{ persona.name }}
 
 {{ persona.tagline }}
 
-{{ persona.description }}
+{{ persona_description(persona, audience) }}
 {% if innovation %}
 Where you sit on the innovation curve: {{ innovation.band }}
+{% if innovation.tagline %}{{ innovation.tagline }}{% endif %}
+{% if innovation.description %}{{ innovation.description }}{% endif %}
 {% endif %}
 Your full results, with the fingerprint chart, are attached as a PDF.
 
