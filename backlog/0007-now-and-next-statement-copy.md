@@ -2,9 +2,9 @@
 id: 0007
 title: Now and Next statement copy
 type: feature
-status: todo
+status: in-progress
 created: 2026-07-15
-branch:
+branch: feature/now-and-next-statement-copy
 ---
 
 ## Request
