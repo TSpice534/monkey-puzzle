@@ -46,6 +46,18 @@ the grid is step 8 of 11. This is a smaller step count than the current 16-quest
 placeholder (`content/survey.yaml`) — the real question set replaces the placeholder
 rather than extending it.
 
+**Grid visual states confirmed by Tom (2026-07-15):** the 9 cells are two different
+views depending on where the respondent is in the flow:
+- **At question time (step 8):** cells are blank — no persona names or hints shown. The
+  respondent picks a position purely on the axis meaning, without knowing which persona
+  a cell resolves to.
+- **On the result page:** the same 3x3 grid renders again, now fully labelled with all 9
+  persona names. The respondent's chosen cell/persona is highlighted; the other 8 are
+  shown slightly greyed out.
+
+Tom is not yet sure whether the existing radar/fingerprint chart survives alongside this
+new grid visualisation, is replaced by it, or both appear — still open, see below.
+
 ## Investigation
 Docs-first (CLAUDE.md, CONTEXT.md, docs/PRODUCTION-PLAN.md), confirmed exact names with
 targeted greps of `persona.py`, `loader.py`, and the survey templates.
@@ -64,15 +76,19 @@ targeted greps of `persona.py`, `loader.py`, and the survey templates.
   already used for individual/organisation-tagged questions).
 - `app/survey/persona.py` — `classify()`/`classify_submission()` (lines ~67, ~83) need a
   new path: the winning persona comes from the grid-cell answer directly, not
-  `score_submission`'s argmax over all questions. `apply_modifiers()` (line 51) already
-  has the `rogers_curve.enabled` hook (currently a documented no-op, line 61) — this is
-  where real Rogers-curve logic gets wired in. Need to decide whether the 9-dim
+  `score_submission`'s argmax over all questions. Need to decide whether the 9-dim
   "fingerprint" `score_vector` (used by the radar chart) still gets computed from the
-  remaining questions, or changes shape now that persona ≠ argmax.
+  remaining questions, or changes shape now that persona ≠ argmax. (Rogers'-curve /
+  `apply_modifiers()` wiring is now tracked separately — see #0002.)
 - `app/templates/survey/` — new partial (e.g. `_question_grid.html`) alongside the
   existing per-type partials (`_question_single/_multi/_spectrum/_short_text.html`);
   `step.html` (lines 12-18) picks a partial by `question.type` via `{% include %}` —
-  same pattern, add a `grid` branch.
+  same pattern, add a `grid` branch. This partial needs a **blank** state (no persona
+  labels, question time only). A second, separate rendering — likely a new partial
+  reused by `survey/result.html` and possibly `_persona_card.html` — needs a
+  **labelled** state: all 9 personas shown, chosen one highlighted, rest greyed out.
+  These are two distinct views over the same 3x3 layout, not one component with a flag
+  that happens to hide text.
 - `app/survey/routes.py` — `step` route currently persists one answer per question id as
   int / list[int] / string (`Submission.answers` JSON). A grid click needs a defined
   answer shape (e.g. `[x_index, y_index]` or the resolved persona id directly).
@@ -81,12 +97,11 @@ targeted greps of `persona.py`, `loader.py`, and the survey templates.
   field, a new column + Alembic migration is required (CONTEXT.md: never add a column
   without one).
 
-**Open questions only Rob/Andrew/Tom can resolve (not blocking this filing, but should
-be resolved before /ship builds this):**
-- Whether the radar/fingerprint chart still renders post-grid-pick, and if so what it's
-  now a fingerprint *of*, given persona is no longer derived from the score vector.
-- Rogers' innovation curve categories/scoring logic, and what "a couple of other
-  indicators" means — undefined so far.
+**Open questions only Tom can resolve (not blocking this filing, but should be resolved
+before /ship builds this):**
+- Whether the radar/fingerprint chart still renders on the result page alongside the new
+  labelled 3x3 grid, gets replaced by it, or both appear — Tom's explicitly undecided as
+  of 2026-07-15.
 
 ## Notes
 - **Breaking change to the current classifier**: `classify()`/`classify_submission()`
@@ -97,13 +112,13 @@ be resolved before /ship builds this):**
   selection no longer depends on it.
 - The 3x3 → persona mapping and the axis correspondence are both confirmed by Tom (see
   grid above) — no longer an open question for this item.
-- Rogers' innovation curve logic has a scaffolded but disabled hook already:
-  `apply_modifiers()`'s `scoring.rogers_curve.enabled` in `app/survey/persona.py` — this
-  request is what turns it on. Exact adopter categories / scoring rules and the "couple
-  of other indicators" are undefined — flag for Rob/Andrew before implementing that part.
-  Recommend `/ship` scopes its first pass to the grid UI + direct persona pick, and
-  treats Rogers-curve wiring as a closely related fast-follow once that logic is defined.
+- Rogers' innovation curve / "couple of other indicators" logic is now tracked as its
+  own item — see **#0002**. This item (#0001) only needs to leave that door open (i.e.
+  not remove `apply_modifiers()` or the remaining, non-grid questions), not implement it.
 - Flow position confirmed: 11 steps total, grid is step 8 of 11 (see grid above) — no
   longer an open question. The real question set is shorter than the current 16-question
   placeholder, so `content/survey.yaml` gets replaced, not extended, when the real
   content lands.
+- Grid visual states confirmed: blank at question time, labelled + chosen-persona
+  highlighted + others greyed out on the result page (see grid-visual-states note above)
+  — this is decided regardless of how the open radar-chart question resolves.
