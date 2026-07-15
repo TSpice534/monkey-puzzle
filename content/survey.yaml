@@ -25,6 +25,7 @@ personas:
   accountant:
     name: "The Accountant"
     tagline: "You are the evidence!"
+    icon: "icons/accountant.svg"
     description: >
       You work with numbers and data that help to tell the story of
       sustainability. Your focus is creating insight into real impact —
@@ -46,6 +47,7 @@ personas:
   implementer:
     name: "The Implementer"
     tagline: "You are the doer!"
+    icon: "icons/implementer.svg"
     description: >
       You are at the frontline of implementing the changes and addressing
       the challenges that make a difference. Your focus is putting existing
@@ -67,6 +69,7 @@ personas:
   developer:
     name: "The Developer"
     tagline: "You are the thinker!"
+    icon: "icons/developer.svg"
     description: >
       You work with difficult questions and help to develop innovative
       solutions. Your focus is innovation and new improvements — holding a
@@ -88,6 +91,7 @@ personas:
   advocate:
     name: "The Advocate"
     tagline: "You are the crowbar!"
+    icon: "icons/advocate.svg"
     description: >
       You open up new places, creating new spaces for conversation and
       action. Your focus is making sustainability an important topic and
@@ -107,6 +111,7 @@ personas:
   communicator:
     name: "The Communicator"
     tagline: "You are the voice!"
+    icon: "icons/communicator.svg"
     description: >
       You make sure that sustainability and progress remain visible for all.
       Your focus is sharing information and sending knowledge outward —
@@ -127,6 +132,7 @@ personas:
   activist:
     name: "The Activist"
     tagline: "You are the disruptor!"
+    icon: "icons/activist.svg"
     description: >
       You force people to have the conversations we need and make sure the
       message is heard. Your focus is creating as much push as possible for
@@ -148,6 +154,7 @@ personas:
   connector:
     name: "The Connector"
     tagline: "You are the gravity!"
+    icon: "icons/connector.svg"
     description: >
       You see connections others don't, and you build networks from nothing.
       Your focus is creating the relationships and support systems that move
@@ -169,6 +176,7 @@ personas:
   cooperator:
     name: "The Cooperator"
     tagline: "You are the matchmaker!"
+    icon: "icons/cooperator.svg"
     description: >
       You forge collaborations, make lasting connections and build teams to
       get the job done. Your focus is working together for growth on a
@@ -190,6 +198,7 @@ personas:
   entrepreneur:
     name: "The Entrepreneur"
     tagline: "You are the glue!"
+    icon: "icons/entrepreneur.svg"
     description: >
       You see and act upon the opportunities between business, research and
       development. Your focus is feasibility — turning an idea into a

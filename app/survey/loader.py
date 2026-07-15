@@ -81,6 +81,11 @@ def _validate_personas(raw):
             raise SurveyConfigError(
                 f"persona '{persona_id}' field 'description_organisation', if present, must be a non-empty string"
             )
+        icon = persona.get('icon')
+        if icon is not None and (not isinstance(icon, str) or not icon):
+            raise SurveyConfigError(
+                f"persona '{persona_id}' field 'icon', if present, must be a non-empty string"
+            )
         for rel in ('natural_allies', 'friends', 'necessity'):
             refs = persona.get(rel, [])
             if not isinstance(refs, list):

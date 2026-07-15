@@ -4,7 +4,9 @@
 <div class="card shadow-sm">
   <div class="card-body">
     <p class="text-uppercase small text-muted mb-1">Your sustainable who</p>
-    <h1 class="h3">{{ persona.name }}</h1>
+    <h1 class="h3">
+      {% if persona.icon %}<span class="persona-icon persona-icon--card">{{ persona_icon(persona) }}</span> {% endif %}{{ persona.name }}
+    </h1>
     <p class="lead">{{ persona.tagline }}</p>
     <p>{{ persona_description(persona, audience) }}</p>
 

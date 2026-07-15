@@ -38,6 +38,9 @@ def create_app(config_class=Config):
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)
 
+    from app.survey.icons import persona_icon
+    app.jinja_env.globals['persona_icon'] = persona_icon
+
     # ------------------------------------------------------------------
     # Security headers (Cyber Essentials L1)
     # A per-request nonce is generated in before_request and injected
