@@ -9,6 +9,10 @@
   <h1 style="font-size: 1.5rem; margin: 0 0 0.5rem 0;">{{ persona.name }}</h1>
   <p style="font-size: 1.1rem; color: #495057;">{{ persona.tagline }}</p>
   <p>{{ persona_description(persona, audience) }}</p>
+  {% if now_next and (now_next.now or now_next.next) %}
+  {% if now_next.now %}<p>{{ now_next.now }}</p>{% endif %}
+  {% if now_next.next %}<p>{{ now_next.next }}</p>{% endif %}
+  {% endif %}
   {% if innovation %}
   <p style="margin-top:1rem;">
     <strong>Where you sit on the innovation curve:</strong>
@@ -18,10 +22,6 @@
   </p>
   {% if innovation.tagline %}<p style="font-size:1.05rem; color:#495057; margin:0 0 0.5rem 0;">{{ innovation.tagline }}</p>{% endif %}
   {% if innovation.description %}<p>{{ innovation.description }}</p>{% endif %}
-  {% endif %}
-  {% if now_next and (now_next.now or now_next.next) %}
-  {% if now_next.now %}<p>{{ now_next.now }}</p>{% endif %}
-  {% if now_next.next %}<p>{{ now_next.next }}</p>{% endif %}
   {% endif %}
   <p>Your full results, with the fingerprint chart, are attached as a PDF.</p>
   <p>

@@ -4,15 +4,15 @@ Your sustainable who: {{ persona.name }}
 {{ persona.tagline }}
 
 {{ persona_description(persona, audience) }}
+{% if now_next and (now_next.now or now_next.next) %}
+{% if now_next.now %}{{ now_next.now }}
+{% endif %}{% if now_next.next %}{{ now_next.next }}
+{% endif %}{% endif %}
 {% if innovation %}
 Where you sit on the innovation curve: {{ innovation.band }}
 {% if innovation.tagline %}{{ innovation.tagline }}{% endif %}
 {% if innovation.description %}{{ innovation.description }}{% endif %}
 {% endif %}
-{% if now_next and (now_next.now or now_next.next) %}
-{% if now_next.now %}{{ now_next.now }}
-{% endif %}{% if now_next.next %}{{ now_next.next }}
-{% endif %}{% endif %}
 Your full results, with the fingerprint chart, are attached as a PDF.
 
 You can also revisit your result online any time:

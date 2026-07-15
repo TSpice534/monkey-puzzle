@@ -422,9 +422,11 @@ def test_result_page_renders_the_innovation_band_card_after_the_grid(client):
     assert grid_pos < innovation_pos < share_pos
 
 
-def test_result_page_renders_the_now_next_card_after_the_innovation_card(client):
-    """backlog #0007: the Now/Next card sits directly below 'Where you sit
-    on the innovation curve' (and before the share card)."""
+def test_result_page_renders_the_now_next_card_in_the_persona_card(client):
+    """backlog #0007 (moved per Tom's follow-up feedback): the Now/Next
+    block sits inside the persona card ('Your sustainable who'), directly
+    below the persona description and above 'Natural allies' — not as its
+    own card after the innovation-curve block."""
     # _complete_survey defaults: topics=[0,1,2] (Water/Food & Drinks/Energy),
     # have_enough=need_most=support_type=target_groups=0.
     token, _ = _complete_survey(client)
@@ -437,10 +439,11 @@ def test_result_page_renders_the_now_next_card_after_the_innovation_card(client)
     assert 'Water, Food &amp; Drinks, and Energy' in body
     assert 'you are looking for more capacity' in body
 
-    innovation_pos = body.index('Where you sit on the innovation curve')
+    description_pos = body.index('Your sustainable who')
     now_next_pos = body.index('Now and next')
-    share_pos = body.index('Share or save your result')
-    assert innovation_pos < now_next_pos < share_pos
+    allies_pos = body.index('Natural allies')
+    grid_pos = body.index('Your position on the grid')
+    assert description_pos < now_next_pos < allies_pos < grid_pos
 
 
 def test_result_grid_table_structure_is_a_real_3x3_not_a_stacked_column(client):

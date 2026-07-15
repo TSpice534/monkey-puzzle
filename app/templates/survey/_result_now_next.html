@@ -1,13 +1,12 @@
-{# Now / Next narrative statements (backlog #0007) — shared partial for the
-   web result page and the PDF; email inlines its own markup (see
-   templates/email/result.html|txt), matching the innovation-card pattern.
+{# Now / Next narrative statements (backlog #0007) — shared partial included
+   inside _persona_card.html, between the persona description and the
+   natural allies/friends/necessity lines (web + PDF); email inlines its own
+   markup (see templates/email/result.html|txt) at the equivalent position.
    Guarded on `now_next` and on each statement individually. #}
 {% if now_next and (now_next.now or now_next.next) %}
-<div class="card shadow-sm mt-3">
-  <div class="card-body">
-    <h2 class="h6">Now and next</h2>
-    {% if now_next.now %}<p class="mb-2">{{ now_next.now }}</p>{% endif %}
-    {% if now_next.next %}<p class="mb-0">{{ now_next.next }}</p>{% endif %}
-  </div>
+<div class="mt-3">
+  <h2 class="h6">Now and next</h2>
+  {% if now_next.now %}<p class="mb-2">{{ now_next.now }}</p>{% endif %}
+  {% if now_next.next %}<p class="mb-0">{{ now_next.next }}</p>{% endif %}
 </div>
 {% endif %}
