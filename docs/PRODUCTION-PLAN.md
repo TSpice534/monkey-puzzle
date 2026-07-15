@@ -71,10 +71,11 @@ personas:                      # the nine outcomes
   accountant:
     name: "The Accountant"
     tagline: "..."
-    description: "..."
-    brethren: [implementer, developer]     # natural allies
-    besties:  [communicator]               # good collaborators
-    battlers: [activist]                    # likely friction
+    description: "..."                     # individual wording (default)
+    description_organisation: "..."        # optional; organisation-track wording
+    natural_allies: [implementer, developer]
+    friends:        [communicator]
+    necessity:      [activist]              # who this persona most needs
     case_studies: [{title, url}]           # 2-3 curated
     resources:    [{title, url}]
 questions:                     # 10-15, ordered
@@ -114,7 +115,8 @@ New module `app/survey/persona.py`:
 
 ### Graphical output
 
-- Persona card: name, tagline, description, brethren/besties/battlers, 2-3 case studies +
+- Persona card: name, tagline, audience-aware description (`description`/
+  `description_organisation`), Natural Allies/Friends/Necessities, 2-3 case studies +
   resources (all from `survey.yaml`).
 - **Fingerprint chart:** a radar/spider over the framework axes — the graphical "who."
   Adapt Donut's inline-SVG generator (`pdf_utils.py::_generate_donut_svg`) so the same
@@ -177,7 +179,7 @@ Roadmap).
 2. Complete the placeholder quiz start→finish in a browser; confirm graphical widgets work
    and degrade gracefully with JS off.
 3. Confirm a persona is returned, the radar fingerprint renders, and the card shows the
-   right brethren/besties/battlers/case-studies from `survey.yaml`.
+   right natural allies/friends/necessities/case-studies from `survey.yaml`.
 4. Unit tests for `persona.py`: crafted answer sets deterministically yield each of the
    nine personas; tie-break is stable.
 5. Edit an option weight in `survey.yaml`, re-run the same answers, confirm the persona

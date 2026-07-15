@@ -14,9 +14,9 @@ sweet spot. No account needed. Open source.
 Accountant · Implementer · Developer · Advocate · Communicator · Activist · Connector ·
 Cooperator · Entrepreneur
 
-Each result comes with a persona card: description, natural allies ("brethren"), good
-collaborators ("besties"), likely friction points ("battlers"), and 2–3 curated case
-studies and resources.
+Each result comes with a persona card: description (audience-aware — individual and
+organisation respondents see different wording), Natural Allies, Friends, Necessities
+(who this persona most needs), and 2–3 curated case studies and resources.
 
 ## Status
 

@@ -4,3 +4,10 @@
 {% macro option_label(option, audience) -%}
 {{ option.label_organisation if audience == 'organisation' and option.label_organisation else option.label }}
 {%- endmacro %}
+
+{# Audience-aware persona description. `description_organisation` (optional)
+   wins only once `audience == 'organisation'`; before routing (`audience`
+   is None) or on the individual track, `description` (the default) is used. #}
+{% macro persona_description(persona, audience) -%}
+{{ persona.description_organisation if audience == 'organisation' and persona.description_organisation else persona.description }}
+{%- endmacro %}

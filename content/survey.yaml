@@ -24,14 +24,20 @@ profile_question: profile_grid
 personas:
   accountant:
     name: "The Accountant"
-    tagline: "You make the numbers tell the truth."
+    tagline: "You are the evidence!"
     description: >
-      You measure what's actually happening, not what people hope is
-      happening — real figures, honestly kept, so nobody's guessing at
-      progress. Decisions rest on what you can show, not what you can claim.
-    brethren: [implementer, developer]
-    besties: [communicator]
-    battlers: [activist]
+      You work with numbers and data that help to tell the story of
+      sustainability. Your focus is creating insight into real impact —
+      reporting and measuring the data so an organisation knows what's
+      actually happening, not what it hopes is happening.
+    description_organisation: >
+      Your organisation works with numbers and data that help to tell the
+      story of sustainability. The focus is creating insight into real
+      impact — reporting and measuring the data so the organisation knows
+      what's actually happening, not what it hopes is happening.
+    natural_allies: [communicator]
+    friends: [developer]
+    necessity: [implementer]
     case_studies:
       - { title: "Placeholder case study — Accountant", url: "https://example.com/case-studies/accountant" }
     resources:
@@ -39,14 +45,20 @@ personas:
 
   implementer:
     name: "The Implementer"
-    tagline: "You get things actually done."
+    tagline: "You are the doer!"
     description: >
-      Plans are easy; follow-through is hard, and that's your specialty.
-      You take what's already known to work and make sure it happens,
-      reliably, on the ground, every time.
-    brethren: [accountant, developer]
-    besties: [cooperator]
-    battlers: [entrepreneur]
+      You are at the frontline of implementing the changes and addressing
+      the challenges that make a difference. Your focus is putting existing
+      solutions to work — making an organisation more sustainable using the
+      possibilities and options already available.
+    description_organisation: >
+      Your organisation is at the frontline of implementing changes,
+      addressing challenges and making a difference. The focus is putting
+      existing solutions to work — becoming more sustainable using the
+      possibilities and options already available.
+    natural_allies: [entrepreneur]
+    friends: [accountant]
+    necessity: [activist]
     case_studies:
       - { title: "Placeholder case study — Implementer", url: "https://example.com/case-studies/implementer" }
     resources:
@@ -54,14 +66,20 @@ personas:
 
   developer:
     name: "The Developer"
-    tagline: "You build the thing that doesn't exist yet."
+    tagline: "You are the thinker!"
     description: >
-      You're drawn to the technical and the novel — new tools, new
-      processes, new fixes. Where others adapt an existing approach, you'd
-      rather engineer a better one.
-    brethren: [accountant, implementer]
-    besties: [entrepreneur]
-    battlers: [advocate]
+      You work with difficult questions and help to develop innovative
+      solutions. Your focus is innovation and new improvements — holding a
+      high standard for making an organisation more sustainable and taking
+      fresh steps to improve on existing options.
+    description_organisation: >
+      Your organisation works with difficult questions and helps to develop
+      innovative solutions. The focus is innovation and new improvements —
+      holding a high standard for becoming more sustainable and taking fresh
+      steps to improve on existing options.
+    natural_allies: [advocate]
+    friends: [connector]
+    necessity: [implementer]
     case_studies:
       - { title: "Placeholder case study — Developer", url: "https://example.com/case-studies/developer" }
     resources:
@@ -69,14 +87,18 @@ personas:
 
   advocate:
     name: "The Advocate"
-    tagline: "You speak up for the bigger cause."
+    tagline: "You are the crowbar!"
     description: >
-      You keep the "why" in the room — pushing for the outcome that
-      matters even when it's inconvenient, and holding the line when
-      others are tempted to compromise it away.
-    brethren: [activist, communicator]
-    besties: [connector]
-    battlers: [developer]
+      You open up new places, creating new spaces for conversation and
+      action. Your focus is making sustainability an important topic and
+      launching the initiatives that get an organisation moving.
+    description_organisation: >
+      Your organisation opens up new places, creating new spaces for
+      conversation and action. The focus is making sustainability an
+      important topic and launching the initiatives that get things moving.
+    natural_allies: [communicator]
+    friends: [developer, connector]
+    necessity: [cooperator]
     case_studies:
       - { title: "Placeholder case study — Advocate", url: "https://example.com/case-studies/advocate" }
     resources:
@@ -84,13 +106,19 @@ personas:
 
   communicator:
     name: "The Communicator"
-    tagline: "You tell the story so people actually care."
+    tagline: "You are the voice!"
     description: >
-      Good work that nobody hears about doesn't spread. You turn what's
-      happening into a story people want to share, follow and support.
-    brethren: [advocate, connector]
-    besties: [accountant]
-    battlers: [entrepreneur]
+      You make sure that sustainability and progress remain visible for all.
+      Your focus is sharing information and sending knowledge outward —
+      communicating to a larger group so the work doesn't stay hidden.
+    description_organisation: >
+      Your organisation makes sure that sustainability and progress remain
+      visible for all. The focus is sharing information and sending knowledge
+      outward — communicating to a larger group so the work doesn't stay
+      hidden.
+    natural_allies: [advocate, accountant]
+    friends: [connector, cooperator]
+    necessity: [implementer]
     case_studies:
       - { title: "Placeholder case study — Communicator", url: "https://example.com/case-studies/communicator" }
     resources:
@@ -98,14 +126,20 @@ personas:
 
   activist:
     name: "The Activist"
-    tagline: "You push for change now, not eventually."
+    tagline: "You are the disruptor!"
     description: >
-      You're impatient in the best way — comfortable with friction if it
-      means the urgent thing actually moves, rather than waiting for the
-      perfect moment that never comes.
-    brethren: [advocate, connector]
-    besties: [cooperator]
-    battlers: [accountant]
+      You force people to have the conversations we need and make sure the
+      message is heard. Your focus is creating as much push as possible for
+      the cause at heart — standing firm on your ground and speaking in
+      clear, strong language.
+    description_organisation: >
+      Your organisation forces people to have the conversations we need and
+      makes sure the message is heard. The focus is creating as much push as
+      possible for the cause at heart — standing firm and speaking in clear,
+      strong language.
+    natural_allies: [cooperator]
+    friends: [connector]
+    necessity: [communicator]
     case_studies:
       - { title: "Placeholder case study — Activist", url: "https://example.com/case-studies/activist" }
     resources:
@@ -113,14 +147,20 @@ personas:
 
   connector:
     name: "The Connector"
-    tagline: "You bring the right people into the same room."
+    tagline: "You are the gravity!"
     description: >
-      You see the gaps between people and organisations who should be
-      talking to each other, and you close them — partnerships, intros,
-      shared platforms.
-    brethren: [communicator, cooperator]
-    besties: [advocate]
-    battlers: [implementer]
+      You see connections others don't, and you build networks from nothing.
+      Your focus is creating the relationships and support systems that move
+      things forward — collaboration across an organisation with an eye on
+      growth within the community.
+    description_organisation: >
+      Your organisation creates connections others don't and builds networks
+      from nothing. The focus is creating the relationships and support
+      systems that move things forward — collaboration with an eye on growth
+      within the community.
+    natural_allies: [entrepreneur]
+    friends: [cooperator]
+    necessity: [communicator]
     case_studies:
       - { title: "Placeholder case study — Connector", url: "https://example.com/case-studies/connector" }
     resources:
@@ -128,13 +168,20 @@ personas:
 
   cooperator:
     name: "The Cooperator"
-    tagline: "You make the team effort actually work."
+    tagline: "You are the matchmaker!"
     description: >
-      You'd rather get it right together than get credit alone. Quiet,
-      steady collaboration is where you do your best work.
-    brethren: [connector, activist]
-    besties: [implementer]
-    battlers: [entrepreneur]
+      You forge collaborations, make lasting connections and build teams to
+      get the job done. Your focus is working together for growth on a
+      specific goal — partnering beyond the organisation to create impact
+      that benefits progress in a wider view.
+    description_organisation: >
+      Your organisation forges collaborations, makes lasting connections and
+      empowers teams to get the job done. The focus is working together for
+      growth on a specific goal — partnering beyond the organisation to
+      create impact that benefits progress in a wider view.
+    natural_allies: [connector]
+    friends: [communicator]
+    necessity: [developer]
     case_studies:
       - { title: "Placeholder case study — Cooperator", url: "https://example.com/case-studies/cooperator" }
     resources:
@@ -142,13 +189,20 @@ personas:
 
   entrepreneur:
     name: "The Entrepreneur"
-    tagline: "You'll take the risk to build something new."
+    tagline: "You are the glue!"
     description: >
-      You move fast, back yourself, and would rather try an imperfect
-      thing today than plan a perfect one for next year.
-    brethren: [developer, implementer]
-    besties: [connector]
-    battlers: [cooperator]
+      You see and act upon the opportunities between business, research and
+      development. Your focus is feasibility — turning an idea into a
+      business, making a business of progress and finding the right
+      financial market fit.
+    description_organisation: >
+      Your organisation sees and acts upon the opportunities between
+      business, research and development. The focus is feasibility — turning
+      an idea into a business, making a business of progress and finding the
+      right financial market fit.
+    natural_allies: [implementer, cooperator]
+    friends: [communicator, advocate]
+    necessity: [accountant]
     case_studies:
       - { title: "Placeholder case study — Entrepreneur", url: "https://example.com/case-studies/entrepreneur" }
     resources:
@@ -315,8 +369,61 @@ innovation_curve:
     implementer: 1
     accountant: 0
   bands:
-    - { name: "Laggards",       min: 0,  max: 2,  colour: "#c0392b" }   # Red
-    - { name: "Late Majority",  min: 3,  max: 7,  colour: "#e67e22" }   # Amber
-    - { name: "Early Majority", min: 8,  max: 12, colour: "#f1c40f" }   # Yellow
-    - { name: "Early Adopters", min: 13, max: 14, colour: "#7cb342" }   # Light Green
-    - { name: "Innovators",     min: 15, max: 20, colour: "#2e7d32" }   # Green
+    - name: "Laggards"
+      min: 0
+      max: 2
+      colour: "#c0392b"   # Red
+      tagline: "You are a Laggard. Wanker."
+      description: >
+        They are the last to adopt an innovation. Unlike some of the previous
+        categories, individuals in this category show little to no opinion
+        leadership. These individuals typically have an aversion to
+        change-agents. Laggards typically tend to be focused on "traditions",
+        lowest social status, lowest financial liquidity, oldest among
+        adopters, and in contact with only family and close friends.
+    - name: "Late Majority"
+      min: 3
+      max: 7
+      colour: "#e67e22"   # Amber
+      tagline: "You are in the Late Majority"
+      description: >
+        They adopt an innovation after the average participant. These
+        individuals approach an innovation with a high degree of skepticism
+        and after the majority of society has adopted the innovation. Late
+        Majority are typically skeptical about an innovation, have below
+        average social status, little financial liquidity, in contact with
+        others in late majority and early majority and little opinion
+        leadership.
+    - name: "Early Majority"
+      min: 8
+      max: 12
+      colour: "#f1c40f"   # Yellow
+      tagline: "You are in the Early Majority"
+      description: >
+        They adopt an innovation after a varying degree of time that is
+        significantly longer than the innovators and early adopters. Early
+        Majority have above average social status, contact with early
+        adopters and seldom hold positions of opinion leadership in a system.
+    - name: "Early Adopters"
+      min: 13
+      max: 14
+      colour: "#7cb342"   # Light Green
+      tagline: "You are an Early Adopter"
+      description: >
+        These individuals have the highest degree of opinion leadership among
+        the adopter categories. Early adopters have a higher social status,
+        financial liquidity, advanced education and are more socially forward
+        than late adopters. They are more discreet in adoption choices than
+        innovators. They use judicious choice of adoption to help them
+        maintain a central communication position.
+    - name: "Innovators"
+      min: 15
+      max: 20
+      colour: "#2e7d32"   # Green
+      tagline: "You are an Innovator"
+      description: >
+        Innovators are willing to take risks, have the highest social status,
+        have financial liquidity, are social and have closest contact to
+        scientific sources and interaction with other innovators. Their risk
+        tolerance allows them to adopt technologies that may ultimately fail.
+        Financial resources help absorb these failures.

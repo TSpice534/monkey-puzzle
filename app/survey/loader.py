@@ -76,7 +76,12 @@ def _validate_personas(raw):
         for field in ('name', 'tagline', 'description'):
             if not persona.get(field):
                 raise SurveyConfigError(f"persona '{persona_id}' is missing a non-empty '{field}'")
-        for rel in ('brethren', 'besties', 'battlers'):
+        desc_org = persona.get('description_organisation')
+        if desc_org is not None and (not isinstance(desc_org, str) or not desc_org):
+            raise SurveyConfigError(
+                f"persona '{persona_id}' field 'description_organisation', if present, must be a non-empty string"
+            )
+        for rel in ('natural_allies', 'friends', 'necessity'):
             refs = persona.get(rel, [])
             if not isinstance(refs, list):
                 raise SurveyConfigError(f"persona '{persona_id}' field '{rel}' must be a list")
@@ -396,14 +401,19 @@ def _validate_innovation_curve(raw):
             )
         if not band.get('colour') or not isinstance(band['colour'], str):
             raise SurveyConfigError(f"survey.yaml 'innovation_curve.bands' entry {i} must have a non-empty string 'colour'")
+        for field in ('tagline', 'description'):
+            if not band.get(field) or not isinstance(band[field], str):
+                raise SurveyConfigError(
+                    f"survey.yaml 'innovation_curve.bands' entry {i} must have a non-empty string '{field}'"
+                )
 
 
 def _normalise(raw):
     for persona_id, persona in raw['personas'].items():
         persona['id'] = persona_id
-        persona.setdefault('brethren', [])
-        persona.setdefault('besties', [])
-        persona.setdefault('battlers', [])
+        persona.setdefault('natural_allies', [])
+        persona.setdefault('friends', [])
+        persona.setdefault('necessity', [])
         persona.setdefault('case_studies', [])
         persona.setdefault('resources', [])
 
