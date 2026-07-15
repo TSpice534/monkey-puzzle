@@ -10,6 +10,14 @@ meta:
   title: "The Monkey Puzzle"
   personas_count: 9
 
+# The first question routes respondents into an 'individual' or
+# 'organisation' track — see the `respondent_type` question below and
+# `app/survey/loader.py::effective_questions`. Its options set
+# `submission.audience` instead of scoring personas. Questions tagged
+# `audience: [individual]` / `[organisation]` only show on that track;
+# untagged questions are shared by both.
+respondent_type_question: respondent_type
+
 personas:
   documenter:
     name: "The Documenter"
@@ -144,6 +152,13 @@ personas:
       - { title: "Placeholder resource — testing an idea cheaply", url: "https://example.com/resources/entrepreneur-testing" }
 
 questions:
+  - id: respondent_type
+    type: single
+    prompt: "Are you answering as an individual, or on behalf of an organisation?"
+    options:
+      - { label: "As an individual", audience_value: individual }
+      - { label: "On behalf of an organisation", audience_value: organisation }
+
   - id: mission_clarity
     type: spectrum
     prompt: "How clear is your mission right now?"
@@ -158,6 +173,17 @@ questions:
     type: single
     prompt: "How does your team feel about trying something new?"
     dimension: roots
+    audience: [organisation]
+    options:
+      - { label: "Ready to go", weights: { entrepreneur: 2, developer: 1 } }
+      - { label: "Curious but cautious", weights: { cooperator: 1, implementer: 1 } }
+      - { label: "Prefer to wait and see", weights: { documenter: 2 } }
+
+  - id: personal_appetite
+    type: single
+    prompt: "How do you feel about trying something new yourself?"
+    dimension: roots
+    audience: [individual]
     options:
       - { label: "Ready to go", weights: { entrepreneur: 2, developer: 1 } }
       - { label: "Curious but cautious", weights: { cooperator: 1, implementer: 1 } }
@@ -195,6 +221,17 @@ questions:
     type: spectrum
     prompt: "How much change can your organisation absorb at once?"
     dimension: comfort_stretch_stress
+    audience: [organisation]
+    options:
+      - { label: "Small, steady steps", weights: { documenter: 1, implementer: 1 } }
+      - { label: "A measured stretch", weights: { cooperator: 1, developer: 1 } }
+      - { label: "Big leaps, fast", weights: { entrepreneur: 2, activist: 1 } }
+
+  - id: personal_pace
+    type: spectrum
+    prompt: "How much change can you personally take on at once?"
+    dimension: comfort_stretch_stress
+    audience: [individual]
     options:
       - { label: "Small, steady steps", weights: { documenter: 1, implementer: 1 } }
       - { label: "A measured stretch", weights: { cooperator: 1, developer: 1 } }

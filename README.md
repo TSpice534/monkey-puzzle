@@ -1,8 +1,10 @@
 # The Monkey Puzzle
 
 A quick, graphical, no-login self-assessment that outputs a personalised sustainability
-**persona** — "your sustainable who." Answer 10–15 questions, get one of nine profiles,
-and share the result.
+**persona** — "your sustainable who." The first question asks whether you're answering
+as an individual or on behalf of an organisation, then tailors the rest of the questions
+to that — answer the ones that apply to you, get one of nine profiles, and share the
+result.
 
 Framing is **"know yourself"** — not measuring what you're doing wrong, but finding your
 sweet spot. No account needed. Open source.
@@ -39,6 +41,10 @@ European cultural and business events.
   `content/survey.yaml` — editable without touching code. Question set and scoring are
   designed by Rob and Andrew; the engine is built to consume whatever they deliver. The
   content shipped today is realistic placeholder content.
+- **Individual/organisation routing:** the survey's first question sets which of the
+  rest of the questions show — any question can be tagged for one track or left shared.
+  That's a YAML-only decision (`audience: [individual]` / `[organisation]`); no code
+  changes needed to add or retag a branch question.
 - **No accounts:** submissions are anonymous, keyed by a random token that powers the
   shareable result link and optional emailed copy. The email address used for "email me
   a copy" is never persisted — it's used once to send that message and then discarded.

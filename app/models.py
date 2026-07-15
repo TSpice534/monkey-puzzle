@@ -13,6 +13,11 @@ class Submission(db.Model):
     )
     # Raw answers keyed by question id (empty in Phase 1; populated in Phase 3)
     answers: db.Mapped[dict] = db.mapped_column(db.JSON, nullable=False, default=dict)
+    # 'individual' | 'organisation' — set from the survey's respondent-type
+    # router question (its answer also lives in `answers` like any other
+    # question); unset until that question is answered. Determines which
+    # audience-tagged questions are shown for the rest of the survey.
+    audience: db.Mapped[Optional[str]] = db.mapped_column(db.String(16), nullable=True)
     # Classification result — unset until Phase 4
     persona_id: db.Mapped[Optional[str]] = db.mapped_column(db.String(32), nullable=True)
     # Nine-dim persona vector — unset until Phase 4

@@ -8,6 +8,7 @@ import yaml
 from flask import current_app
 
 _VALID_TYPES = {'spectrum', 'single', 'multi', 'short_text'}
+_VALID_AUDIENCES = {'individual', 'organisation'}
 
 _cache = {}
 
@@ -98,6 +99,20 @@ def _validate_questions(raw):
     if not isinstance(questions, list) or not questions:
         raise SurveyConfigError("survey.yaml 'questions' must be a non-empty list")
 
+    # `respondent_type_question` is optional (the small test fixture doesn't
+    # use it) — when present, it names the id of a routing question that
+    # must be first, whose options set `submission.audience` instead of
+    # scoring personas. See `effective_questions()` for how `audience`-
+    # tagged questions get filtered per submission.
+    router_id = raw.get('respondent_type_question')
+    if router_id is not None:
+        if not isinstance(router_id, str) or not router_id:
+            raise SurveyConfigError("survey.yaml 'respondent_type_question' must be a non-empty string")
+        if questions[0].get('id') != router_id:
+            raise SurveyConfigError(
+                "survey.yaml 'respondent_type_question' must be the id of the first entry in 'questions'"
+            )
+
     valid_persona_ids = set(raw['personas'].keys())
     seen_ids = set()
     for q in questions:
@@ -113,8 +128,21 @@ def _validate_questions(raw):
 
         if not q.get('prompt'):
             raise SurveyConfigError(f"question '{qid}' is missing a non-empty 'prompt'")
-        if not q.get('dimension'):
+
+        is_router = qid == router_id
+        if not is_router and not q.get('dimension'):
             raise SurveyConfigError(f"question '{qid}' is missing a non-empty 'dimension'")
+
+        audience = q.get('audience')
+        if audience is not None:
+            if is_router:
+                raise SurveyConfigError(f"router question '{qid}' must not declare 'audience' — it sets it")
+            if (not isinstance(audience, list) or not audience
+                    or not set(audience) <= _VALID_AUDIENCES):
+                raise SurveyConfigError(
+                    f"question '{qid}' field 'audience' must be a non-empty list drawn from "
+                    f'{sorted(_VALID_AUDIENCES)}'
+                )
 
         qtype = q.get('type')
         if qtype not in _VALID_TYPES:
@@ -126,14 +154,34 @@ def _validate_questions(raw):
         if qtype == 'short_text':
             if q.get('options'):
                 raise SurveyConfigError(f"question '{qid}' is type short_text and must not have 'options'")
+            if is_router:
+                raise SurveyConfigError(f"router question '{qid}' must not be type short_text")
             continue
 
         options = q.get('options')
         if not isinstance(options, list) or len(options) < 2:
             raise SurveyConfigError(f"question '{qid}' must have at least 2 'options'")
+
+        router_audience_values = set()
         for i, opt in enumerate(options):
             if not isinstance(opt, dict) or not opt.get('label'):
                 raise SurveyConfigError(f"question '{qid}' option {i} must have a non-empty 'label'")
+
+            if is_router:
+                audience_value = opt.get('audience_value')
+                if audience_value not in _VALID_AUDIENCES:
+                    raise SurveyConfigError(
+                        f"router question '{qid}' option {i} must set 'audience_value' to one of "
+                        f'{sorted(_VALID_AUDIENCES)}'
+                    )
+                if opt.get('weights'):
+                    raise SurveyConfigError(
+                        f"router question '{qid}' option {i} must not declare 'weights' — "
+                        'it routes, it does not score'
+                    )
+                router_audience_values.add(audience_value)
+                continue
+
             weights = opt.get('weights')
             if not isinstance(weights, dict) or not weights:
                 raise SurveyConfigError(f"question '{qid}' option {i} must have a non-empty 'weights' mapping")
@@ -146,6 +194,11 @@ def _validate_questions(raw):
                     raise SurveyConfigError(
                         f"question '{qid}' option {i} weight for '{persona_id}' must be a number"
                     )
+
+        if is_router and router_audience_values != _VALID_AUDIENCES:
+            raise SurveyConfigError(
+                f"router question '{qid}' options must cover each of {sorted(_VALID_AUDIENCES)} at least once"
+            )
 
 
 def _validate_scoring(raw):
@@ -190,6 +243,28 @@ def _normalise(raw):
                 opt['index'] = index
 
     return raw
+
+
+def effective_questions(survey: dict, audience: str = None) -> list:
+    """The questions a submission with the given `audience` ('individual',
+    'organisation', or None if not yet routed) should see, in order.
+
+    The router question (if any) is always included. A question tagged with
+    `audience: [...]` is only included when `audience` is in that list —
+    so before the router question is answered (`audience` is None), only
+    untagged (shared) questions are reachable; audience-specific content is
+    inaccessible until the respondent-type question routes them.
+    """
+    router_id = survey.get('respondent_type_question')
+    result = []
+    for q in survey['questions']:
+        if q['id'] == router_id:
+            result.append(q)
+            continue
+        tags = q.get('audience')
+        if not tags or audience in tags:
+            result.append(q)
+    return result
 
 
 def get_survey() -> dict:

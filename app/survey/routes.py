@@ -8,7 +8,7 @@ from app.models import Submission
 from app.pdf_utils import generate_result_pdf
 from app.survey import bp
 from app.survey.charts import render_fingerprint_svg, render_share_card_svg
-from app.survey.loader import get_survey
+from app.survey.loader import effective_questions, get_survey
 from app.survey.persona import classify_submission
 
 
@@ -69,7 +69,7 @@ def step(token, step):
     submission = _get_submission_or_404(token)
 
     survey = get_survey()
-    questions = survey['questions']
+    questions = effective_questions(survey, submission.audience)
     total = len(questions)
 
     if step < 1 or step > total:
@@ -82,6 +82,15 @@ def step(token, step):
         # JSON columns need reassignment, not in-place mutation, to be
         # picked up reliably by SQLAlchemy.
         submission.answers = {**submission.answers, question['id']: value}
+
+        if question['id'] == survey.get('respondent_type_question'):
+            options = question.get('options', [])
+            chosen = options[value] if isinstance(value, int) and 0 <= value < len(options) else None
+            submission.audience = chosen.get('audience_value') if chosen else None
+            # Recompute — answering the router changes which questions
+            # (and therefore what `total` is) apply for the rest of the flow.
+            questions = effective_questions(survey, submission.audience)
+            total = len(questions)
 
         if step < total:
             db.session.commit()
@@ -111,8 +120,9 @@ def result(token):
     survey = get_survey()
 
     if submission.persona_id is None:
+        questions = effective_questions(survey, submission.audience)
         next_step = next(
-            (i for i, q in enumerate(survey['questions'], start=1)
+            (i for i, q in enumerate(questions, start=1)
              if q['id'] not in submission.answers),
             1,
         )
