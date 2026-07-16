@@ -204,7 +204,7 @@ def test_high_scoring_answers_and_developer_modifier_classify_as_innovators(clie
     assert final.status_code == 302
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.persona_id == 'developer'
-    assert submission.innovation_score == 19
+    assert submission.innovation_score == 15
     assert submission.innovation_band == 'Innovators'
 
 

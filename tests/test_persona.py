@@ -269,10 +269,11 @@ def test_resolve_innovation_curve_low_scores_and_entrepreneur_modifier_gives_lat
 
 def test_resolve_innovation_curve_high_scores_and_developer_modifier_gives_innovators(config):
     # motivation=4 (5), ambition=2 (5), space_to_progress=2 (5) -> sum 15;
-    # developer modifier +4 -> total 19 -> Innovators (15-20).
+    # developer modifier +4 -> total 19, clamped to the config-driven ceiling
+    # of 15 -> Innovators.
     answers = {'motivation': 4, 'ambition': 2, 'space_to_progress': 2}
     result = resolve_innovation_curve(answers, config, 'developer')
-    assert result.score == 19
+    assert result.score == 15
     assert result.band == 'Innovators'
 
 
