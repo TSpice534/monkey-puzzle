@@ -14,7 +14,10 @@ through the HTTP layer end-to-end (test_loader.py loads it directly;
 test_persona.py calls classify_submission directly) — this module closes
 that gap.
 """
+import html as html_lib
+import json
 import os
+import re
 
 import pytest
 
@@ -61,6 +64,32 @@ def _start_new(client):
     response = client.get('/survey/start')
     assert response.status_code == 302
     return response.headers['Location'].split('/survey/')[1].split('/step/')[0]
+
+
+def _data_labels_json(body, question_id):
+    """Parse the JSON payload of a spectrum question's `data-labels`
+    attribute out of a rendered step page's HTML body."""
+    marker = f'id="{question_id}_range"'
+    tag_start = body.index(marker)
+    tag_end = body.index('>', tag_start)
+    tag = body[tag_start:tag_end]
+    start = tag.index("data-labels='") + len("data-labels='")
+    end = tag.index("'", start)
+    return json.loads(tag[start:end])
+
+
+def _current_label_text(body, question_id):
+    """The live-label span's text, HTML-unescaped — i.e. what a browser
+    actually displays. Normal single HTML-entity escaping in this SSR
+    context (e.g. an apostrophe rendered as `&#39;` in the HTML source) is
+    expected and correctly decoded by the browser; it is not the #0008
+    double-escaping bug, which only affects the JS-consumed data-labels
+    JSON attribute (checked separately via `_data_labels_json`)."""
+    match = re.search(
+        rf'<span id="{question_id}_current_label">(.*?)</span>', body, re.DOTALL
+    )
+    assert match, 'current label span not found in rendered page'
+    return html_lib.unescape(match.group(1))
 
 
 def _answer_up_to_grid(client, token, audience_index):
@@ -336,6 +365,114 @@ def test_motivation_slider_accepts_all_five_positions(client, index):
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
     response = client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': str(index)})
     assert response.status_code == 302
+
+
+# ---------------------------------------------------------------------------
+# backlog #0008 (apostrophe escaping) + #0009 (static row removal), against
+# the real content/survey.yaml. `ambition` (step 4) is the only real
+# question whose option wording contains apostrophes, e.g.
+# "I want to make sure I'm keeping pace with those around me" (individual)
+# and "We want to make sure we're keeping pace with those around us" (org).
+# ---------------------------------------------------------------------------
+
+APOSTROPHE_OPTION_INDEX = 3
+APOSTROPHE_LABEL_INDIVIDUAL = "I want to make sure I'm keeping pace with those around me"
+APOSTROPHE_LABEL_ORGANISATION = "We want to make sure we're keeping pace with those around us"
+
+
+def test_ambition_apostrophe_option_renders_correctly_on_fresh_get(client):
+    """#0008: on a fresh GET (no saved_value yet, current_index defaults to
+    0), the data-labels JSON payload must carry the real apostrophe
+    character for every option — not the double-escaped `&#39;` literal
+    the old option_label()-via-Markup path produced."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    response = client.get(f'/survey/{token}/step/{STEP_AMBITION}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    labels = _data_labels_json(body, 'ambition')
+    assert APOSTROPHE_LABEL_INDIVIDUAL in labels
+    assert not any('&#39;' in label for label in labels)
+    # value defaults to index 0 (no apostrophe option) — confirms the
+    # fresh-GET initial-value path independently of the apostrophe fix.
+    assert 'value="0"' in body
+
+
+def test_ambition_apostrophe_option_renders_correctly_with_saved_value(client):
+    """#0008 + initial-label-on-load: selecting the apostrophe-containing
+    option, then GETting the step again (saved_value now set), must show
+    the real apostrophe in both the live label and the data-labels JSON —
+    not `&#39;`."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': str(APOSTROPHE_OPTION_INDEX)})
+
+    response = client.get(f'/survey/{token}/step/{STEP_AMBITION}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert f'value="{APOSTROPHE_OPTION_INDEX}"' in body
+    assert _current_label_text(body, 'ambition') == APOSTROPHE_LABEL_INDIVIDUAL
+    # The JS-consumed JSON payload is where the #0008 double-escape bug
+    # actually manifested (textContent doesn't decode HTML entities).
+    labels = _data_labels_json(body, 'ambition')
+    assert not any('&#39;' in label for label in labels)
+    assert labels[APOSTROPHE_OPTION_INDEX] == APOSTROPHE_LABEL_INDIVIDUAL
+
+
+def test_ambition_apostrophe_option_renders_correctly_on_organisation_track(client):
+    """Audience-aware wording (label_organisation) combined with the
+    apostrophe fix — both must hold together."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(ORGANISATION)})
+    client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': str(APOSTROPHE_OPTION_INDEX)})
+
+    response = client.get(f'/survey/{token}/step/{STEP_AMBITION}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert _current_label_text(body, 'ambition') == APOSTROPHE_LABEL_ORGANISATION
+    assert APOSTROPHE_LABEL_INDIVIDUAL not in body
+    labels = _data_labels_json(body, 'ambition')
+    assert not any('&#39;' in label for label in labels)
+    assert labels[APOSTROPHE_OPTION_INDEX] == APOSTROPHE_LABEL_ORGANISATION
+
+
+def test_motivation_static_label_row_is_gone_from_rendered_html(client):
+    """#0009: the static row that used to print every option label under
+    the slider is deleted — only the live label span remains. "It is part
+    of my role" is motivation's last option (index 4), not the default
+    selected one (index 0), so before #0009 it would appear twice: once
+    inside the JS data-labels JSON attribute, and once again as static
+    visible text in the now-deleted label row."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    response = client.get(f'/survey/{token}/step/{STEP_MOTIVATION}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert body.count('It is part of my role') == 1
+    # The removed row's exact class combination (the progress bar reuses
+    # the same classes plus an extra "mb-1", so this string is unique to
+    # the deleted static row).
+    assert 'class="d-flex justify-content-between small text-muted">' not in body
+
+
+def test_motivation_current_label_is_empty_not_undefined_when_unlabelled_stop_selected(client):
+    """Edge case: selecting one of motivation's two unlabelled between-stop
+    positions must render an empty live label server-side, not a stray
+    'undefined'/'None'/exception."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '1'})  # unlabelled between-stop
+
+    response = client.get(f'/survey/{token}/step/{STEP_MOTIVATION}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert '<span id="motivation_current_label"></span>' in body
+    assert 'undefined' not in body
 
 
 # ---------------------------------------------------------------------------
