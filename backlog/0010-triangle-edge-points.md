@@ -2,9 +2,9 @@
 id: 0010
 title: Edge points on triangle questions (between-corner answers)
 type: feature
-status: todo
+status: in-progress
 created: 2026-07-16
-branch:
+branch: feature/triangle-edge-points
 ---
 
 ## Request
