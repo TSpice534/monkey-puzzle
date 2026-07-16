@@ -10,12 +10,13 @@
    shown while dragging. #}
 <div class="spectrum-widget">
   <label class="visually-hidden" for="{{ question.id }}_range">{{ question.prompt }}</label>
+  <p class="spectrum-current text-center fw-semibold mt-2 mb-1">
+    <span id="{{ question.id }}_current_label">{{ ns.labels[current_index] }}</span>
+  </p>
   <input type="range" class="form-range" id="{{ question.id }}_range"
          name="{{ question.id }}"
          min="0" max="{{ question.options | length - 1 }}" step="1"
          value="{{ current_index }}"
          data-labels='{{ ns.labels | tojson }}'>
-  <p class="spectrum-current text-center fw-semibold mt-2 mb-1">
-    <span id="{{ question.id }}_current_label">{{ ns.labels[current_index] }}</span>
-  </p>
+  <p class="text-center small text-muted">Slide Me</p>
 </div>
