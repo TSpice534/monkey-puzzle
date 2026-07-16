@@ -27,9 +27,13 @@ a string" / "the route returns 200":
      highlights exactly one (end) bar and never crashes; a gap in band
      coverage (no band matches a given score point) falls back to the
      documented neutral grey rather than raising or silently mis-colouring.
-  6. `_desaturate` — the only genuinely new piece of arithmetic in this
-     change — checked against hand-computed expected output, not just
-     "differs from the original".
+
+Every bar always renders its own band's bold colour — highlighting is done
+via `fill-opacity` (1 for the respondent's bar, `UNHIGHLIGHTED_BAR_OPACITY`
+for every other bar), not by desaturating the colour itself. Assertions
+below check the fill/fill-opacity pair together rather than fill alone,
+since a band with more than one score point has that same bold colour on
+several bars at once.
 """
 import os
 import re
@@ -37,7 +41,7 @@ import re
 import pytest
 
 from app.models import Submission
-from app.survey.charts import _desaturate, render_innovation_curve_svg
+from app.survey.charts import UNHIGHLIGHTED_BAR_OPACITY, render_innovation_curve_svg
 from app.survey.loader import clear_survey_cache, load_survey
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -79,6 +83,13 @@ def _extract_curve_svg(body):
     match = re.search(r'<svg[^>]*aria-label="Innovation curve[^>]*>.*?</svg>', body, re.DOTALL)
     assert match, 'innovation curve <svg> not found in rendered body'
     return match.group(0)
+
+
+def _highlighted_bar_count(svg, colour):
+    """Count bars matching `colour` at full opacity (fill-opacity="1") — the
+    single respondent-highlighted bar, as opposed to every other bar of the
+    same band which also carries `colour` but at reduced opacity."""
+    return len(re.findall(rf'<rect[^>]*fill="{re.escape(colour)}" fill-opacity="1"', svg))
 
 
 def _start_new(client):
@@ -147,8 +158,8 @@ def test_boundary_score_2_laggards_late_majority_highlights_correct_band(client,
 
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
     assert 'aria-label="Innovation curve — you scored 2 of 20 (Laggards).' in body
-    # Exactly one bar highlighted in Laggards' full colour.
-    assert _extract_curve_svg(body).count('fill="#c0392b"') == 1
+    # Exactly one bar highlighted (full opacity) in Laggards' colour.
+    assert _highlighted_bar_count(_extract_curve_svg(body), '#c0392b') == 1
 
 
 def test_boundary_score_15_early_adopters_innovators_highlights_correct_band(client, db):
@@ -164,7 +175,7 @@ def test_boundary_score_15_early_adopters_innovators_highlights_correct_band(cli
     assert 'aria-label="Innovation curve — you scored 15 of 20 (Innovators).' in body
     # Scoped to the curve <svg> itself — the persona fingerprint radar chart
     # elsewhere on the page also uses #2e7d32 as a fill colour.
-    assert _extract_curve_svg(body).count('fill="#2e7d32"') == 1
+    assert _highlighted_bar_count(_extract_curve_svg(body), '#2e7d32') == 1
 
 
 # ---------------------------------------------------------------------------
@@ -174,16 +185,18 @@ def test_boundary_score_15_early_adopters_innovators_highlights_correct_band(cli
 
 def test_orientation_leftmost_bar_is_innovators_rightmost_is_laggards():
     bands = _real_bands()
-    svg = render_innovation_curve_svg(None, bands)  # no highlight -> every bar desaturated
+    svg = render_innovation_curve_svg(None, bands)  # no highlight -> every bar at reduced opacity
 
-    fills = re.findall(r'<rect[^>]*fill="(#[0-9a-f]{6})"', svg)
-    assert len(fills) == 21
+    bars = re.findall(r'<rect[^>]*fill="(#[0-9a-f]{6})" fill-opacity="([0-9.]+)"', svg)
+    assert len(bars) == 21
 
     innovators_colour = next(b['colour'] for b in bands if b['name'] == 'Innovators')
     laggards_colour = next(b['colour'] for b in bands if b['name'] == 'Laggards')
 
-    assert fills[0] == _desaturate(innovators_colour)
-    assert fills[-1] == _desaturate(laggards_colour)
+    # Every bar keeps its own bold colour — only opacity is reduced without
+    # a highlighted score.
+    assert bars[0] == (innovators_colour, str(UNHIGHLIGHTED_BAR_OPACITY))
+    assert bars[-1] == (laggards_colour, str(UNHIGHLIGHTED_BAR_OPACITY))
 
 
 # ---------------------------------------------------------------------------
@@ -256,12 +269,12 @@ def test_score_far_outside_range_clamps_to_one_end_bar_and_states_real_score():
 
     svg_above = render_innovation_curve_svg(999, bands)
     innovators_colour = next(b['colour'] for b in bands if b['name'] == 'Innovators')
-    assert svg_above.count(f'fill="{innovators_colour}"') == 1
+    assert _highlighted_bar_count(svg_above, innovators_colour) == 1
     assert 'aria-label="Innovation curve — you scored 999 of 20 (Innovators).' in svg_above
 
     svg_below = render_innovation_curve_svg(-50, bands)
     laggards_colour = next(b['colour'] for b in bands if b['name'] == 'Laggards')
-    assert svg_below.count(f'fill="{laggards_colour}"') == 1
+    assert _highlighted_bar_count(svg_below, laggards_colour) == 1
     assert 'aria-label="Innovation curve — you scored -50 of 20 (Laggards).' in svg_below
 
 
@@ -284,16 +297,3 @@ def test_gap_in_band_coverage_falls_back_to_neutral_grey_without_raising():
     assert 'fill="#adb5bd"' in svg  # the neutral-grey fallback for the gap points
     # Every point still gets exactly one bar — the gap doesn't drop points.
     assert svg.count('<rect') == 21
-
-
-# ---------------------------------------------------------------------------
-# 6. _desaturate — hand-computed expected output
-# ---------------------------------------------------------------------------
-
-def test_desaturate_amount_zero_returns_the_original_colour():
-    assert _desaturate('#ff0000', amount=0) == '#ff0000'
-
-
-def test_desaturate_amount_one_returns_the_exact_perceived_luminance_grey():
-    # grey = 0.299*255 + 0.587*0 + 0.114*0 = 76.245 -> round -> 76 -> 0x4c
-    assert _desaturate('#ff0000', amount=1.0) == '#4c4c4c'

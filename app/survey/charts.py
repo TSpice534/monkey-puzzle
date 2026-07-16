@@ -163,18 +163,7 @@ def render_share_card_svg(persona: dict, scores: dict, personas: dict) -> str:
     )
 
 
-def _desaturate(hex_colour: str, amount: float = 0.7) -> str:
-    """Blend `hex_colour` toward its own perceived-luminance grey by `amount`
-    (0 = unchanged, 1 = fully grey) — deterministic, no dependencies,
-    WeasyPrint-safe. Used by `render_innovation_curve_svg` to grey out every
-    bar except the respondent's highlighted score."""
-    hex_colour = hex_colour.lstrip('#')
-    r, g, b = (int(hex_colour[i:i + 2], 16) for i in (0, 2, 4))
-    grey = 0.299 * r + 0.587 * g + 0.114 * b
-    r2 = round(r + (grey - r) * amount)
-    g2 = round(g + (grey - g) * amount)
-    b2 = round(b + (grey - b) * amount)
-    return f'#{r2:02x}{g2:02x}{b2:02x}'
+UNHIGHLIGHTED_BAR_OPACITY = 0.35
 
 
 def render_innovation_curve_svg(score, bands, width: int = 640, height: int = 240) -> str:
@@ -183,7 +172,8 @@ def render_innovation_curve_svg(score, bands, width: int = 640, height: int = 24
     `bands`' full range (21 bars for the real survey's 0–20 range), with
     heights following a symmetric Gaussian envelope so the silhouette reads
     as a bell curve/hump, and the respondent's exact score highlighted in
-    its band's full colour (every other bar desaturated via `_desaturate`).
+    its band's full colour at full opacity (every other bar keeps its bold
+    band colour but is rendered at `UNHIGHLIGHTED_BAR_OPACITY`).
     Bars are drawn Innovators-left, Laggards-right (highest score first) to
     match the reference diffusion diagram.
 
@@ -235,13 +225,14 @@ def render_innovation_curve_svg(score, bands, width: int = 640, height: int = 24
         band = _band_for(p)
         colour = band['colour'] if band else '#adb5bd'
         is_highlight = clamped_score is not None and p == clamped_score
-        fill = colour if is_highlight else _desaturate(colour)
+        opacity = 1 if is_highlight else UNHIGHLIGHTED_BAR_OPACITY
 
         bar_h = min_h + (max_h - min_h) * math.exp(-((i - center) ** 2) / (2 * sigma ** 2))
         x = i * bar_slot + bar_gap / 2
         y = baseline_y - bar_h
         bars_svg.append(
-            f'<rect x="{x:.2f}" y="{y:.2f}" width="{bar_width:.2f}" height="{bar_h:.2f}" fill="{fill}" />'
+            f'<rect x="{x:.2f}" y="{y:.2f}" width="{bar_width:.2f}" height="{bar_h:.2f}" '
+            f'fill="{colour}" fill-opacity="{opacity}" />'
         )
 
         if band is not None:

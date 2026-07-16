@@ -329,27 +329,26 @@ def test_render_innovation_curve_svg_draws_one_bar_per_score_point():
     assert svg.count('<rect') == 21  # 0..20 inclusive
 
 
-def test_render_innovation_curve_svg_highlights_exactly_one_bar_in_full_colour():
-    from app.survey.charts import render_innovation_curve_svg
+def test_render_innovation_curve_svg_highlights_exactly_one_bar_at_full_opacity():
+    from app.survey.charts import UNHIGHLIGHTED_BAR_OPACITY, render_innovation_curve_svg
 
     svg = render_innovation_curve_svg(14, _CURVE_BANDS)
     band_colour = next(b['colour'] for b in _CURVE_BANDS if b['min'] <= 14 <= b['max'])
-    assert svg.count(f'fill="{band_colour}"') == 1
 
-    # Other bars in the same band are desaturated — a different fill value.
-    from app.survey.charts import _desaturate
-    desaturated = _desaturate(band_colour)
-    assert desaturated != band_colour
-    assert f'fill="{desaturated}"' in svg
+    # All 21 bars keep their own band's bold colour — only opacity changes.
+    assert svg.count(f'fill="{band_colour}"') == 2  # both points in the 13-14 band
+
+    assert svg.count('fill-opacity="1"') == 1
+    assert svg.count(f'fill-opacity="{UNHIGHLIGHTED_BAR_OPACITY}"') == 20
 
 
 def test_render_innovation_curve_svg_with_no_score_has_no_highlight_and_does_not_raise():
-    from app.survey.charts import render_innovation_curve_svg
+    from app.survey.charts import UNHIGHLIGHTED_BAR_OPACITY, render_innovation_curve_svg
 
     svg = render_innovation_curve_svg(None, _CURVE_BANDS)
     assert svg.startswith('<svg')
-    for band in _CURVE_BANDS:
-        assert f'fill="{band["colour"]}"' not in svg
+    assert 'fill-opacity="1"' not in svg
+    assert svg.count(f'fill-opacity="{UNHIGHLIGHTED_BAR_OPACITY}"') == 21
 
 
 def test_render_innovation_curve_svg_empty_bands_returns_empty_string():

@@ -13,16 +13,17 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   draws 21 equal-width bars (one per score point, 0–20) with heights following a
   symmetric Gaussian envelope so the silhouette reads as a bell curve, Innovators
   leftmost through Laggards rightmost (matching Rogers' classic diffusion diagram), the
-  respondent's exact score highlighted in its band's full colour via a new
-  `_desaturate()` helper (every other bar greyed toward the same luminance). Five band
-  names render as section labels along the bottom; the `aria-label` always names the
-  score and band, never colour alone. `_innovation_context` (`app/survey/routes.py`)
-  threads the pre-rendered `curve_svg` onto the existing `innovation` context dict, so it
-  reaches the web result page and PDF via the shared `_result_innovation.html` partial
-  (inserted under the `<h2>`, above the existing swatch/name text) — email is unaffected,
-  matching #0002's established web+PDF-only precedent for that partial. `tests/test_sharing.py`
-  (+6) covers bar count, highlight/desaturation, the `None`-score and empty-bands edge
-  cases, and the band-name labels — 367 tests total
+  respondent's exact score highlighted at full colour and full opacity — every other bar
+  keeps the same bold band colour but renders at reduced `fill-opacity`
+  (`UNHIGHLIGHTED_BAR_OPACITY`) rather than being desaturated. Five band names render as
+  section labels along the bottom; the `aria-label` always names the score and band,
+  never colour alone. `_innovation_context` (`app/survey/routes.py`) threads the
+  pre-rendered `curve_svg` onto the existing `innovation` context dict, so it reaches the
+  web result page and PDF via the shared `_result_innovation.html` partial (inserted
+  under the `<h2>`, above the existing swatch/name text) — email is unaffected, matching
+  #0002's established web+PDF-only precedent for that partial. `tests/test_sharing.py`
+  (+6) covers bar count, highlight opacity, the `None`-score and empty-bands edge cases,
+  and the band-name labels — 375 tests total
 - Feature: edge points on triangle questions (backlog #0010) — the 3 `type: triangle`
   questions (`need_most`, `have_enough`, `support_type`) gain 3 tappable edge midpoint
   nodes alongside the existing 3 corners, so a respondent can pick a point *between* two
