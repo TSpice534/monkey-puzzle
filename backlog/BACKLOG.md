@@ -13,3 +13,4 @@
 | 0009 | Remove static labels from sliders, show only the live label | change | shipped | 2026-07-16 |
 | 0010 | Edge points on triangle questions (between-corner answers) | feature | shipped | 2026-07-16 |
 | 0011 | Innovation-curve visualisation on results page | feature | shipped | 2026-07-16 |
+| 0012 | Clamp innovation-curve score to 15, shrink the curve graphic to match | change | todo | 2026-07-17 |
