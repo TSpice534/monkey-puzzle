@@ -2,9 +2,9 @@
 id: 0009
 title: Remove static labels from sliders, show only the live label
 type: change
-status: todo
+status: shipped
 created: 2026-07-16
-branch:
+branch: feature/spectrum-slider-labels
 ---
 
 ## Request
