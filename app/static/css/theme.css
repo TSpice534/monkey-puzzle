@@ -190,13 +190,17 @@
 }
 
 /* Edge midpoint nodes (backlog #0010) — between-corner picks. Positioned at
-   the geometric edge midpoints of the clip-path triangle above. Smaller
-   sizing than corner nodes so all 6 nodes fit the 320px x 260px box without
-   overlapping. */
+   the geometric edge midpoints of the clip-path triangle above. Rendered as
+   a small dot rather than a text card (the flanking option labels are
+   visually-hidden but still read by screen readers) so they read as
+   secondary to the corner picks. */
 .triangle-node--edge {
-  min-width: 4.5rem;
-  padding: 0.35rem 0.5rem;
-  font-size: 0.75rem;
+  min-width: 0;
+  width: 0.85rem;
+  height: 0.85rem;
+  padding: 0;
+  border-radius: 50%;
+  background-color: #fff;
 }
 
 .triangle-node--edge-left {

@@ -28,7 +28,7 @@
            {% if saved_value == [a.index, b.index] %}checked{% endif %}>
     <label class="triangle-node triangle-node--edge triangle-node--edge-{{ edge }}"
            for="{{ question.id }}_{{ a.index }}_{{ b.index }}">
-      {{ option_label(a, audience) }} &amp; {{ option_label(b, audience) }}
+      <span class="visually-hidden">{{ option_label(a, audience) }} &amp; {{ option_label(b, audience) }}</span>
     </label>
   {% endfor %}
 </div>
