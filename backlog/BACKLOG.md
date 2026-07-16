@@ -9,3 +9,4 @@
 | 0005 | Vector icons for persona cards and grid | feature | shipped | 2026-07-15 |
 | 0006 | Deploy workflow, script and guide for monkey-puzzle | feature | todo | 2026-07-15 |
 | 0007 | Now and Next statement copy | feature | shipped | 2026-07-15 |
+| 0008 | Apostrophe renders as &#39; in spectrum slider live label | bug | todo | 2026-07-16 |
