@@ -6,6 +6,19 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: production 500 ("no such table: submission") on every survey start, despite
+  `flask db upgrade` reporting success — Flask-SQLAlchemy 3.x resolves a *relative*
+  `sqlite:///` URL against `app.instance_path`, not the process's CWD. `.flaskenv`'s
+  `DATABASE_URL=sqlite:///monkeypuzzle.db` meant CLI commands (`flask db upgrade`,
+  loaded via `.flaskenv`) silently migrated `instance/monkeypuzzle.db`, while Gunicorn
+  (which never loads `.flaskenv`, and has no `DATABASE_URL` in its `.env`) fell back to
+  `config.py`'s absolute default and ran against a completely different, un-migrated
+  `monkeypuzzle.db` at the repo root. Removed the relative override from `.flaskenv`
+  entirely so every context (local dev, CLI, Gunicorn) resolves the same absolute path
+  from `config.py`. `tests/test_database_url_config.py` (new, 2 tests) guards against
+  reintroducing a relative `DATABASE_URL` in `.flaskenv` and asserts `config.py`'s
+  no-env-var-set fallback stays absolute
+
 ## [v0.1.1] — 2026-07-16
 
 - Fix: subpath deploy 404'd on every route — Nginx's `proxy_pass` (no URI component)
