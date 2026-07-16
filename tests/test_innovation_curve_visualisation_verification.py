@@ -136,11 +136,11 @@ def test_happy_path_curve_svg_renders_on_real_result_page_with_matching_score_an
 
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
     assert 'role="img"' in body
-    assert 'aria-label="Innovation curve — you scored 3 of 20 (Late Majority).' in body
-    # 21 score points (0-20 inclusive) -> 21 bars in the curve alone. The
+    assert 'aria-label="Innovation curve — you scored 3 of 15 (Late Majority).' in body
+    # 16 score points (0-15 inclusive) -> 16 bars in the curve alone. The
     # fingerprint radar chart also emits <rect>-free polygons/lines, so
     # counting rects globally is still an exact, unambiguous check.
-    assert body.count('<rect') >= 21
+    assert body.count('<rect') >= 16
 
 
 # ---------------------------------------------------------------------------
@@ -157,14 +157,14 @@ def test_boundary_score_2_laggards_late_majority_highlights_correct_band(client,
     assert submission.innovation_band == 'Laggards'
 
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
-    assert 'aria-label="Innovation curve — you scored 2 of 20 (Laggards).' in body
+    assert 'aria-label="Innovation curve — you scored 2 of 15 (Laggards).' in body
     # Exactly one bar highlighted (full opacity) in Laggards' colour.
     assert _highlighted_bar_count(_extract_curve_svg(body), '#c0392b') == 1
 
 
 def test_boundary_score_15_early_adopters_innovators_highlights_correct_band(client, db):
     # motivation idx4 (5) + ambition idx2 (5) + space idx2 (5) = 15,
-    # accountant modifier +0 -> 15 -> Innovators (band 15-20), one above the
+    # accountant modifier +0 -> 15 -> Innovators (band 15), one above the
     # Early Adopters boundary.
     token = _complete_survey(client, motivation='4', ambition='2', space_to_progress='2')
     submission = db.session.query(Submission).filter_by(token=token).one()
@@ -172,7 +172,7 @@ def test_boundary_score_15_early_adopters_innovators_highlights_correct_band(cli
     assert submission.innovation_band == 'Innovators'
 
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
-    assert 'aria-label="Innovation curve — you scored 15 of 20 (Innovators).' in body
+    assert 'aria-label="Innovation curve — you scored 15 of 15 (Innovators).' in body
     # Scoped to the curve <svg> itself — the persona fingerprint radar chart
     # elsewhere on the page also uses #2e7d32 as a fill colour.
     assert _highlighted_bar_count(_extract_curve_svg(body), '#2e7d32') == 1
@@ -188,7 +188,7 @@ def test_orientation_leftmost_bar_is_innovators_rightmost_is_laggards():
     svg = render_innovation_curve_svg(None, bands)  # no highlight -> every bar at reduced opacity
 
     bars = re.findall(r'<rect[^>]*fill="(#[0-9a-f]{6})" fill-opacity="([0-9.]+)"', svg)
-    assert len(bars) == 21
+    assert len(bars) == 16
 
     innovators_colour = next(b['colour'] for b in bands if b['name'] == 'Innovators')
     laggards_colour = next(b['colour'] for b in bands if b['name'] == 'Laggards')
@@ -223,7 +223,7 @@ def test_curve_svg_renders_inside_the_real_pdf_template(app):
             'pdf/result.html', persona=persona, personas={'accountant': persona},
             fingerprint_svg='<svg></svg>', innovation=innovation, audience=None,
         )
-    assert 'Innovation curve — you scored 5 of 20 (Late Majority).' in html
+    assert 'Innovation curve — you scored 5 of 15 (Late Majority).' in html
 
 
 def test_curve_svg_is_absent_from_both_email_bodies_even_though_it_is_computed(app):
@@ -270,12 +270,12 @@ def test_score_far_outside_range_clamps_to_one_end_bar_and_states_real_score():
     svg_above = render_innovation_curve_svg(999, bands)
     innovators_colour = next(b['colour'] for b in bands if b['name'] == 'Innovators')
     assert _highlighted_bar_count(svg_above, innovators_colour) == 1
-    assert 'aria-label="Innovation curve — you scored 999 of 20 (Innovators).' in svg_above
+    assert 'aria-label="Innovation curve — you scored 999 of 15 (Innovators).' in svg_above
 
     svg_below = render_innovation_curve_svg(-50, bands)
     laggards_colour = next(b['colour'] for b in bands if b['name'] == 'Laggards')
     assert _highlighted_bar_count(svg_below, laggards_colour) == 1
-    assert 'aria-label="Innovation curve — you scored -50 of 20 (Laggards).' in svg_below
+    assert 'aria-label="Innovation curve — you scored -50 of 15 (Laggards).' in svg_below
 
 
 def test_gap_in_band_coverage_falls_back_to_neutral_grey_without_raising():

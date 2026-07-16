@@ -139,7 +139,8 @@ def resolve_innovation_curve(answers: dict, config: dict, persona_id: str | None
     if band is None:
         band = bands[0] if total < bands[0]['min'] else bands[-1]
 
-    return InnovationCurveResult(score=total, band=band['name'], colour=band['colour'])
+    ceiling = max(b['max'] for b in bands)
+    return InnovationCurveResult(score=min(total, ceiling), band=band['name'], colour=band['colour'])
 
 
 def _statement_phrase(option: dict, audience: str | None) -> str:

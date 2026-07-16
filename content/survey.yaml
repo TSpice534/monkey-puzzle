@@ -427,7 +427,7 @@ innovation_curve:
         maintain a central communication position.
     - name: "Innovators"
       min: 15
-      max: 20
+      max: 15
       colour: "#2e7d32"   # Green
       tagline: "You are an Innovator"
       description: >

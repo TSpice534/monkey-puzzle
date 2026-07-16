@@ -2,9 +2,9 @@
 id: 0012
 title: Clamp innovation-curve score to 15, shrink the curve graphic to match
 type: change
-status: todo
+status: shipped
 created: 2026-07-17
-branch:
+branch: feature/clamp-innovation-score-to-15
 ---
 
 ## Request
