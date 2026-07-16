@@ -1,0 +1,21 @@
+[Unit]
+Description=The Monkey Puzzle (Gunicorn)
+After=network.target
+
+[Service]
+User=monkeypuzzle
+Group=monkeypuzzle
+WorkingDirectory=/opt/monkey-puzzle
+EnvironmentFile=/opt/monkey-puzzle/.env
+ExecStart=/opt/monkey-puzzle/venv/bin/gunicorn \
+    --workers 3 \
+    --bind unix:/opt/monkey-puzzle/monkeypuzzle.sock \
+    --umask 007 \
+    --access-logfile /opt/monkey-puzzle/logs/access.log \
+    --error-logfile /opt/monkey-puzzle/logs/gunicorn.log \
+    monkeypuzzle:app
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
