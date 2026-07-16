@@ -56,7 +56,21 @@ def _read_answer(question, form):
         except (AttributeError, TypeError, ValueError):
             return None
 
-    # single / spectrum / triangle — a single chosen option index, or None if untouched
+    if qtype == 'triangle':
+        raw = form.get(qid)
+        if raw is None:
+            return None
+        try:
+            return int(raw)                 # corner pick
+        except (TypeError, ValueError):
+            pass
+        try:
+            i, j = raw.split(',')
+            return [int(i), int(j)]         # edge pick
+        except (AttributeError, TypeError, ValueError):
+            return None
+
+    # single / spectrum — a single chosen option index, or None if untouched
     raw = form.get(qid)
     try:
         return int(raw)

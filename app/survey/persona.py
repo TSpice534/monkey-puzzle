@@ -186,7 +186,9 @@ def resolve_now_next(answers: dict, config: dict, audience: str | None) -> dict 
         options = question.get('options', [])
         options_by_index = {opt['index']: opt for opt in options}
 
-        if question['type'] in ('multi', 'multi_exact'):
+        if question['type'] in ('multi', 'multi_exact') or (
+            question['type'] == 'triangle' and isinstance(answer, list)
+        ):
             if not isinstance(answer, list):
                 continue
             phrases = []

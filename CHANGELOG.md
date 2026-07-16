@@ -6,6 +6,24 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Feature: edge points on triangle questions (backlog #0010) — the 3 `type: triangle`
+  questions (`need_most`, `have_enough`, `support_type`) gain 3 tappable edge midpoint
+  nodes alongside the existing 3 corners, so a respondent can pick a point *between* two
+  corners. An edge pick is positional (no new authored options) and encodes as an
+  `"i,j"` ascending-index pair submitted from the form, exactly like the `grid` widget's
+  `"x,y"` cells (`app/survey/routes.py::_read_answer`, new `triangle` branch). In the
+  Now/Next results copy, an edge pick resolves to both flanking corners'
+  `statement_phrase`s joined with "and" (e.g. "capacity and knowledge") via the existing
+  list-join branch in `app/survey/persona.py::resolve_now_next`, widened to also match a
+  list-typed triangle answer. `_question_triangle.html` renders the 3 edge nodes with a
+  smaller `.triangle-node--edge` CSS sizing modifier so all 6 nodes fit the triangle
+  widget without overlapping
+- Tests: `tests/test_persona.py` (+2 for edge-pick `resolve_now_next` resolution on
+  `have_enough`/`need_most`), `tests/test_real_survey_e2e.py` (+2 for edge-node
+  rendering and the edge-pick POST/persist round-trip on the real survey),
+  `tests/test_grid_flow.py` (+1 for `_read_answer`'s triangle branch parsing both a
+  corner index and an edge pair) — 343 tests total
+
 ## [v0.1.2] — 2026-07-16
 
 - Fix: production 500 ("no such table: submission") on every survey start, despite

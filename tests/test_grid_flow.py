@@ -9,6 +9,7 @@ import pytest
 
 from app.models import Submission
 from app.survey.loader import clear_survey_cache
+from app.survey.routes import _read_answer
 
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), 'fixtures', 'survey_grid.yaml')
 
@@ -141,6 +142,42 @@ def test_triangle_step_persists_a_single_int_and_advances(client, db):
 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.answers['q_triangle'] == 2
+
+
+def test_read_answer_maps_triangle_comma_pair_to_edge_list_and_single_int_to_corner():
+    """backlog #0010: _read_answer's triangle branch — 'i,j' parses to a
+    2-int list (edge pick), a bare index still parses to a single int
+    (corner pick, regression-guard)."""
+    question = {'id': 'q_triangle', 'type': 'triangle'}
+    assert _read_answer(question, {'q_triangle': '0,1'}) == [0, 1]
+    assert _read_answer(question, {'q_triangle': '0'}) == 0
+
+
+@pytest.mark.parametrize('raw', ['a,b', '0,1,2', '0,', ',', '', '0,a', 'a,1'])
+def test_read_answer_triangle_malformed_pair_returns_none(raw):
+    """backlog #0010: malformed 'i,j' input (non-numeric parts, wrong part
+    count, empty/missing parts) must not raise — it falls through to None,
+    same as an untouched question, not an exception."""
+    question = {'id': 'q_triangle', 'type': 'triangle'}
+    assert _read_answer(question, {'q_triangle': raw}) is None
+
+
+def test_read_answer_triangle_returns_none_when_field_absent_from_form():
+    """The question was never posted at all (e.g. a skipped optional
+    triangle step) — `form.get(qid)` is None, short-circuiting before either
+    parse attempt."""
+    question = {'id': 'q_triangle', 'type': 'triangle'}
+    assert _read_answer(question, {}) is None
+
+
+def test_read_answer_triangle_duplicate_index_pair_still_parses():
+    """`_read_answer` only parses shape ('i,j' -> [i, j]); it does not
+    validate that the pair is a real adjacent-corner edge. A duplicate
+    index like '1,1' parses to [1, 1] — garbage-in defensive handling for
+    a bogus/duplicate edge lives downstream in `resolve_now_next`'s
+    `options_by_index.get` lookup (covered in tests/test_persona.py)."""
+    question = {'id': 'q_triangle', 'type': 'triangle'}
+    assert _read_answer(question, {'q_triangle': '1,1'}) == [1, 1]
 
 
 def test_triangle_widget_renders_all_three_corner_options(client):
