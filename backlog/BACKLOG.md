@@ -10,3 +10,4 @@
 | 0006 | Deploy workflow, script and guide for monkey-puzzle | feature | todo | 2026-07-15 |
 | 0007 | Now and Next statement copy | feature | shipped | 2026-07-15 |
 | 0008 | Apostrophe renders as &#39; in spectrum slider live label | bug | todo | 2026-07-16 |
+| 0009 | Remove static labels from sliders, show only the live label | change | todo | 2026-07-16 |
