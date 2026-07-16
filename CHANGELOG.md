@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.1.2] — 2026-07-16
+
 - Fix: production 500 ("no such table: submission") on every survey start, despite
   `flask db upgrade` reporting success — Flask-SQLAlchemy 3.x resolves a *relative*
   `sqlite:///` URL against `app.instance_path`, not the process's CWD. `.flaskenv`'s
