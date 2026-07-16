@@ -6,6 +6,19 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: subpath deploy 404'd on every route — Nginx's `proxy_pass` (no URI component)
+  forwards the full request path unchanged, including the `/monkey-puzzle` prefix, but
+  `ProxyFix(x_prefix=1)` only sets `SCRIPT_NAME` from `X-Forwarded-Prefix`, it never
+  strips the prefix back off `PATH_INFO` — so the app's route table (registered without
+  any prefix) never matched. Added a small WSGI middleware
+  (`app/__init__.py::_strip_script_name`) that strips `SCRIPT_NAME` off the front of
+  `PATH_INFO` once `ProxyFix` has set it, applied as the innermost wrapper so it sees the
+  value `ProxyFix` derived from the header. Local dev / domain-root requests (no
+  `X-Forwarded-Prefix` header) are unaffected. `tests/test_subpath_deployment.py` (new,
+  4 tests) covers the plain-request no-op case, the previously-404ing root and nested
+  routes under a simulated `/monkey-puzzle` prefix, and that `url_for()`-generated links
+  still carry the prefix
+
 ## [v0.1.0] — 2026-07-16
 
 - Feature: deploy workflow, script, and guide (backlog #0006) — `deploy/monkeypuzzle.service`
