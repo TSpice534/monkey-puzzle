@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.1.1] — 2026-07-16
+
 - Fix: subpath deploy 404'd on every route — Nginx's `proxy_pass` (no URI component)
   forwards the full request path unchanged, including the `/monkey-puzzle` prefix, but
   `ProxyFix(x_prefix=1)` only sets `SCRIPT_NAME` from `X-Forwarded-Prefix`, it never
