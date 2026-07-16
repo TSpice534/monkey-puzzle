@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.1.0] — 2026-07-16
+
 - Feature: deploy workflow, script, and guide (backlog #0006) — `deploy/monkeypuzzle.service`
   (systemd unit) and `deploy/nginx-monkeypuzzle.conf` (the two `location` blocks to
   hand-merge into the live multi-tenant Nginx config), a root-level `deploy.sh.example`
