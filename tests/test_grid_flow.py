@@ -9,6 +9,7 @@ import pytest
 
 from app.models import Submission
 from app.survey.loader import clear_survey_cache
+from app.survey.routes import _read_answer
 
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), 'fixtures', 'survey_grid.yaml')
 
@@ -141,6 +142,15 @@ def test_triangle_step_persists_a_single_int_and_advances(client, db):
 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.answers['q_triangle'] == 2
+
+
+def test_read_answer_maps_triangle_comma_pair_to_edge_list_and_single_int_to_corner():
+    """backlog #0010: _read_answer's triangle branch — 'i,j' parses to a
+    2-int list (edge pick), a bare index still parses to a single int
+    (corner pick, regression-guard)."""
+    question = {'id': 'q_triangle', 'type': 'triangle'}
+    assert _read_answer(question, {'q_triangle': '0,1'}) == [0, 1]
+    assert _read_answer(question, {'q_triangle': '0'}) == 0
 
 
 def test_triangle_widget_renders_all_three_corner_options(client):

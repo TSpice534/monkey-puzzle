@@ -492,6 +492,33 @@ def test_triangle_question_renders_all_three_options_on_real_survey(client):
     assert 'role="radiogroup"' in body
 
 
+def test_triangle_question_renders_the_three_edge_nodes(client):
+    """backlog #0010: 3 edge midpoint nodes render alongside the 3 corners,
+    each labelled with both flanking corners' option_label joined by '&'."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    response = client.get(f'/survey/{token}/step/{STEP_NEED_MOST}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'value="0,1"' in body
+    assert 'value="1,2"' in body
+    assert 'value="0,2"' in body
+    assert 'More capacity &amp; More knowledge' in body
+
+
+def test_triangle_edge_post_persists_a_two_int_list_and_advances(client, db):
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    response = client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0,1'})
+
+    assert response.status_code == 302
+    assert response.headers['Location'].endswith(f'/survey/{token}/step/{STEP_NEED_MOST + 1}')
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert submission.answers['need_most'] == [0, 1]
+
+
 # ---------------------------------------------------------------------------
 # Result page / radar chart / share / PDF / email — against the new content
 # shape (11 real questions, grid-direct one-hot score vector)
