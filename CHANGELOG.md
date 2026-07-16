@@ -6,6 +6,18 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: innovation-curve score cap (backlog #0012) — the Innovators band is a single point
+  (15), but `resolve_innovation_curve` returned the raw uncapped total (the persona
+  modifier could push it as high as 19), and `content/survey.yaml`'s Innovators band
+  ceiling was still `max: 20`, so the bell-curve chart (backlog #0011) rendered 21 bars
+  past the true top score. `Innovators.max` in `content/survey.yaml` is now `15` (from
+  `20`), and `resolve_innovation_curve` clamps the returned `score` to
+  `min(total, ceiling)`, where `ceiling = max(b['max'] for b in bands)` — never
+  hardcoded, so a future template retune needs only the yaml edit. Band resolution still
+  runs against the raw uncapped total, unchanged (its existing out-of-range fallback
+  already resolves any total >= 15 to Innovators). `app/survey/charts.py::render_innovation_curve_svg`
+  derives its bar range from the same bands config, so it now renders 16 bars (0-15) and
+  reads "of 15" automatically — no chart code change needed
 - Feature: innovation-curve visualisation on the results page (backlog #0011) — the
   innovation-curve card now includes an inline-SVG bell-curve chart alongside the
   existing band text, styled on the fingerprint radar's hand-built SVG pattern (no JS,
