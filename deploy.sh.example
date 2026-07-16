@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# deploy.sh.example — copy to deploy.sh on the server and set SERVICE=monkeypuzzle for this box.
+# deploy.sh itself is gitignored — it's server-specific and must never be committed, and never
+# `git checkout`-ed on this shared, multi-tenant VPS (that would silently restore the wrong
+# SERVICE= value and restart another client's unit).
+#
+#   cp deploy.sh.example deploy.sh
+#   # then edit SERVICE below — this box: SERVICE=monkeypuzzle
+
+set -euo pipefail
+
+APP_DIR="$(cd "$(dirname "$0")" && pwd)"
+SERVICE="CHANGEME"
+
+echo "==> Pulling latest code..."
+cd "$APP_DIR"
+git pull
+
+echo "==> Installing/updating dependencies..."
+source venv/bin/activate
+pip install -r requirements.txt --quiet
+
+echo "==> Running database migrations..."
+flask db upgrade
+
+echo "==> Restarting service..."
+sudo systemctl restart "$SERVICE"
+
+echo "==> Done. Checking status..."
+sudo systemctl status "$SERVICE" --no-pager -l

@@ -2,9 +2,9 @@
 id: 0006
 title: Deploy workflow, script and guide for monkey-puzzle
 type: feature
-status: todo
+status: shipped
 created: 2026-07-15
-branch:
+branch: feature/deploy-workflow
 ---
 
 ## Request
