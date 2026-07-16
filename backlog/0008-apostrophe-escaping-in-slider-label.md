@@ -2,7 +2,7 @@
 id: 0008
 title: Apostrophe renders as &#39; in spectrum slider live label
 type: bug
-status: in-progress
+status: shipped
 created: 2026-07-16
 branch: feature/spectrum-slider-labels
 ---
