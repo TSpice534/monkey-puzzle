@@ -2,9 +2,9 @@
 id: 0011
 title: Innovation-curve visualisation on results page
 type: feature
-status: todo
+status: shipped
 created: 2026-07-16
-branch:
+branch: feature/innovation-curve-visualisation
 ---
 
 ## Request
