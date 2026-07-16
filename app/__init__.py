@@ -20,9 +20,26 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # Trust one layer of reverse-proxy headers (Nginx).
-    # x_prefix honours SCRIPT_NAME set by Gunicorn for subpath deployments.
     from werkzeug.middleware.proxy_fix import ProxyFix
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+    def _strip_script_name(wsgi_app):
+        # ProxyFix's x_prefix only sets SCRIPT_NAME from X-Forwarded-Prefix
+        # for correct url_for() generation — it does not touch PATH_INFO.
+        # Nginx's proxy_pass here has no URI component, so it forwards the
+        # request path unchanged, prefix included (e.g. /monkey-puzzle/start/1).
+        # Without stripping that prefix back off PATH_INFO, every route 404s
+        # under the subpath deployment even though Nginx/Gunicorn are healthy.
+        def middleware(environ, start_response):
+            script_name = environ.get('SCRIPT_NAME', '')
+            path_info = environ.get('PATH_INFO', '')
+            if script_name and path_info.startswith(script_name):
+                environ['PATH_INFO'] = path_info[len(script_name):] or '/'
+            return wsgi_app(environ, start_response)
+        return middleware
+
+    app.wsgi_app = ProxyFix(
+        _strip_script_name(app.wsgi_app), x_for=1, x_proto=1, x_host=1, x_prefix=1
+    )
 
     db.init_app(app)
     migrate.init_app(app, db)
