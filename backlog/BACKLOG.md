@@ -12,4 +12,4 @@
 | 0008 | Apostrophe renders as &#39; in spectrum slider live label | bug | shipped | 2026-07-16 |
 | 0009 | Remove static labels from sliders, show only the live label | change | shipped | 2026-07-16 |
 | 0010 | Edge points on triangle questions (between-corner answers) | feature | shipped | 2026-07-16 |
-| 0011 | Innovation-curve visualisation on results page | feature | todo | 2026-07-16 |
+| 0011 | Innovation-curve visualisation on results page | feature | in-progress | 2026-07-16 |
