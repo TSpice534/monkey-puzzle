@@ -153,6 +153,33 @@ def test_read_answer_maps_triangle_comma_pair_to_edge_list_and_single_int_to_cor
     assert _read_answer(question, {'q_triangle': '0'}) == 0
 
 
+@pytest.mark.parametrize('raw', ['a,b', '0,1,2', '0,', ',', '', '0,a', 'a,1'])
+def test_read_answer_triangle_malformed_pair_returns_none(raw):
+    """backlog #0010: malformed 'i,j' input (non-numeric parts, wrong part
+    count, empty/missing parts) must not raise — it falls through to None,
+    same as an untouched question, not an exception."""
+    question = {'id': 'q_triangle', 'type': 'triangle'}
+    assert _read_answer(question, {'q_triangle': raw}) is None
+
+
+def test_read_answer_triangle_returns_none_when_field_absent_from_form():
+    """The question was never posted at all (e.g. a skipped optional
+    triangle step) — `form.get(qid)` is None, short-circuiting before either
+    parse attempt."""
+    question = {'id': 'q_triangle', 'type': 'triangle'}
+    assert _read_answer(question, {}) is None
+
+
+def test_read_answer_triangle_duplicate_index_pair_still_parses():
+    """`_read_answer` only parses shape ('i,j' -> [i, j]); it does not
+    validate that the pair is a real adjacent-corner edge. A duplicate
+    index like '1,1' parses to [1, 1] — garbage-in defensive handling for
+    a bogus/duplicate edge lives downstream in `resolve_now_next`'s
+    `options_by_index.get` lookup (covered in tests/test_persona.py)."""
+    question = {'id': 'q_triangle', 'type': 'triangle'}
+    assert _read_answer(question, {'q_triangle': '1,1'}) == [1, 1]
+
+
 def test_triangle_widget_renders_all_three_corner_options(client):
     token = _start_new(client)
     client.post(f'/survey/{token}/step/1', data={'respondent_type': str(INDIVIDUAL)})

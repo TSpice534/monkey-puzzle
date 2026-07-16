@@ -383,6 +383,50 @@ def test_resolve_now_next_next_sentence_joins_edge_pick_phrases(config):
     assert 'more capacity and knowledge' in result['next']
 
 
+def test_resolve_now_next_next_sentence_joins_support_type_edge_pick_phrases(config):
+    """backlog #0010: `support_type` is the third affected triangle question
+    (the coder's own tests only covered `need_most` and `have_enough`) — an
+    edge pick on it must join the same way, in context in the full 'next'
+    sentence."""
+    answers = {
+        'need_most': 0,             # More capacity -> 'capacity'
+        'support_type': [0, 1],     # Information & Training edge -> 'information and training'
+        'target_groups': 0,
+    }
+    result = resolve_now_next(answers, config, None)
+    assert (
+        'This could be achieved by accessing more information and training '
+        'to address this challenge.' in result['next']
+    )
+
+
+def test_resolve_now_next_now_sentence_skips_a_single_out_of_range_edge_index(config):
+    """Spec's defensive edge case: a malformed/out-of-range edge index
+    (e.g. [0, 9]) must not crash `resolve_now_next` — `options_by_index.get`
+    returns None for the bad index and it is silently skipped, leaving just
+    the one valid phrase (not joined with 'and')."""
+    answers = {
+        'topics': [0, 1, 2],
+        'have_enough': [0, 9],      # 9 doesn't exist on a 3-option triangle
+    }
+    result = resolve_now_next(answers, config, None)
+    assert result['now'] is not None
+    assert 'capacity' in result['now']
+    assert 'capacity and' not in result['now']
+
+
+def test_resolve_now_next_now_is_none_when_edge_pick_is_entirely_out_of_range(config):
+    """Both indices of an edge pick are out of range -> no phrases resolve
+    at all -> the source question is treated as if unanswered (existing
+    defensive `continue`), not a crash or an empty-string phrase."""
+    answers = {
+        'topics': [0, 1, 2],
+        'have_enough': [8, 9],
+    }
+    result = resolve_now_next(answers, config, None)
+    assert result['now'] is None
+
+
 def test_resolve_now_next_now_sentence_joins_three_topics_and_have_enough_phrase(config):
     answers = {
         'topics': [0, 1, 2],       # Water, Food & Drinks, Energy

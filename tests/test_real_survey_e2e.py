@@ -92,6 +92,18 @@ def _current_label_text(body, question_id):
     return html_lib.unescape(match.group(1))
 
 
+def _input_tag(body, input_id):
+    """The full `<input ...>` tag whose `id="{input_id}"` attribute matches
+    exactly (no accidental prefix match against e.g. `need_most_0_1` when
+    looking up `need_most_0`) — used to check a specific radio's `checked`
+    state in isolation from its siblings."""
+    marker = f'id="{input_id}"'
+    marker_start = body.index(marker)
+    tag_start = body.rindex('<input', 0, marker_start)
+    tag_end = body.index('>', marker_start)
+    return body[tag_start:tag_end]
+
+
 def _answer_up_to_grid(client, token, audience_index):
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(audience_index)})
     client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
@@ -517,6 +529,133 @@ def test_triangle_edge_post_persists_a_two_int_list_and_advances(client, db):
 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.answers['need_most'] == [0, 1]
+
+
+@pytest.mark.parametrize(
+    'step, field, raw, expected',
+    [
+        (STEP_HAVE_ENOUGH, 'have_enough', '1,2', [1, 2]),
+        (STEP_SUPPORT_TYPE, 'support_type', '0,2', [0, 2]),
+    ],
+)
+def test_triangle_edge_post_persists_on_the_other_two_affected_questions(client, db, step, field, raw, expected):
+    """backlog #0010: the coder's own e2e edge-POST test only covered
+    `need_most`. `have_enough` and `support_type` are the other 2 of the 3
+    affected triangle questions and must round-trip identically."""
+    token = _start_new(client)
+    _answer_up_to_grid(client, token, INDIVIDUAL)  # gets past need_most/have_enough with corner picks
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
+
+    response = client.post(f'/survey/{token}/step/{step}', data={field: raw})
+
+    assert response.status_code == 302
+    assert response.headers['Location'].endswith(f'/survey/{token}/step/{step + 1}')
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert submission.answers[field] == expected
+
+
+def test_triangle_edge_pick_rechecks_the_correct_edge_node_on_reget(client):
+    """Spec's re-render edge case: after saving an edge pick, GETting the
+    step again must re-check that exact edge node — and none of the 3
+    corner nodes or the other 2 edge nodes."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '1,2'})
+
+    response = client.get(f'/survey/{token}/step/{STEP_NEED_MOST}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'checked' in _input_tag(body, 'need_most_1_2')
+    for other_id in ('need_most_0', 'need_most_1', 'need_most_2', 'need_most_0_1', 'need_most_0_2'):
+        assert 'checked' not in _input_tag(body, other_id), f'{other_id} should not be checked'
+
+
+def test_triangle_corner_pick_does_not_recheck_any_edge_node_on_reget(client):
+    """Inverse of the above: a saved corner pick (int) must not accidentally
+    satisfy an edge node's `saved_value == [a.index, b.index]` list compare
+    (int vs list should never collide)."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '2'})
+
+    response = client.get(f'/survey/{token}/step/{STEP_NEED_MOST}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'checked' in _input_tag(body, 'need_most_2')
+    for other_id in ('need_most_0', 'need_most_1', 'need_most_0_1', 'need_most_1_2', 'need_most_0_2'):
+        assert 'checked' not in _input_tag(body, other_id), f'{other_id} should not be checked'
+
+
+def test_survey_completes_when_all_three_triangle_questions_are_skipped(client, db):
+    """Spec's untouched-triangle edge case, exercised end-to-end for all 3
+    affected questions: skipping every triangle step (no radio posted) must
+    still let the submission complete and classify, with `_read_answer`
+    returning None for each and the Now/Next narrative simply omitting
+    their contribution rather than erroring."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
+    client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '0'})
+    client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '0'})
+    client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '0'})
+    client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={})
+    client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
+    client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={})
+    final = client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+
+    assert final.status_code == 302
+    assert final.headers['Location'].endswith(f'/survey/{token}/result')
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert submission.persona_id == 'entrepreneur'
+    assert submission.answers['need_most'] is None
+    assert submission.answers['have_enough'] is None
+    assert submission.answers['support_type'] is None
+
+    result = client.get(f'/survey/{token}/result')
+    body = result.get_data(as_text=True)
+    assert 'Your current sustainability focus' not in body
+    assert 'In order to progress your ambitions' not in body
+
+
+def test_edge_picks_on_all_three_affected_questions_read_correctly_in_result_page_copy(client, db):
+    """backlog #0010: an edge pick's joined phrase must read correctly *in
+    context* within the full Now/Next sentence on the rendered result page —
+    not just as a substring check against the resolver's return value — and
+    this must hold for all 3 affected questions, not just `need_most`."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
+    client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '0'})
+    client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '0'})
+    client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '0'})
+    client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0,1'})       # edge
+    client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0,1'})   # edge
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
+    client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0,1'})  # edge
+    final = client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    assert final.status_code == 302
+
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert (
+        'good amount of capacity and knowledge to help achieve your goals'
+        in body
+    )
+    assert 'you are looking for more capacity and knowledge.' in body
+    assert (
+        'This could be achieved by accessing more information and training '
+        'to address this challenge.' in body
+    )
 
 
 # ---------------------------------------------------------------------------
