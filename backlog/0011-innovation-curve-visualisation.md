@@ -2,7 +2,7 @@
 id: 0011
 title: Innovation-curve visualisation on results page
 type: feature
-status: in-progress
+status: shipped
 created: 2026-07-16
 branch: feature/innovation-curve-visualisation
 ---
