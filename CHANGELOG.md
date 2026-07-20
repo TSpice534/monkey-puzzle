@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.1.3] — 2026-07-20
+
 - Fix: innovation-curve score cap (backlog #0012) — the Innovators band is a single point
   (15), but `resolve_innovation_curve` returned the raw uncapped total (the persona
   modifier could push it as high as 19), and `content/survey.yaml`'s Innovators band
