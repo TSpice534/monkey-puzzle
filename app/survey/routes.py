@@ -7,7 +7,7 @@ from app.email_utils import send_result_email
 from app.models import Submission
 from app.pdf_utils import generate_result_pdf
 from app.survey import bp
-from app.survey.charts import render_fingerprint_svg, render_share_card_svg
+from app.survey.charts import render_fingerprint_svg, render_innovation_curve_svg, render_share_card_svg
 from app.survey.loader import effective_questions, get_survey
 from app.survey.persona import classify_submission, resolve_innovation_curve, resolve_now_next
 
@@ -56,7 +56,21 @@ def _read_answer(question, form):
         except (AttributeError, TypeError, ValueError):
             return None
 
-    # single / spectrum / triangle — a single chosen option index, or None if untouched
+    if qtype == 'triangle':
+        raw = form.get(qid)
+        if raw is None:
+            return None
+        try:
+            return int(raw)                 # corner pick
+        except (TypeError, ValueError):
+            pass
+        try:
+            i, j = raw.split(',')
+            return [int(i), int(j)]         # edge pick
+        except (AttributeError, TypeError, ValueError):
+            return None
+
+    # single / spectrum — a single chosen option index, or None if untouched
     raw = form.get(qid)
     try:
         return int(raw)
@@ -65,9 +79,9 @@ def _read_answer(question, form):
 
 
 def _innovation_context(submission, survey):
-    """Return {'band', 'score', 'colour', 'tagline', 'description'} for the result
-    surfaces, or None when the survey has no innovation_curve config or this
-    submission has no stored band."""
+    """Return {'band', 'score', 'colour', 'tagline', 'description', 'curve_svg'}
+    for the result surfaces, or None when the survey has no innovation_curve
+    config or this submission has no stored band."""
     ic_cfg = survey.get('innovation_curve')
     if not ic_cfg or submission.innovation_band is None:
         return None
@@ -80,6 +94,7 @@ def _innovation_context(submission, survey):
         'colour': band['colour'],
         'tagline': band.get('tagline'),
         'description': band.get('description'),
+        'curve_svg': render_innovation_curve_svg(submission.innovation_score, ic_cfg['bands']),
     }
 
 

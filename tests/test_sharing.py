@@ -297,3 +297,69 @@ def test_render_fingerprint_svg_rim_labels_stay_within_canvas_bounds():
     import re
     width = float(re.search(r'width="([\d.]+)"', svg).group(1))
     assert width > 320
+
+
+# ---------------------------------------------------------------------------
+# render_innovation_curve_svg (backlog #0011)
+# ---------------------------------------------------------------------------
+
+_CURVE_BANDS = [
+    {'name': 'Laggards', 'min': 0, 'max': 2, 'colour': '#c0392b'},
+    {'name': 'Late Majority', 'min': 3, 'max': 7, 'colour': '#e67e22'},
+    {'name': 'Early Majority', 'min': 8, 'max': 12, 'colour': '#f1c40f'},
+    {'name': 'Early Adopters', 'min': 13, 'max': 14, 'colour': '#7cb342'},
+    {'name': 'Innovators', 'min': 15, 'max': 20, 'colour': '#2e7d32'},
+]
+
+
+def test_render_innovation_curve_svg_returns_svg_with_role_and_aria_label():
+    from app.survey.charts import render_innovation_curve_svg
+
+    svg = render_innovation_curve_svg(14, _CURVE_BANDS)
+    assert svg.startswith('<svg')
+    assert 'role="img"' in svg
+    assert 'aria-label="' in svg
+    assert '14' in svg  # the score is named in the aria-label
+
+
+def test_render_innovation_curve_svg_draws_one_bar_per_score_point():
+    from app.survey.charts import render_innovation_curve_svg
+
+    svg = render_innovation_curve_svg(10, _CURVE_BANDS)
+    assert svg.count('<rect') == 21  # 0..20 inclusive
+
+
+def test_render_innovation_curve_svg_highlights_exactly_one_bar_at_full_opacity():
+    from app.survey.charts import UNHIGHLIGHTED_BAR_OPACITY, render_innovation_curve_svg
+
+    svg = render_innovation_curve_svg(14, _CURVE_BANDS)
+    band_colour = next(b['colour'] for b in _CURVE_BANDS if b['min'] <= 14 <= b['max'])
+
+    # All 21 bars keep their own band's bold colour — only opacity changes.
+    assert svg.count(f'fill="{band_colour}"') == 2  # both points in the 13-14 band
+
+    assert svg.count('fill-opacity="1"') == 1
+    assert svg.count(f'fill-opacity="{UNHIGHLIGHTED_BAR_OPACITY}"') == 20
+
+
+def test_render_innovation_curve_svg_with_no_score_has_no_highlight_and_does_not_raise():
+    from app.survey.charts import UNHIGHLIGHTED_BAR_OPACITY, render_innovation_curve_svg
+
+    svg = render_innovation_curve_svg(None, _CURVE_BANDS)
+    assert svg.startswith('<svg')
+    assert 'fill-opacity="1"' not in svg
+    assert svg.count(f'fill-opacity="{UNHIGHLIGHTED_BAR_OPACITY}"') == 21
+
+
+def test_render_innovation_curve_svg_empty_bands_returns_empty_string():
+    from app.survey.charts import render_innovation_curve_svg
+
+    assert render_innovation_curve_svg(10, []) == ''
+
+
+def test_render_innovation_curve_svg_includes_all_five_band_names_as_labels():
+    from app.survey.charts import render_innovation_curve_svg
+
+    svg = render_innovation_curve_svg(5, _CURVE_BANDS)
+    for band in _CURVE_BANDS:
+        assert f'>{band["name"]}<' in svg

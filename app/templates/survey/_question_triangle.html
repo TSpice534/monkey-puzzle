@@ -1,9 +1,12 @@
 {% from "survey/_macros.html" import option_label %}
 {# Bespoke triangle selector — exactly 3 options (loader-guaranteed), one at
-   each corner of a CSS-drawn triangle. Native radios + :checked-sibling CSS
-   only, no script (mirrors the option-card pattern used elsewhere).
+   each corner of a CSS-drawn triangle, plus 3 edge midpoint nodes (backlog
+   #0010) for picking *between* two corners. Native radios + :checked-sibling
+   CSS only, no script (mirrors the option-card pattern used elsewhere).
    Fixed corner mapping: options[0] -> top, options[1] -> bottom-left,
-   options[2] -> bottom-right. #}
+   options[2] -> bottom-right. Edge value is the flanking corners' indices as
+   an "i,j" string (ascending), same encoding as the grid widget's "x,y":
+   [0,1] -> left edge, [1,2] -> bottom edge, [0,2] -> right edge. #}
 <div class="triangle-widget" role="radiogroup" aria-label="{{ question.prompt }}">
   <div class="triangle-shape" aria-hidden="true"></div>
   {% for option in question.options %}
@@ -14,6 +17,18 @@
            {% if saved_value == option.index %}checked{% endif %}>
     <label class="triangle-node triangle-node--{{ corner }}" for="{{ question.id }}_{{ option.index }}">
       {{ option_label(option, audience) }}
+    </label>
+  {% endfor %}
+  {% for a, b, edge in [(question.options[0], question.options[1], 'left'),
+                        (question.options[1], question.options[2], 'bottom'),
+                        (question.options[0], question.options[2], 'right')] %}
+    <input class="visually-hidden triangle-node-input" type="radio"
+           id="{{ question.id }}_{{ a.index }}_{{ b.index }}"
+           name="{{ question.id }}" value="{{ a.index }},{{ b.index }}"
+           {% if saved_value == [a.index, b.index] %}checked{% endif %}>
+    <label class="triangle-node triangle-node--edge triangle-node--edge-{{ edge }}"
+           for="{{ question.id }}_{{ a.index }}_{{ b.index }}">
+      <span class="visually-hidden">{{ option_label(a, audience) }} &amp; {{ option_label(b, audience) }}</span>
     </label>
   {% endfor %}
 </div>

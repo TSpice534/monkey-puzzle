@@ -3,11 +3,19 @@
    templates/email/result.html|txt), matching the persona-card reuse
    pattern. Self-contained, guarded on `innovation`. The band **name** text
    is always present alongside the colour accent (left border + swatch) —
-   never colour alone, for accessibility and WeasyPrint/email safety. #}
+   never colour alone, for accessibility and WeasyPrint/email safety.
+   Backlog #0011 adds an inline-SVG bell-curve visualisation
+   (`innovation.curve_svg`, built by `charts.py::render_innovation_curve_svg`)
+   directly under the heading — additive, the existing text stays as-is. #}
 {% if innovation %}
 <div class="card shadow-sm mt-3" style="border-left: 6px solid {{ innovation.colour }};">
   <div class="card-body">
     <h2 class="h6">Where you sit on the innovation curve</h2>
+    {% if innovation.curve_svg %}
+    <div class="text-center mb-2">
+      {{ innovation.curve_svg | safe }}
+    </div>
+    {% endif %}
     <p class="mb-1">
       <span style="display:inline-block; width:0.9rem; height:0.9rem; border-radius:50%;
                    background-color:{{ innovation.colour }}; vertical-align:middle;"></span>

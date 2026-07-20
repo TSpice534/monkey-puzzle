@@ -138,10 +138,11 @@
 }
 
 /* Triangle selector (`type: triangle`) — a CSS-drawn triangle with three
-   clickable corner nodes; selection via native radios + :checked-sibling
-   CSS, same pattern as .option-card / .grid-cell. Fixed corner mapping:
-   options[0] -> top, options[1] -> bottom-left, options[2] -> bottom-right
-   (see _question_triangle.html). */
+   clickable corner nodes plus 3 edge midpoint nodes (backlog #0010, between-
+   corner picks); selection via native radios + :checked-sibling CSS, same
+   pattern as .option-card / .grid-cell. Fixed corner mapping: options[0] ->
+   top, options[1] -> bottom-left, options[2] -> bottom-right (see
+   _question_triangle.html). */
 .triangle-widget {
   position: relative;
   width: 100%;
@@ -186,6 +187,35 @@
 .triangle-node--bottom-right {
   top: 100%;
   left: 100%;
+}
+
+/* Edge midpoint nodes (backlog #0010) — between-corner picks. Positioned at
+   the geometric edge midpoints of the clip-path triangle above. Rendered as
+   a small dot rather than a text card (the flanking option labels are
+   visually-hidden but still read by screen readers) so they read as
+   secondary to the corner picks. */
+.triangle-node--edge {
+  min-width: 0;
+  width: 0.85rem;
+  height: 0.85rem;
+  padding: 0;
+  border-radius: 50%;
+  background-color: #fff;
+}
+
+.triangle-node--edge-left {
+  top: 50%;
+  left: 25%;
+}
+
+.triangle-node--edge-bottom {
+  top: 100%;
+  left: 50%;
+}
+
+.triangle-node--edge-right {
+  top: 50%;
+  left: 75%;
 }
 
 .triangle-node:hover {

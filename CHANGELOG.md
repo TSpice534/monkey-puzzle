@@ -6,6 +6,54 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: innovation-curve score cap (backlog #0012) — the Innovators band is a single point
+  (15), but `resolve_innovation_curve` returned the raw uncapped total (the persona
+  modifier could push it as high as 19), and `content/survey.yaml`'s Innovators band
+  ceiling was still `max: 20`, so the bell-curve chart (backlog #0011) rendered 21 bars
+  past the true top score. `Innovators.max` in `content/survey.yaml` is now `15` (from
+  `20`), and `resolve_innovation_curve` clamps the returned `score` to
+  `min(total, ceiling)`, where `ceiling = max(b['max'] for b in bands)` — never
+  hardcoded, so a future template retune needs only the yaml edit. Band resolution still
+  runs against the raw uncapped total, unchanged (its existing out-of-range fallback
+  already resolves any total >= 15 to Innovators). `app/survey/charts.py::render_innovation_curve_svg`
+  derives its bar range from the same bands config, so it now renders 16 bars (0-15) and
+  reads "of 15" automatically — no chart code change needed
+- Feature: innovation-curve visualisation on the results page (backlog #0011) — the
+  innovation-curve card now includes an inline-SVG bell-curve chart alongside the
+  existing band text, styled on the fingerprint radar's hand-built SVG pattern (no JS,
+  no external assets, CSP- and WeasyPrint-safe). `app/survey/charts.py::render_innovation_curve_svg`
+  draws 21 equal-width bars (one per score point, 0–20) with heights following a
+  symmetric Gaussian envelope so the silhouette reads as a bell curve, Innovators
+  leftmost through Laggards rightmost (matching Rogers' classic diffusion diagram), the
+  respondent's exact score highlighted at full colour and full opacity — every other bar
+  keeps the same bold band colour but renders at reduced `fill-opacity`
+  (`UNHIGHLIGHTED_BAR_OPACITY`) rather than being desaturated. Five band names render as
+  section labels along the bottom; the `aria-label` always names the score and band,
+  never colour alone. `_innovation_context` (`app/survey/routes.py`) threads the
+  pre-rendered `curve_svg` onto the existing `innovation` context dict, so it reaches the
+  web result page and PDF via the shared `_result_innovation.html` partial (inserted
+  under the `<h2>`, above the existing swatch/name text) — email is unaffected, matching
+  #0002's established web+PDF-only precedent for that partial. `tests/test_sharing.py`
+  (+6) covers bar count, highlight opacity, the `None`-score and empty-bands edge cases,
+  and the band-name labels — 375 tests total
+- Feature: edge points on triangle questions (backlog #0010) — the 3 `type: triangle`
+  questions (`need_most`, `have_enough`, `support_type`) gain 3 tappable edge midpoint
+  nodes alongside the existing 3 corners, so a respondent can pick a point *between* two
+  corners. An edge pick is positional (no new authored options) and encodes as an
+  `"i,j"` ascending-index pair submitted from the form, exactly like the `grid` widget's
+  `"x,y"` cells (`app/survey/routes.py::_read_answer`, new `triangle` branch). In the
+  Now/Next results copy, an edge pick resolves to both flanking corners'
+  `statement_phrase`s joined with "and" (e.g. "capacity and knowledge") via the existing
+  list-join branch in `app/survey/persona.py::resolve_now_next`, widened to also match a
+  list-typed triangle answer. `_question_triangle.html` renders the 3 edge nodes with a
+  smaller `.triangle-node--edge` CSS sizing modifier so all 6 nodes fit the triangle
+  widget without overlapping
+- Tests: `tests/test_persona.py` (+2 for edge-pick `resolve_now_next` resolution on
+  `have_enough`/`need_most`), `tests/test_real_survey_e2e.py` (+2 for edge-node
+  rendering and the edge-pick POST/persist round-trip on the real survey),
+  `tests/test_grid_flow.py` (+1 for `_read_answer`'s triangle branch parsing both a
+  corner index and an edge pair) — 343 tests total
+
 ## [v0.1.2] — 2026-07-16
 
 - Fix: production 500 ("no such table: submission") on every survey start, despite
