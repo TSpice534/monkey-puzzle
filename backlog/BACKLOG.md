@@ -14,4 +14,4 @@
 | 0010 | Edge points on triangle questions (between-corner answers) | feature | shipped | 2026-07-16 |
 | 0011 | Innovation-curve visualisation on results page | feature | shipped | 2026-07-16 |
 | 0012 | Clamp innovation-curve score to 15, shrink the curve graphic to match | change | shipped | 2026-07-17 |
-| 0013 | Replace spectrum slider with click-to-select box row | change | todo | 2026-07-24 |
+| 0013 | Replace spectrum slider with click-to-select box row | change | in-progress | 2026-07-24 |
