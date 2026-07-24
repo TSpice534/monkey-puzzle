@@ -504,6 +504,17 @@ def _multi_exact_question(qid='q_multi_exact', choose_exactly=2):
     }
 
 
+def _multi_range_question(qid='q_multi_range', choose_min=1, choose_max=3):
+    return {
+        'id': qid,
+        'type': 'multi_range',
+        'choose_min': choose_min,
+        'choose_max': choose_max,
+        'prompt': 'Pick between one and three',
+        'options': [{'label': 'Item 1'}, {'label': 'Item 2'}, {'label': 'Item 3'}, {'label': 'Item 4'}],
+    }
+
+
 def test_valid_grid_question_loads(tmp_path):
     data = _base_config()
     data['questions'].append(_grid_question())
@@ -622,6 +633,134 @@ def test_multi_exact_out_of_range_choose_exactly_raises(tmp_path):
     data['questions'].append(q)
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_valid_loads(tmp_path):
+    data = _base_config()
+    data['questions'].append(_multi_range_question())
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_multi_range')
+    assert q['choose_min'] == 1
+    assert q['choose_max'] == 3
+    assert [opt['index'] for opt in q['options']] == [0, 1, 2, 3]
+
+
+def test_multi_range_missing_choose_min_raises(tmp_path):
+    data = _base_config()
+    q = _multi_range_question()
+    del q['choose_min']
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_missing_choose_max_raises(tmp_path):
+    data = _base_config()
+    q = _multi_range_question()
+    del q['choose_max']
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_non_int_choose_min_raises(tmp_path):
+    data = _base_config()
+    q = _multi_range_question(choose_min='two')
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_non_int_choose_max_raises(tmp_path):
+    data = _base_config()
+    q = _multi_range_question(choose_max='two')
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_boolean_choose_min_raises(tmp_path):
+    """bool is a subclass of int — guard against `choose_min: true`."""
+    data = _base_config()
+    q = _multi_range_question(choose_min=True)
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_boolean_choose_max_raises(tmp_path):
+    """bool is a subclass of int — guard against `choose_max: true`."""
+    data = _base_config()
+    q = _multi_range_question(choose_max=True)
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_reversed_min_max_raises(tmp_path):
+    data = _base_config()
+    q = _multi_range_question(choose_min=3, choose_max=1)
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_choose_max_out_of_range_raises(tmp_path):
+    data = _base_config()
+    q = _multi_range_question(choose_max=5)  # only 4 options
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_choose_min_zero_raises(tmp_path):
+    data = _base_config()
+    q = _multi_range_question(choose_min=0)
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_choose_min_equals_choose_max_loads(tmp_path):
+    """choose_min == choose_max is a valid boundary (behaves like an exact
+    count, but expressed via multi_range rather than multi_exact)."""
+    data = _base_config()
+    q = _multi_range_question(choose_min=2, choose_max=2)
+    data['questions'].append(q)
+    config = load_survey(_write_yaml(tmp_path, data))
+    loaded = next(q for q in config['questions'] if q['id'] == 'q_multi_range')
+    assert loaded['choose_min'] == 2
+    assert loaded['choose_max'] == 2
+
+
+def test_multi_range_choose_max_equals_option_count_loads(tmp_path):
+    """choose_max == len(options) is the other valid boundary (upper edge of
+    `choose_max <= len(options)`, distinct from the out-of-range case above)."""
+    data = _base_config()
+    q = _multi_range_question(choose_max=4)  # exactly 4 options
+    data['questions'].append(q)
+    config = load_survey(_write_yaml(tmp_path, data))
+    loaded = next(q for q in config['questions'] if q['id'] == 'q_multi_range')
+    assert loaded['choose_max'] == 4
+
+
+def test_multi_range_empty_instructions_raises(tmp_path):
+    data = _base_config()
+    q = _multi_range_question()
+    q['instructions'] = ''
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_multi_range_valid_instructions_loads(tmp_path):
+    data = _base_config()
+    q = _multi_range_question()
+    q['instructions'] = 'Choose up to 3 options.'
+    data['questions'].append(q)
+    config = load_survey(_write_yaml(tmp_path, data))
+    loaded = next(q for q in config['questions'] if q['id'] == 'q_multi_range')
+    assert loaded['instructions'] == 'Choose up to 3 options.'
 
 
 def test_triangle_valid_three_option_loads(tmp_path):

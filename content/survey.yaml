@@ -311,10 +311,12 @@ questions:
       - { x: 2, y: 0, persona: activist }
 
   - id: topics
-    type: multi_exact
-    choose_exactly: 3
+    type: multi_range
+    choose_min: 1
+    choose_max: 3
     output: now
-    prompt: "What three topics do you like to focus on the most?"
+    prompt: "Which topics do you like to focus on the most?"
+    instructions: "Choose up to 3 options."
     options:
       - { label: "Water" }
       - { label: "Food & Drinks" }
@@ -368,10 +370,10 @@ scoring:
 # deploy; defaults chosen to sit alongside `--brand-primary` (#2e7d32).
 innovation_curve:
   persona_modifiers:
-    cooperator: 2
-    connector: 1
+    cooperator: 3
+    connector: 3
     activist: 4
-    advocate: 2
+    advocate: 3
     entrepreneur: 2
     communicator: 1
     developer: 4

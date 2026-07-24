@@ -7,10 +7,10 @@ the YAML must conform to — it never hardcodes survey content.
 import yaml
 from flask import current_app
 
-_VALID_TYPES = {'spectrum', 'single', 'multi', 'short_text', 'triangle', 'multi_exact', 'grid'}
+_VALID_TYPES = {'spectrum', 'single', 'multi', 'short_text', 'triangle', 'multi_exact', 'multi_range', 'grid'}
 _VALID_AUDIENCES = {'individual', 'organisation'}
 _VALID_OUTPUTS = {'innovation_curve', 'now', 'next', 'profile_direct'}
-_TYPES_WITH_OPTIONS = {'spectrum', 'single', 'multi', 'triangle', 'multi_exact'}
+_TYPES_WITH_OPTIONS = {'spectrum', 'single', 'multi', 'triangle', 'multi_exact', 'multi_range'}
 
 _cache = {}
 
@@ -212,6 +212,25 @@ def _validate_questions(raw):
                 raise SurveyConfigError(
                     f"question '{qid}' is type multi_exact and must have an integer 'choose_exactly' "
                     f'between 1 and the number of options'
+                )
+
+        if qtype == 'multi_range':
+            choose_min = q.get('choose_min')
+            choose_max = q.get('choose_max')
+            if (
+                not isinstance(choose_min, int) or isinstance(choose_min, bool)
+                or not isinstance(choose_max, int) or isinstance(choose_max, bool)
+                or not (1 <= choose_min <= choose_max <= len(options))
+            ):
+                raise SurveyConfigError(
+                    f"question '{qid}' is type multi_range and must have integer 'choose_min'/'choose_max' "
+                    'with 1 <= choose_min <= choose_max <= number of options'
+                )
+            instructions = q.get('instructions')
+            if instructions is not None and (not isinstance(instructions, str) or not instructions):
+                raise SurveyConfigError(
+                    f"question '{qid}' is type multi_range and 'instructions', if present, "
+                    'must be a non-empty string'
                 )
 
         router_audience_values = set()

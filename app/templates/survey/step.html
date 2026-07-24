@@ -12,7 +12,7 @@
         {% include "survey/_question_single.html" %}
       {% elif question.type == 'triangle' %}
         {% include "survey/_question_triangle.html" %}
-      {% elif question.type in ['multi', 'multi_exact'] %}
+      {% elif question.type in ['multi', 'multi_exact', 'multi_range'] %}
         {% include "survey/_question_multi.html" %}
       {% elif question.type == 'spectrum' %}
         {% include "survey/_question_spectrum.html" %}
@@ -35,24 +35,4 @@
     </div>
   </form>
 </div>
-{% endblock %}
-
-{% block scripts %}
-  {{ super() }}
-  <script nonce="{{ csp_nonce }}">
-    // Live label for the spectrum slider — the one bit of interactivity on
-    // this page. Progressive enhancement only: the native <input type=range>
-    // still submits its value with JS disabled.
-    document.querySelectorAll('input[type="range"][data-labels]').forEach(function (input) {
-      var labels = JSON.parse(input.dataset.labels);
-      var labelEl = document.getElementById(input.name + '_current_label');
-      function update() {
-        if (labelEl) {
-          labelEl.textContent = labels[Number(input.value)] || '';
-        }
-      }
-      input.addEventListener('input', update);
-      update();
-    });
-  </script>
 {% endblock %}

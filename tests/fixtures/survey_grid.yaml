@@ -110,6 +110,18 @@ questions:
       - { x: 1, y: 0, persona: communicator }
       - { x: 2, y: 0, persona: activist }
 
+  - id: q_multi_range
+    type: multi_range
+    choose_min: 1
+    choose_max: 3
+    prompt: "Pick between one and three"
+    instructions: "Choose up to 3 options."
+    options:
+      - { label: "Item 1" }
+      - { label: "Item 2" }
+      - { label: "Item 3" }
+      - { label: "Item 4" }
+
 scoring:
   method: persona_vector
   tie_break:
