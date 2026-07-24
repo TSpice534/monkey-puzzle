@@ -6,6 +6,21 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Feature: spectrum box-row selector (backlog #0013) — the `type: spectrum` widget
+  (`motivation`/`ambition`/`space_to_progress`) is now a horizontal row of clickable
+  boxes instead of a native `<input type=range>` slider: one full box per labelled
+  option, plus a small "mix" dot per `unlabelled` between-option (e.g. `motivation`'s
+  indices 1 and 3), positioned between its two labelled neighbours — mirroring the
+  triangle widget's corner/edge-node pattern (native radios + `:checked`-sibling CSS,
+  no JS). `_question_spectrum.html` is a full rewrite; the mix box's visible text is
+  empty, with a `visually-hidden` span naming both flanking options for screen readers.
+  `theme.css`'s `.spectrum-widget .form-range` rule is replaced with
+  `.spectrum-node`/`.spectrum-node--mix` styles cribbed from `.option-card` and
+  `.triangle-node`/`--edge`. `step.html`'s `{% block scripts %}` override (the live-label
+  JS that drove the old slider) is removed entirely — this was the last inline script on
+  the step page. No backend, scoring, data-model, or `content/survey.yaml` change: a
+  spectrum answer is still a single option index, same as `single`
+
 ## [v0.1.3] — 2026-07-20
 
 - Fix: innovation-curve score cap (backlog #0012) — the Innovators band is a single point

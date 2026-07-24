@@ -30,8 +30,58 @@
   outline-offset: 2px;
 }
 
-.spectrum-widget .form-range {
-  accent-color: var(--brand-primary);
+/* Spectrum selector (`type: spectrum`, backlog #0013) — a horizontal row of clickable
+   boxes: one full box per labelled option plus a small "mix" box per unlabelled
+   between-option. Native radios + :checked-sibling CSS, no JS — same pattern as
+   .option-card / .triangle-node. */
+.spectrum-widget {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.spectrum-node {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  min-height: 4.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+/* Small "mix" box — a blend of the two options either side. Rendered as a small dot
+   (its flanking-option label is visually-hidden but read by screen readers), secondary
+   to the full option boxes. Mirrors .triangle-node--edge. */
+.spectrum-node--mix {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 0.85rem;
+  min-height: 0;
+  height: 0.85rem;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.spectrum-node:hover {
+  border-color: var(--brand-primary);
+}
+
+.spectrum-node-input:checked + .spectrum-node {
+  border-color: var(--brand-primary);
+  background-color: rgba(46, 125, 50, 0.08);
+  font-weight: 600;
+}
+
+.spectrum-node-input:focus-visible + .spectrum-node {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
 /* Persona grid (question 8, `profile_grid`) — question-time (blank cells,
