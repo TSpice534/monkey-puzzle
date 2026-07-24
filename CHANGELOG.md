@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.2.0] — 2026-07-24
+
 - Feature: topics question (Q9) — choose up to 3, not exactly 3 (backlog #0014) —
   `topics` changes from `type: multi_exact` (`choose_exactly: 3`) to a new
   `type: multi_range` (`choose_min: 1`, `choose_max: 3`), so respondents can select
