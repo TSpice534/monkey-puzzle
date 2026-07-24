@@ -2,7 +2,7 @@
 content/survey.yaml (not a small fixture) — walks the full 11-step flow via
 the Flask test client, exactly as a browser would, and checks the specific
 risk areas flagged for this change: the grid's mandatory block-advance
-behaviour, `multi_exact` exact-count validation, audience-aware wording
+behaviour, `multi_range` choose-a-range validation (backlog #0014), audience-aware wording
 (including before the router is answered), and that the existing
 radar/fingerprint chart plus the PDF/share/email routes still work against
 the new 11-question content shape.
@@ -210,7 +210,7 @@ def test_grid_step_get_after_failed_advance_still_shows_step_eight(client):
 
 
 # ---------------------------------------------------------------------------
-# multi_exact — exact-count validation (step 9, `topics`, choose_exactly: 3)
+# multi_range — choose-up-to-3 validation (step 9, `topics`, backlog #0014)
 # ---------------------------------------------------------------------------
 
 def test_topics_wrong_count_rerenders_without_advancing(client, db):
@@ -218,10 +218,10 @@ def test_topics_wrong_count_rerenders_without_advancing(client, db):
     _answer_up_to_grid(client, token, INDIVIDUAL)
     client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
 
-    response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1']})  # only 2, needs 3
+    response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': []})  # 0, needs 1-3
 
     assert response.status_code == 200
-    assert b'Please select exactly 3 options.' in response.data
+    assert b'Please select between 1 and 3 options.' in response.data
 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert 'topics' not in submission.answers
@@ -232,13 +232,13 @@ def test_topics_too_many_also_rerenders_without_advancing(client, db):
     _answer_up_to_grid(client, token, INDIVIDUAL)
     client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
 
-    response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2', '3']})  # 4, needs 3
+    response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2', '3']})  # 4, needs 1-3
 
     assert response.status_code == 200
-    assert b'Please select exactly 3 options.' in response.data
+    assert b'Please select between 1 and 3 options.' in response.data
 
 
-def test_topics_exact_count_advances_and_persists(client, db):
+def test_topics_valid_count_advances_and_persists(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
     client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
@@ -250,6 +250,34 @@ def test_topics_exact_count_advances_and_persists(client, db):
 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert sorted(submission.answers['topics']) == [2, 4, 7]
+
+
+def test_topics_single_selection_advances_and_persists(client, db):
+    token = _start_new(client)
+    _answer_up_to_grid(client, token, INDIVIDUAL)
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+
+    response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['3']})
+
+    assert response.status_code == 302
+    assert response.headers['Location'].endswith(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}')
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert sorted(submission.answers['topics']) == [3]
+
+
+def test_topics_two_selections_advance_and_persist(client, db):
+    token = _start_new(client)
+    _answer_up_to_grid(client, token, INDIVIDUAL)
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+
+    response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['1', '5']})
+
+    assert response.status_code == 302
+    assert response.headers['Location'].endswith(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}')
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert sorted(submission.answers['topics']) == [1, 5]
 
 
 # ---------------------------------------------------------------------------

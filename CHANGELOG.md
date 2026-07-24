@@ -6,6 +6,16 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Feature: topics question (Q9) — choose up to 3, not exactly 3 (backlog #0014) —
+  `topics` changes from `type: multi_exact` (`choose_exactly: 3`) to a new
+  `type: multi_range` (`choose_min: 1`, `choose_max: 3`), so respondents can select
+  between 1 and 3 topics instead of exactly 3. Reworded the prompt (drops "three") and
+  added a data-driven optional `instructions` string field ("Choose up to 3 options."),
+  rendered above the option cards in `_question_multi.html` (mirroring `grid`'s
+  instruction-line pattern). `multi_range` behaves like `multi`/`multi_exact` everywhere
+  a list-of-indices answer is consumed — loader validation, the route's block-advance
+  guard (flash: "Please select between {min} and {max} options."), scoring, and the
+  Now/Next narrative. `multi_exact` and its `choose_exactly` field are unchanged
 - Feature: spectrum box-row selector (backlog #0013) — the `type: spectrum` widget
   (`motivation`/`ambition`/`space_to_progress`) is now a horizontal row of clickable
   boxes instead of a native `<input type=range>` slider: one full box per labelled

@@ -1,8 +1,14 @@
 {% from "survey/_macros.html" import option_label %}
 {% set selected = saved_value or [] %}
 {# Native checkboxes styled as tappable cards; selected state via :checked + sibling CSS.
-   Also used for `multi_exact` — same shape, the exact-count requirement is
-   enforced by the route (see step()'s block-advance guard). #}
+   Also used for `multi_exact` and `multi_range` — same shape, the count
+   requirement (exact or min/max range) is enforced by the route (see
+   step()'s block-advance guard). `multi_range`'s optional `instructions`
+   string and its choose_min/choose_max range are data-driven from
+   survey.yaml, same as grid's per-audience instructions. #}
+{% if question.instructions %}
+<p class="text-muted small mb-2">{{ question.instructions }}</p>
+{% endif %}
 <div class="row g-3" role="group" aria-label="{{ question.prompt }}">
   {% for option in question.options %}
   <div class="col-12 col-sm-6">
