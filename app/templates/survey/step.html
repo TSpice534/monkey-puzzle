@@ -12,7 +12,7 @@
         {% include "survey/_question_single.html" %}
       {% elif question.type == 'triangle' %}
         {% include "survey/_question_triangle.html" %}
-      {% elif question.type in ['multi', 'multi_exact'] %}
+      {% elif question.type in ['multi', 'multi_exact', 'multi_range'] %}
         {% include "survey/_question_multi.html" %}
       {% elif question.type == 'spectrum' %}
         {% include "survey/_question_spectrum.html" %}

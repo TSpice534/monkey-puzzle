@@ -33,7 +33,7 @@ def score_submission(answers: dict, config: dict) -> dict:
         options = question.get('options', [])
         options_by_index = {opt['index']: opt for opt in options}
 
-        if question['type'] in ('multi', 'multi_exact'):
+        if question['type'] in ('multi', 'multi_exact', 'multi_range'):
             indices = value if isinstance(value, list) else []
         else:
             indices = [value] if isinstance(value, int) else []
@@ -187,7 +187,7 @@ def resolve_now_next(answers: dict, config: dict, audience: str | None) -> dict 
         options = question.get('options', [])
         options_by_index = {opt['index']: opt for opt in options}
 
-        if question['type'] in ('multi', 'multi_exact') or (
+        if question['type'] in ('multi', 'multi_exact', 'multi_range') or (
             question['type'] == 'triangle' and isinstance(answer, list)
         ):
             if not isinstance(answer, list):

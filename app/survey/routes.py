@@ -36,7 +36,7 @@ def _read_answer(question, form):
     qid = question['id']
     qtype = question['type']
 
-    if qtype in ('multi', 'multi_exact'):
+    if qtype in ('multi', 'multi_exact', 'multi_range'):
         indices = []
         for raw in form.getlist(qid):
             try:
@@ -133,6 +133,18 @@ def step(token, step):
             n = question['choose_exactly']
             if not (isinstance(value, list) and len(value) == n):
                 flash(f'Please select exactly {n} option{"s" if n != 1 else ""}.', 'danger')
+                return render_template(
+                    'survey/step.html', title='The Monkey Puzzle',
+                    question=question, saved_value=value, step=step,
+                    total=total, token=token, audience=submission.audience,
+                )
+
+        # multi_range: count must be within [choose_min, choose_max]
+        if question['type'] == 'multi_range':
+            lo = question['choose_min']
+            hi = question['choose_max']
+            if not (isinstance(value, list) and lo <= len(value) <= hi):
+                flash(f'Please select between {lo} and {hi} options.', 'danger')
                 return render_template(
                     'survey/step.html', title='The Monkey Puzzle',
                     question=question, saved_value=value, step=step,
