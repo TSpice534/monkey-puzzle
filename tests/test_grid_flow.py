@@ -48,6 +48,19 @@ def _answer_up_to_multi_range(client, token, audience=INDIVIDUAL, worded_index=0
     client.post(f'/survey/{token}/step/5', data={'profile_grid': '1,1'})
 
 
+def _input_tag(body, input_id):
+    """The full `<input ...>` tag whose `id="{input_id}"` attribute matches
+    exactly (no accidental prefix match, e.g. `q_multi_range_0` vs
+    `q_multi_range_0_extra`) — mirrors the helper of the same name in
+    test_real_survey_e2e.py, used here to check a checkbox's `checked` state
+    in isolation from its siblings."""
+    marker = f'id="{input_id}"'
+    marker_start = body.index(marker)
+    tag_start = body.rindex('<input', 0, marker_start)
+    tag_end = body.index('>', marker_start)
+    return body[tag_start:tag_end]
+
+
 # ---------------------------------------------------------------------------
 # Grid — persistence and grid-direct classification
 # ---------------------------------------------------------------------------
@@ -185,6 +198,23 @@ def test_multi_range_step_renders_instructions_line(client):
 
     assert response.status_code == 200
     assert b'Choose up to 3 options.' in response.data
+
+
+def test_multi_range_too_many_rerender_keeps_the_partial_selection_checked(client):
+    """Edge case named explicitly in the spec: on a failed submit,
+    `saved_value` round-trips into the rerender so the respondent doesn't
+    lose their partial selection — same mechanism as `multi_exact`."""
+    token = _start_new(client)
+    _answer_up_to_multi_range(client, token)
+    response = client.post(
+        f'/survey/{token}/step/6',
+        data={'q_multi_range': ['0', '1', '2', '3']},  # 4 selections, over choose_max
+    )
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    for checked_id in ('q_multi_range_0', 'q_multi_range_1', 'q_multi_range_2', 'q_multi_range_3'):
+        assert 'checked' in _input_tag(body, checked_id)
 
 
 # ---------------------------------------------------------------------------

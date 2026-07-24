@@ -721,6 +721,29 @@ def test_multi_range_choose_min_zero_raises(tmp_path):
         load_survey(_write_yaml(tmp_path, data))
 
 
+def test_multi_range_choose_min_equals_choose_max_loads(tmp_path):
+    """choose_min == choose_max is a valid boundary (behaves like an exact
+    count, but expressed via multi_range rather than multi_exact)."""
+    data = _base_config()
+    q = _multi_range_question(choose_min=2, choose_max=2)
+    data['questions'].append(q)
+    config = load_survey(_write_yaml(tmp_path, data))
+    loaded = next(q for q in config['questions'] if q['id'] == 'q_multi_range')
+    assert loaded['choose_min'] == 2
+    assert loaded['choose_max'] == 2
+
+
+def test_multi_range_choose_max_equals_option_count_loads(tmp_path):
+    """choose_max == len(options) is the other valid boundary (upper edge of
+    `choose_max <= len(options)`, distinct from the out-of-range case above)."""
+    data = _base_config()
+    q = _multi_range_question(choose_max=4)  # exactly 4 options
+    data['questions'].append(q)
+    config = load_survey(_write_yaml(tmp_path, data))
+    loaded = next(q for q in config['questions'] if q['id'] == 'q_multi_range')
+    assert loaded['choose_max'] == 4
+
+
 def test_multi_range_empty_instructions_raises(tmp_path):
     data = _base_config()
     q = _multi_range_question()
