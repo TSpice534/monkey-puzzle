@@ -2,7 +2,7 @@
 id: 0014
 title: Topics question (Q9) — allow choosing up to 3, not exactly 3
 type: change
-status: in-progress
+status: shipped
 created: 2026-07-24
 branch: feature/topics-question-choose-up-to-3
 ---
