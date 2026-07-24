@@ -7,8 +7,8 @@ route returns 200" / "the template string contains X":
 
   - the innovation card's exact position in the rendered result.html HTML
     (directly below the grid card, before the share/save card);
-  - the two unlabelled `motivation` slider stops: rendered blank AND still
-    selectable AND contributing the correct score to the total;
+  - the two unlabelled `motivation` spectrum box-row stops: rendered blank
+    AND still selectable AND contributing the correct score to the total;
   - WeasyPrint's actual PDF *bytes* (decompressed content stream) contain the
     band colour as a real fill operator, not just that the HTML fed to
     WeasyPrint mentions the colour string;
@@ -124,8 +124,8 @@ def test_happy_path_innovation_band_persisted_and_card_positioned_between_grid_a
 
 
 # ---------------------------------------------------------------------------
-# Edge case — the two unlabelled `motivation` slider stops: blank in the
-# rendered HTML, still selectable, and contribute their real score.
+# Edge case — the two unlabelled `motivation` spectrum box-row stops: blank
+# in the rendered HTML, still selectable, and contribute their real score.
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize('index, expected_contribution', [(1, 2), (3, 4)])
