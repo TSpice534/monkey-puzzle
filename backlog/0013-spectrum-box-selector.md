@@ -2,7 +2,7 @@
 id: 0013
 title: Replace spectrum slider with click-to-select box row
 type: change
-status: in-progress
+status: shipped
 created: 2026-07-24
 branch: feature/spectrum-box-selector
 ---
