@@ -617,6 +617,35 @@ def test_profile_matrix_empty_sentence_stem_raises(tmp_path):
         load_survey(_write_yaml(tmp_path, data))
 
 
+def test_profile_matrix_sentence_stem_organisation_absent_is_valid(tmp_path):
+    """backlog #0019: sentence_stem_organisation is optional -- every
+    existing profile_matrix fixture that omits it (as `_profile_matrix_construct`
+    does) must still load."""
+    config = load_survey(_write_yaml(tmp_path, _config_with_profile_matrix()))
+    assert config['profile_matrix'].get('sentence_stem_organisation') is None
+
+
+def test_profile_matrix_non_string_sentence_stem_organisation_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['sentence_stem_organisation'] = 123
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_empty_sentence_stem_organisation_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['sentence_stem_organisation'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_valid_sentence_stem_organisation_loads(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['sentence_stem_organisation'] = 'We want to'
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['profile_matrix']['sentence_stem_organisation'] == 'We want to'
+
+
 def test_profile_matrix_scope_question_not_immediately_after_approach_raises(tmp_path):
     """The combined survey step (loader.survey_steps) depends on
     scope_question following approach_question directly in `questions`."""
@@ -1052,6 +1081,40 @@ def test_valid_label_organisation_loads(tmp_path):
     config = load_survey(_write_yaml(tmp_path, data))
     q = next(q for q in config['questions'] if q['id'] == 'q_single')
     assert q['options'][0]['label_organisation'] == 'We prefer this wording'
+
+
+# ---------------------------------------------------------------------------
+# Question-level 'prompt_organisation' field (backlog #0019 — org-register
+# prompt variant). Optional non-empty string, mirroring the label_organisation
+# checks above.
+# ---------------------------------------------------------------------------
+
+def test_absent_prompt_organisation_is_valid(tmp_path):
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert q.get('prompt_organisation') is None
+
+
+def test_non_string_prompt_organisation_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['prompt_organisation'] = 123
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_empty_prompt_organisation_raises(tmp_path):
+    data = _base_config()
+    data['questions'][0]['prompt_organisation'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_valid_prompt_organisation_loads(tmp_path):
+    data = _base_config()
+    data['questions'][0]['prompt_organisation'] = 'Pick one (organisation wording)'
+    config = load_survey(_write_yaml(tmp_path, data))
+    q = next(q for q in config['questions'] if q['id'] == 'q_single')
+    assert q['prompt_organisation'] == 'Pick one (organisation wording)'
 
 
 # ---------------------------------------------------------------------------

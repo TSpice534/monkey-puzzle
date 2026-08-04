@@ -392,6 +392,105 @@ def test_target_groups_single_choice_wording_switches_by_audience(client):
     assert 'We want to engage our audience' not in ind_body
 
 
+def test_profile_step_sentence_stem_switches_by_audience(client):
+    """backlog #0019: the combined profile step's live sentence (both the
+    visible text and the `data-stem` attribute the JS reads) uses
+    `profile_matrix.sentence_stem_organisation` ("We want to") on the
+    organisation track and falls back to `sentence_stem` ("I want to") on
+    the individual track."""
+    token_org = _start_new(client)
+    client.post(f'/survey/{token_org}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(ORGANISATION)})
+    org_body = client.get(f'/survey/{token_org}/step/{STEP_PROFILE}').get_data(as_text=True)
+    assert 'data-stem="We want to"' in org_body
+    assert 'We want to...' in org_body
+    assert 'data-stem="I want to"' not in org_body
+    assert 'I want to...' not in org_body
+
+    token_ind = _start_new(client)
+    client.post(f'/survey/{token_ind}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    ind_body = client.get(f'/survey/{token_ind}/step/{STEP_PROFILE}').get_data(as_text=True)
+    assert 'data-stem="I want to"' in ind_body
+    assert 'I want to...' in ind_body
+    assert 'data-stem="We want to"' not in ind_body
+    assert 'We want to...' not in ind_body
+
+
+def test_profile_step_sentence_stem_defaults_to_individual_before_routing(client):
+    """Navigating straight to step 7 without having POSTed the router yet --
+    audience is still None. Per spec this must fall back to the individual
+    (`sentence_stem`) wording, not crash and not show organisation wording."""
+    token = _start_new(client)
+    body = client.get(f'/survey/{token}/step/{STEP_PROFILE}').get_data(as_text=True)
+    assert 'data-stem="I want to"' in body
+    assert 'data-stem="We want to"' not in body
+
+
+def test_profile_approach_radiogroup_aria_label_switches_by_audience(client):
+    """backlog #0019 Change 7: the `profile_approach` radiogroup's aria-label
+    (built via `question_prompt`) reads the org-register `prompt_organisation`
+    on the organisation track and the default individual `prompt` on the
+    individual track. The `profile_scope` radiogroup's aria-label is
+    register-neutral (`profile_scope` has no `prompt_organisation`) and must
+    be identical on both tracks."""
+    org_aria = 'aria-label="Complete the following sentence: &#34;We want to...&#34;"'
+    ind_aria = 'aria-label="Complete the following sentence: &#34;I want to...&#34;"'
+    scope_aria = 'aria-label="Where do you want to focus?"'
+
+    token_org = _start_new(client)
+    client.post(f'/survey/{token_org}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(ORGANISATION)})
+    org_body = client.get(f'/survey/{token_org}/step/{STEP_PROFILE}').get_data(as_text=True)
+    assert org_aria in org_body
+    assert ind_aria not in org_body
+    assert scope_aria in org_body
+
+    token_ind = _start_new(client)
+    client.post(f'/survey/{token_ind}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    ind_body = client.get(f'/survey/{token_ind}/step/{STEP_PROFILE}').get_data(as_text=True)
+    assert ind_aria in ind_body
+    assert org_aria not in ind_body
+    assert scope_aria in ind_body
+
+
+def test_profile_matrix_shared_legend_unchanged_by_audience(client):
+    """`profile_matrix.prompt` ("Finish the following sentence...") is
+    deliberately register-neutral (no `prompt_organisation` variant) --
+    confirm the shared step legend is identical on both tracks."""
+    legend = 'Finish the following sentence...'
+
+    token_org = _start_new(client)
+    client.post(f'/survey/{token_org}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(ORGANISATION)})
+    org_body = client.get(f'/survey/{token_org}/step/{STEP_PROFILE}').get_data(as_text=True)
+    assert legend in org_body
+
+    token_ind = _start_new(client)
+    client.post(f'/survey/{token_ind}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    ind_body = client.get(f'/survey/{token_ind}/step/{STEP_PROFILE}').get_data(as_text=True)
+    assert legend in ind_body
+
+
+def test_ordinary_single_question_prompt_unaffected_by_prompt_organisation_change(client):
+    """backlog #0019 only adds `prompt_organisation` to `profile_approach` --
+    spot-check an ordinary single question (`motivation`, a spectrum, has no
+    `prompt_organisation`) still falls back to its default `prompt` on both
+    tracks, unchanged from before the change."""
+    token_org = _start_new(client)
+    client.post(f'/survey/{token_org}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(ORGANISATION)})
+    org_body = client.get(f'/survey/{token_org}/step/{STEP_MOTIVATION}').get_data(as_text=True)
+
+    token_ind = _start_new(client)
+    client.post(f'/survey/{token_ind}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
+    ind_body = client.get(f'/survey/{token_ind}/step/{STEP_MOTIVATION}').get_data(as_text=True)
+
+    # motivation has no prompt_organisation -- the <legend> question_prompt()
+    # call falls back to `question.prompt` on both tracks (only option-level
+    # label_organisation wording differs, covered by the pre-existing test
+    # above).
+    legend_marker = '<legend class="h4 mb-3">'
+    org_legend = org_body[org_body.index(legend_marker):org_body.index('</legend>', org_body.index(legend_marker))]
+    ind_legend = ind_body[ind_body.index(legend_marker):ind_body.index('</legend>', ind_body.index(legend_marker))]
+    assert org_legend == ind_legend
+
+
 # ---------------------------------------------------------------------------
 # motivation — a 5-box spectrum row with 2 unlabelled "mix" boxes between
 # stops (backlog #0002, box-row markup per backlog #0013)
