@@ -19,12 +19,12 @@ personas:
     name: "The Implementer"
     tagline: "Tagline"
     description: "Description"
-  developer:
-    name: "The Developer"
+  inventor:
+    name: "The Inventor"
     tagline: "Tagline"
     description: "Description"
-  advocate:
-    name: "The Advocate"
+  architect:
+    name: "The Architect"
     tagline: "Tagline"
     description: "Description"
   communicator:
@@ -100,8 +100,8 @@ questions:
         - "Implement existing solutions"
         - "Develop new ideas and ways to progress"
     cells:
-      - { x: 0, y: 2, persona: developer }
-      - { x: 1, y: 2, persona: advocate }
+      - { x: 0, y: 2, persona: inventor }
+      - { x: 1, y: 2, persona: architect }
       - { x: 2, y: 2, persona: cooperator }
       - { x: 0, y: 1, persona: implementer }
       - { x: 1, y: 1, persona: entrepreneur }
@@ -127,8 +127,8 @@ scoring:
   tie_break:
     - accountant
     - implementer
-    - developer
-    - advocate
+    - inventor
+    - architect
     - communicator
     - activist
     - connector

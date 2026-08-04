@@ -19,15 +19,15 @@ REAL_SURVEY_PATH = os.path.join(REPO_ROOT, 'content', 'survey.yaml')
 MIN_FIXTURE_PATH = os.path.join(REPO_ROOT, 'tests', 'fixtures', 'survey_min.yaml')
 
 PERSONA_IDS = [
-    'accountant', 'implementer', 'developer', 'advocate', 'communicator',
+    'accountant', 'implementer', 'inventor', 'architect', 'communicator',
     'activist', 'connector', 'cooperator', 'entrepreneur',
 ]
 
 # The confirmed profile_grid cell -> persona mapping (content/survey.yaml,
 # question `profile_grid`) — see the spec's grid table.
 GRID_CELLS = [
-    (0, 2, 'developer'),
-    (1, 2, 'advocate'),
+    (0, 2, 'inventor'),
+    (1, 2, 'architect'),
     (2, 2, 'cooperator'),
     (0, 1, 'implementer'),
     (1, 1, 'entrepreneur'),
@@ -121,7 +121,7 @@ def test_score_submission_initialises_all_nine_personas_to_zero(weighted_config)
 
 def test_score_submission_sums_weights_for_single_answer(weighted_config):
     scores = score_submission({'q_single': 0}, weighted_config)  # "Option A"
-    assert scores['developer'] == 2
+    assert scores['inventor'] == 2
 
 
 def test_score_submission_sums_weights_for_multi_answer(weighted_config):
@@ -191,7 +191,7 @@ def test_classify_tie_break_is_deterministic_across_calls(weighted_config):
 
 def test_classify_returns_full_nine_dim_vector(weighted_config):
     scores = {pid: 0.0 for pid in PERSONA_IDS}
-    scores['developer'] = 3.0
+    scores['inventor'] = 3.0
     result = classify(scores, weighted_config)
     assert set(result.scores.keys()) == set(PERSONA_IDS)
 
@@ -214,8 +214,8 @@ def _negative_weight_config():
                 'options': [
                     {
                         'index': 0,
-                        'label': 'Boosts developer, penalises accountant',
-                        'weights': {'developer': 2, 'accountant': -3},
+                        'label': 'Boosts inventor, penalises accountant',
+                        'weights': {'inventor': 2, 'accountant': -3},
                     },
                     {
                         'index': 1,
@@ -237,17 +237,17 @@ def _negative_weight_config():
 def test_score_submission_applies_negative_weights():
     config = _negative_weight_config()
     scores = score_submission({'q1': 0}, config)
-    assert scores['developer'] == 2
+    assert scores['inventor'] == 2
     assert scores['accountant'] == -3
 
 
 def test_classify_lets_a_negative_weight_change_the_winner():
     """accountant starts ahead from an earlier (hypothetical) answer, but a
     negative weight on this question should be able to pull it below
-    developer and flip the winner."""
+    inventor and flip the winner."""
     config = _negative_weight_config()
     result = classify_submission({'q1': 0}, config)
-    assert result.persona_id == 'developer'
+    assert result.persona_id == 'inventor'
     assert result.scores['accountant'] == -3
 
 
@@ -267,12 +267,12 @@ def test_resolve_innovation_curve_low_scores_and_entrepreneur_modifier_gives_lat
     assert result.band == 'Late Majority'
 
 
-def test_resolve_innovation_curve_high_scores_and_developer_modifier_gives_innovators(config):
+def test_resolve_innovation_curve_high_scores_and_inventor_modifier_gives_innovators(config):
     # motivation=4 (5), ambition=2 (5), space_to_progress=2 (5) -> sum 15;
-    # developer modifier +4 -> total 19, clamped to the config-driven ceiling
+    # inventor modifier +4 -> total 19, clamped to the config-driven ceiling
     # of 15 -> Innovators.
     answers = {'motivation': 4, 'ambition': 2, 'space_to_progress': 2}
-    result = resolve_innovation_curve(answers, config, 'developer')
+    result = resolve_innovation_curve(answers, config, 'inventor')
     assert result.score == 15
     assert result.band == 'Innovators'
 
@@ -284,7 +284,7 @@ def test_resolve_innovation_curve_accountant_gives_a_zero_modifier(config):
 
 
 def test_resolve_innovation_curve_returns_none_when_survey_has_no_innovation_curve(weighted_config):
-    assert resolve_innovation_curve({}, weighted_config, 'developer') is None
+    assert resolve_innovation_curve({}, weighted_config, 'inventor') is None
 
 
 def test_resolve_innovation_curve_missing_answers_contribute_zero(config):

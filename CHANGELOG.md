@@ -22,6 +22,16 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   `app/templates/index.html`'s `<p class="lead">` now describes what the survey captures
   and that results are personalised and shareable, replacing the prior "what it is / how
   many questions" blurb.
+- Change: rename the Developer and Advocate personas to Inventor and Architect (backlog
+  #0018) — a full id-level rename (`developer`→`inventor`, `advocate`→`architect`) across
+  `content/survey.yaml` (persona blocks, relation lists, grid cells, tie-break order,
+  innovation-curve persona modifiers), the two persona icon SVGs under
+  `app/static/icons/` (renamed, no content change), all test fixtures and test files that
+  mirror the real persona set, and the persona-name lists in `README.md`,
+  `docs/INNOVATION-SCORING-TEMPLATE.md`, `docs/PRODUCTION-PLAN.md`, and
+  `docs/PROFILES-TEMPLATE.md` (also fixes that doc's stale relationship-column references
+  to the old names). Taglines, descriptions, grid positions, and tie-break/modifier values
+  are unchanged — a pure token rename.
 
 ## [v0.2.0] — 2026-07-24
 

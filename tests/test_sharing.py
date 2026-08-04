@@ -30,9 +30,9 @@ def _start_new(client):
 
 
 def _complete_survey(client):
-    """Drive the fixture survey to completion, landing on 'developer'."""
+    """Drive the fixture survey to completion, landing on 'inventor'."""
     token = _start_new(client)
-    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})       # developer: 2
+    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})       # inventor: 2
     client.post(f'/survey/{token}/step/2', data={'q_multi': []})
     client.post(f'/survey/{token}/step/3', data={'q_spectrum': '0'})
     client.post(f'/survey/{token}/step/4', data={'q_short_text': ''})
@@ -105,7 +105,7 @@ def test_download_pdf_content_disposition_names_the_persona(client):
     response = client.get(f'/survey/{token}/pdf')
     disposition = response.headers['Content-Disposition']
     assert 'attachment' in disposition
-    assert 'Developer' in disposition
+    assert 'Inventor' in disposition
 
 
 def test_download_pdf_404_before_completion(client):

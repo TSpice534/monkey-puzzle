@@ -110,16 +110,16 @@ def test_organisation_track_does_not_show_individual_only_question(client):
 def test_organisation_track_completes_with_five_steps(client, db):
     token = _start_new(client)
     client.post(f'/survey/{token}/step/1', data={'respondent_type': str(ORGANISATION)})  # entrepreneur/cooperator: 0
-    client.post(f'/survey/{token}/step/2', data={'q_shared': '0'})       # developer: 2
+    client.post(f'/survey/{token}/step/2', data={'q_shared': '0'})       # inventor: 2
     client.post(f'/survey/{token}/step/3', data={'q_org_1': '0'})        # implementer: 1
-    client.post(f'/survey/{token}/step/4', data={'q_org_2': '0'})        # advocate: 1
+    client.post(f'/survey/{token}/step/4', data={'q_org_2': '0'})        # architect: 1
     final = client.post(f'/survey/{token}/step/5', data={'q_short_text': 'done'})
 
     assert final.status_code == 302
     assert final.headers['Location'].endswith(f'/survey/{token}/result')
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert submission.persona_id == 'developer'
+    assert submission.persona_id == 'inventor'
     assert submission.audience == 'organisation'
 
 

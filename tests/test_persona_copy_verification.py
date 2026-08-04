@@ -97,8 +97,8 @@ def test_communicator_two_value_relationships_render_both_names_on_web_result(cl
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
     assert 'The Communicator' in body
     assert 'You are the voice!' in body
-    # natural_allies: [advocate, accountant] -> both must render, comma-separated
-    assert 'The Advocate, The Accountant' in body
+    # natural_allies: [architect, accountant] -> both must render, comma-separated
+    assert 'The Architect, The Accountant' in body
     # friends: [connector, cooperator] -> both must render, comma-separated
     assert 'The Connector, The Cooperator' in body
 
@@ -119,7 +119,7 @@ def test_communicator_two_value_relationships_render_both_names_in_pdf(app):
             'pdf/result.html', persona=communicator, personas=survey['personas'],
             fingerprint_svg='<svg></svg>', innovation=None, audience=None,
         )
-    assert 'The Advocate, The Accountant' in html
+    assert 'The Architect, The Accountant' in html
     assert 'The Connector, The Cooperator' in html
 
 
@@ -263,7 +263,7 @@ def test_email_bodies_never_render_persona_relationships(app):
         assert label not in text_body
         assert label not in html_body
 
-    for related_name in ('The Implementer', 'The Cooperator', 'The Communicator', 'The Advocate', 'The Accountant'):
+    for related_name in ('The Implementer', 'The Cooperator', 'The Communicator', 'The Architect', 'The Accountant'):
         assert related_name not in text_body
         assert related_name not in html_body
 
