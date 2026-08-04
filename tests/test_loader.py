@@ -81,6 +81,38 @@ def test_real_placeholder_survey_has_a_respondent_type_router():
     assert values == {'individual', 'organisation'}
 
 
+def test_real_survey_and_fixtures_have_no_stray_developer_or_advocate_tokens():
+    """Regression guard for backlog #0018 (persona id-level rename:
+    developer->inventor, advocate->architect). The real survey content, its
+    icon assets, and the test fixtures that deliberately mirror the real
+    persona set must never re-introduce the old tokens. Deliberately does
+    NOT scan tests/*.py itself -- test_sharing.py's inline synthetic
+    persona dicts ('developer' / 'The Developer') are arbitrary,
+    self-contained placeholder test data unrelated to the real persona set,
+    and are explicitly out of scope per the spec."""
+    scan_dirs = [
+        os.path.join(REPO_ROOT, 'content'),
+        os.path.join(REPO_ROOT, 'tests', 'fixtures'),
+        os.path.join(REPO_ROOT, 'app', 'static', 'icons'),
+    ]
+    offenders = []
+    for scan_dir in scan_dirs:
+        for root, _dirs, files in os.walk(scan_dir):
+            for fname in files:
+                path = os.path.join(root, fname)
+                if 'developer' in fname.lower() or 'advocate' in fname.lower():
+                    offenders.append(path)
+                    continue
+                try:
+                    with open(path, 'r', encoding='utf-8') as fh:
+                        text = fh.read()
+                except (OSError, UnicodeDecodeError):
+                    continue
+                if 'developer' in text.lower() or 'advocate' in text.lower():
+                    offenders.append(path)
+    assert offenders == [], f'stray developer/advocate token(s) found in: {offenders}'
+
+
 def test_real_placeholder_survey_individual_and_organisation_tracks_are_balanced():
     """Not a hard product requirement, just a sanity check that placeholder
     content gives both tracks comparable depth — catches an obviously
@@ -561,6 +593,21 @@ def test_grid_with_unknown_cell_persona_raises(tmp_path):
         load_survey(_write_yaml(tmp_path, data))
 
 
+def test_grid_cell_referencing_pre_rename_persona_id_raises(tmp_path):
+    """Failure case for backlog #0018: `personas` now only defines `inventor`
+    (post-rename), so a leftover/missed reference to the old id `developer`
+    anywhere else in the config -- e.g. a grid cell some other file forgot
+    to update -- must be caught as a config error, not silently misroute or
+    crash later. This is the safety net the spec relies on to catch any
+    missed rename spot."""
+    data = _base_config()
+    grid = _grid_question()
+    grid['cells'][0]['persona'] = 'developer'  # old id, no longer a real persona
+    data['questions'].append(grid)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
 def test_grid_with_duplicate_persona_across_cells_raises(tmp_path):
     data = _base_config()
     grid = _grid_question()
@@ -891,6 +938,29 @@ def test_real_survey_every_persona_has_a_non_empty_icon():
     for pid in PERSONA_IDS:
         icon = config['personas'][pid].get('icon')
         assert isinstance(icon, str) and icon, f"persona '{pid}' has no non-empty icon"
+
+
+def test_real_survey_inventor_and_architect_icons_resolve_to_actual_files(app):
+    """Edge case named explicitly in the backlog #0018 spec: renaming the
+    `icon:` path in survey.yaml without renaming (or renaming without
+    updating the path to match) the underlying SVG file fails *silently* --
+    `app.survey.icons.persona_icon` swallows the missing-file OSError and
+    returns empty Markup, never an error, so this would not surface as a
+    loader/test failure any other way. Assert both renamed persona icons
+    actually inline non-empty SVG markup against the real static folder,
+    and that the old file names are gone from disk."""
+    from app.survey.icons import persona_icon
+
+    config = load_survey(REAL_SURVEY_PATH)
+    for pid in ('inventor', 'architect'):
+        icon_markup = persona_icon(config['personas'][pid])
+        assert str(icon_markup).strip(), f"persona '{pid}' icon resolved to empty markup"
+
+    icons_dir = os.path.join(REPO_ROOT, 'app', 'static', 'icons')
+    assert os.path.isfile(os.path.join(icons_dir, 'inventor.svg'))
+    assert os.path.isfile(os.path.join(icons_dir, 'architect.svg'))
+    assert not os.path.exists(os.path.join(icons_dir, 'developer.svg'))
+    assert not os.path.exists(os.path.join(icons_dir, 'advocate.svg'))
 
 
 # ---------------------------------------------------------------------------
