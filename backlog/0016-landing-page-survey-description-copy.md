@@ -2,9 +2,9 @@
 id: 0016
 title: Add survey description copy to landing page
 type: change
-status: todo
+status: shipped
 created: 2026-08-04
-branch:
+branch: quickship/0016-landing-page-survey-description-copy
 ---
 
 ## Request
