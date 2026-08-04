@@ -37,7 +37,7 @@ personas:
       impact — reporting and measuring the data so the organisation knows
       what's actually happening, not what it hopes is happening.
     natural_allies: [communicator]
-    friends: [developer]
+    friends: [inventor]
     necessity: [implementer]
     case_studies:
       - { title: "Placeholder case study — Accountant", url: "https://example.com/case-studies/accountant" }
@@ -66,10 +66,10 @@ personas:
     resources:
       - { title: "Placeholder resource — a rollout checklist template", url: "https://example.com/resources/implementer-checklist" }
 
-  developer:
-    name: "The Developer"
+  inventor:
+    name: "The Inventor"
     tagline: "You are the thinker!"
-    icon: "icons/developer.svg"
+    icon: "icons/inventor.svg"
     description: >
       You work with difficult questions and help to develop innovative
       solutions. Your focus is innovation and new improvements — holding a
@@ -80,18 +80,18 @@ personas:
       innovative solutions. The focus is innovation and new improvements —
       holding a high standard for becoming more sustainable and taking fresh
       steps to improve on existing options.
-    natural_allies: [advocate]
+    natural_allies: [architect]
     friends: [connector]
     necessity: [implementer]
     case_studies:
-      - { title: "Placeholder case study — Developer", url: "https://example.com/case-studies/developer" }
+      - { title: "Placeholder case study — Inventor", url: "https://example.com/case-studies/inventor" }
     resources:
-      - { title: "Placeholder resource — prototyping on a small budget", url: "https://example.com/resources/developer-prototyping" }
+      - { title: "Placeholder resource — prototyping on a small budget", url: "https://example.com/resources/inventor-prototyping" }
 
-  advocate:
-    name: "The Advocate"
+  architect:
+    name: "The Architect"
     tagline: "You are the crowbar!"
-    icon: "icons/advocate.svg"
+    icon: "icons/architect.svg"
     description: >
       You open up new places, creating new spaces for conversation and
       action. Your focus is making sustainability an important topic and
@@ -101,12 +101,12 @@ personas:
       conversation and action. The focus is making sustainability an
       important topic and launching the initiatives that get things moving.
     natural_allies: [communicator]
-    friends: [developer, connector]
+    friends: [inventor, connector]
     necessity: [cooperator]
     case_studies:
-      - { title: "Placeholder case study — Advocate", url: "https://example.com/case-studies/advocate" }
+      - { title: "Placeholder case study — Architect", url: "https://example.com/case-studies/architect" }
     resources:
-      - { title: "Placeholder resource — making the case internally", url: "https://example.com/resources/advocate-case-making" }
+      - { title: "Placeholder resource — making the case internally", url: "https://example.com/resources/architect-case-making" }
 
   communicator:
     name: "The Communicator"
@@ -121,7 +121,7 @@ personas:
       visible for all. The focus is sharing information and sending knowledge
       outward — communicating to a larger group so the work doesn't stay
       hidden.
-    natural_allies: [advocate, accountant]
+    natural_allies: [architect, accountant]
     friends: [connector, cooperator]
     necessity: [implementer]
     case_studies:
@@ -189,7 +189,7 @@ personas:
       create impact that benefits progress in a wider view.
     natural_allies: [connector]
     friends: [communicator]
-    necessity: [developer]
+    necessity: [inventor]
     case_studies:
       - { title: "Placeholder case study — Cooperator", url: "https://example.com/case-studies/cooperator" }
     resources:
@@ -210,7 +210,7 @@ personas:
       an idea into a business, making a business of progress and finding the
       right financial market fit.
     natural_allies: [implementer, cooperator]
-    friends: [communicator, advocate]
+    friends: [communicator, architect]
     necessity: [accountant]
     case_studies:
       - { title: "Placeholder case study — Entrepreneur", url: "https://example.com/case-studies/entrepreneur" }
@@ -296,8 +296,8 @@ questions:
         - "Implement existing solutions"
         - "Develop new ideas and ways to progress"
     cells:
-      - { x: 0, y: 2, persona: developer }
-      - { x: 1, y: 2, persona: advocate }
+      - { x: 0, y: 2, persona: inventor }
+      - { x: 1, y: 2, persona: architect }
       - { x: 2, y: 2, persona: cooperator }
       - { x: 0, y: 1, persona: implementer }
       - { x: 1, y: 1, persona: entrepreneur }
@@ -353,8 +353,8 @@ scoring:
   tie_break:
     - accountant
     - implementer
-    - developer
-    - advocate
+    - inventor
+    - architect
     - communicator
     - activist
     - connector
@@ -374,10 +374,10 @@ innovation_curve:
     cooperator: 3
     connector: 3
     activist: 4
-    advocate: 3
+    architect: 3
     entrepreneur: 2
     communicator: 1
-    developer: 4
+    inventor: 4
     implementer: 1
     accountant: 0
   bands:

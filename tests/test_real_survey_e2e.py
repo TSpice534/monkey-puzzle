@@ -120,7 +120,7 @@ def test_full_11_step_flow_individual_completes_and_classifies_via_grid(client, 
     assert submission.score_vector['entrepreneur'] == 1.0
     assert all(v == 0.0 for pid, v in submission.score_vector.items() if pid != 'entrepreneur')
     assert set(submission.score_vector.keys()) == {
-        'accountant', 'implementer', 'developer', 'advocate', 'communicator',
+        'accountant', 'implementer', 'inventor', 'architect', 'communicator',
         'activist', 'connector', 'cooperator', 'entrepreneur',
     }
     # Innovation-curve result (backlog #0002): motivation/ambition/space_to_progress
@@ -149,7 +149,7 @@ def test_all_nine_grid_cells_resolve_to_the_documented_persona_end_to_end(client
     """Cross-check the confirmed grid mapping table in the spec end-to-end
     through the real route flow (not just the classifier unit test)."""
     expected = {
-        (0, 2): 'developer', (1, 2): 'advocate', (2, 2): 'cooperator',
+        (0, 2): 'inventor', (1, 2): 'architect', (2, 2): 'cooperator',
         (0, 1): 'implementer', (1, 1): 'entrepreneur', (2, 1): 'connector',
         (0, 0): 'accountant', (1, 0): 'communicator', (2, 0): 'activist',
     }
@@ -162,10 +162,10 @@ def test_all_nine_grid_cells_resolve_to_the_documented_persona_end_to_end(client
 
 # ---------------------------------------------------------------------------
 # Innovation-curve scoring + banding (backlog #0002) — a worked high-score
-# example (all sliders at index 4/2/2, developer's +4 modifier) end-to-end.
+# example (all sliders at index 4/2/2, inventor's +4 modifier) end-to-end.
 # ---------------------------------------------------------------------------
 
-def test_high_scoring_answers_and_developer_modifier_classify_as_innovators(client, db):
+def test_high_scoring_answers_and_inventor_modifier_classify_as_innovators(client, db):
     token = _start_new(client)
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '4'})
@@ -173,7 +173,7 @@ def test_high_scoring_answers_and_developer_modifier_classify_as_innovators(clie
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '2'})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0'})
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '0,2'})  # -> developer
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '0,2'})  # -> inventor
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
@@ -181,7 +181,7 @@ def test_high_scoring_answers_and_developer_modifier_classify_as_innovators(clie
 
     assert final.status_code == 302
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert submission.persona_id == 'developer'
+    assert submission.persona_id == 'inventor'
     assert submission.innovation_score == 15
     assert submission.innovation_band == 'Innovators'
 

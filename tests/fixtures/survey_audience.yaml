@@ -18,12 +18,12 @@ personas:
     name: "The Implementer"
     tagline: "Tagline"
     description: "Description"
-  developer:
-    name: "The Developer"
+  inventor:
+    name: "The Inventor"
     tagline: "Tagline"
     description: "Description"
-  advocate:
-    name: "The Advocate"
+  architect:
+    name: "The Architect"
     tagline: "Tagline"
     description: "Description"
   communicator:
@@ -60,7 +60,7 @@ questions:
     prompt: "Shared question (both tracks see this)"
     dimension: roots
     options:
-      - { label: "Option A", weights: { developer: 2 } }
+      - { label: "Option A", weights: { inventor: 2 } }
       - { label: "Option B", weights: { accountant: 2 } }
 
   - id: q_org_1
@@ -78,7 +78,7 @@ questions:
     dimension: strategic_domain
     audience: [organisation]
     options:
-      - { label: "Option A", weights: { advocate: 1 } }
+      - { label: "Option A", weights: { architect: 1 } }
       - { label: "Option B", weights: { activist: 1 } }
 
   - id: q_ind_1
@@ -100,8 +100,8 @@ scoring:
   tie_break:
     - accountant
     - implementer
-    - developer
-    - advocate
+    - inventor
+    - architect
     - communicator
     - activist
     - connector

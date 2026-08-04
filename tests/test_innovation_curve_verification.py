@@ -178,7 +178,7 @@ def test_email_route_actual_dispatched_message_contains_band_name_in_both_bodies
     app.config['MAIL_SERVER'] = 'smtp.example.invalid'
     app.config['MAIL_DEFAULT_SENDER'] = 'noreply@example.com'
 
-    # High-scoring path -> Innovators (developer grid cell, +4 modifier).
+    # High-scoring path -> Innovators (inventor grid cell, +4 modifier).
     token = _complete_survey(client, motivation='4', ambition='2', space_to_progress='2', grid='0,2')
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_band == 'Innovators'

@@ -13,7 +13,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REAL_SURVEY_PATH = os.path.join(REPO_ROOT, 'content', 'survey.yaml')
 
 PERSONA_IDS = [
-    'accountant', 'implementer', 'developer', 'advocate', 'communicator',
+    'accountant', 'implementer', 'inventor', 'architect', 'communicator',
     'activist', 'connector', 'cooperator', 'entrepreneur',
 ]
 
@@ -35,7 +35,7 @@ def _base_config():
                 'prompt': 'Pick one',
                 'dimension': 'roots',
                 'options': [
-                    {'label': 'Option A', 'weights': {'developer': 2}},
+                    {'label': 'Option A', 'weights': {'inventor': 2}},
                     {'label': 'Option B', 'weights': {'accountant': 2}},
                 ],
             },
@@ -130,10 +130,10 @@ def test_negative_option_weight_is_valid(tmp_path):
     """The spec mirrors Donut's negative-weight support — a negative weight
     must load cleanly, not be rejected as 'non-numeric'."""
     data = _base_config()
-    data['questions'][0]['options'][0]['weights'] = {'developer': -2}
+    data['questions'][0]['options'][0]['weights'] = {'inventor': -2}
     config = load_survey(_write_yaml(tmp_path, data))
     single_q = next(q for q in config['questions'] if q['id'] == 'q_single')
-    assert single_q['options'][0]['weights']['developer'] == -2
+    assert single_q['options'][0]['weights']['inventor'] == -2
 
 
 def test_editing_a_weight_changes_scoring_result(tmp_path):
@@ -142,9 +142,9 @@ def test_editing_a_weight_changes_scoring_result(tmp_path):
     from app.survey.persona import classify_submission
 
     config = load_survey(_write_yaml(tmp_path, _base_config()))
-    answers = {'q_single': 0}  # picks "Option A" -> developer: 2
+    answers = {'q_single': 0}  # picks "Option A" -> inventor: 2
     result = classify_submission(answers, config)
-    assert result.persona_id == 'developer'
+    assert result.persona_id == 'inventor'
 
     mutated = _base_config()
     mutated['questions'][0]['options'][0]['weights'] = {'accountant': 5}
@@ -472,8 +472,8 @@ def _grid_question(qid='profile_grid'):
             'options': ['Create a stage', 'Implement', 'Develop'],
         },
         'cells': [
-            {'x': 0, 'y': 2, 'persona': 'developer'},
-            {'x': 1, 'y': 2, 'persona': 'advocate'},
+            {'x': 0, 'y': 2, 'persona': 'inventor'},
+            {'x': 1, 'y': 2, 'persona': 'architect'},
             {'x': 2, 'y': 2, 'persona': 'cooperator'},
             {'x': 0, 'y': 1, 'persona': 'implementer'},
             {'x': 1, 'y': 1, 'persona': 'entrepreneur'},
@@ -938,7 +938,7 @@ def test_non_boolean_option_unlabelled_raises(tmp_path):
 
 def _innovation_curve_construct():
     return {
-        'persona_modifiers': {'accountant': 0, 'developer': 4},
+        'persona_modifiers': {'accountant': 0, 'inventor': 4},
         'bands': [
             {
                 'name': 'Laggards', 'min': 0, 'max': 2, 'colour': '#c0392b',
