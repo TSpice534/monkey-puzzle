@@ -1,8 +1,8 @@
 ---
 id: 0017
-title: Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Part B)
+title: Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Parts A+B)
 type: feature
-status: in-progress
+status: shipped
 created: 2026-08-04
 branch: feature/profile-grid-to-single-select
 ---
@@ -17,14 +17,22 @@ Split into two independent parts (confirmed with Tom 2026-08-04):
   `spectrum`/`triangle` questions) — landed as a new optional `explanation` field
   (not a reuse of `instructions`, which was already overloaded). Reviewer verdict: SHIP.
   Merged `feature/survey-copy-and-explanations` into `dev` and pushed 2026-08-04.
-- **Part B (in progress, this item now)**: item 7 — replace `profile_grid` widget with
-  two single-select button-row questions. The biggest, riskiest item in the backlog:
-  loader schema change, `resolve_profile_persona` rewrite, `_question_grid.html`
-  retired, `_result_grid.html`/`charts.py` need checking for grid-specific assumptions,
-  several test files updated. Confirmed with Tom this is a full widget replacement, not
-  a copy tweak. Depends on #0018's renamed ids (`inventor`/`architect`) already being in
-  `dev` — confirmed present before branching. Branch
-  `feature/profile-grid-to-single-select` off `dev`.
+- **Part B (shipped 2026-08-04)**: item 7 — replaced `profile_grid` widget with two
+  single-select questions (`profile_approach`/`profile_scope`), resolved via a new
+  `profile_matrix` construct. Kept the result-page 3x3 grid visualization per Tom's
+  explicit call (reconstructed at render time via `_profile_grid_context()`, mapping
+  `approach → y`, `scope → x`) rather than deleting it as originally scoped — spec was
+  revised mid-flight after Tom's answer to that OPEN QUESTION. `type: grid` schema
+  support removed entirely (confirmed unused elsewhere); `_question_grid.html` deleted;
+  `_result_grid.html` unchanged. Tester independently re-derived all 9 persona-mapping
+  cells against the retired grid on `dev` — exact match. Reviewer independently
+  spot-checked the same. Reviewer verdict: SHIP. Branch
+  `feature/profile-grid-to-single-select` off `dev`, not yet merged — Tom's manual
+  review/merge. One non-blocking nit: `_result_grid.html`'s header comment still
+  mentions the retired `profile_question` key (comment only, guard logic unaffected).
+  Follow-up filed separately: **#0019** (`prompt_organisation` schema field — the
+  org-register prompt variant from the template has no home; Part B used the single
+  individual-register prompt for both tracks per Tom's call).
 
 ## Request
 
