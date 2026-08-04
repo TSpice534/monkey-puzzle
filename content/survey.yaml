@@ -238,7 +238,7 @@ questions:
       - { label: "Intermediate position",                    unlabelled: true,                                                score: 2 }
       - { label: "I understand I need to act on this topic", label_organisation: "We understand we need to act on this topic", score: 3 }
       - { label: "Intermediate position",                    unlabelled: true,                                                score: 4 }
-      - { label: "It is part of my role",                    label_organisation: "We must meet our legal responsibilities",    score: 5 }
+      - { label: "I do only what is asked/required",         label_organisation: "We do only what is asked/required",    score: 5 }
 
   - id: ambition
     type: spectrum
