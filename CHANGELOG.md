@@ -6,6 +6,11 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: replace landing page lead copy with survey description text (backlog #0016) —
+  `app/templates/index.html`'s `<p class="lead">` now describes what the survey captures
+  and that results are personalised and shareable, replacing the prior "what it is / how
+  many questions" blurb.
+
 ## [v0.2.0] — 2026-07-24
 
 - Feature: topics question (Q9) — choose up to 3, not exactly 3 (backlog #0014) —
