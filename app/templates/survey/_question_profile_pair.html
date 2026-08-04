@@ -1,0 +1,66 @@
+{% from "survey/_macros.html" import option_label %}
+{# Combined profile pair (backlog #0017 Part B tweak): one shared prompt (the
+   step legend), a live-updating sentence, and a 2x3 button grid — top row =
+   approach options, bottom row = scope options. Native radios styled as cards
+   (same pattern as _question_single.html); a small vanilla script keeps the
+   sentence in sync. Both selections are mandatory (enforced server-side in
+   routes.step / _guard_message). Degrades gracefully without JS: the radios
+   still work and submit; only the live sentence stays at its stem. #}
+
+<p class="profile-sentence h5 mb-4" id="profile-sentence"
+   aria-live="polite" aria-atomic="true"
+   data-stem="{{ sentence_stem }}">{{ sentence_stem }}...</p>
+
+<div class="row g-3 mb-3" role="radiogroup" aria-label="{{ approach_question.prompt }}">
+  {% for option in approach_question.options %}
+  <div class="col-12 col-sm-4">
+    <input class="visually-hidden option-card-input" type="radio"
+           id="profile_approach_{{ option.index }}"
+           name="profile_approach" value="{{ option.index }}"
+           data-sentence="{{ option_label(option, audience) }}"
+           {% if saved_approach == option.index %}checked{% endif %}>
+    <label class="option-card" for="profile_approach_{{ option.index }}">
+      {{ option_label(option, audience) }}
+    </label>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3" role="radiogroup" aria-label="{{ scope_question.prompt }}">
+  {% for option in scope_question.options %}
+  <div class="col-12 col-sm-4">
+    <input class="visually-hidden option-card-input" type="radio"
+           id="profile_scope_{{ option.index }}"
+           name="profile_scope" value="{{ option.index }}"
+           data-sentence="{{ option_label(option, audience) }}"
+           {% if saved_scope == option.index %}checked{% endif %}>
+    <label class="option-card" for="profile_scope_{{ option.index }}">
+      {{ option_label(option, audience) }}
+    </label>
+  </div>
+  {% endfor %}
+</div>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var el = document.getElementById('profile-sentence');
+  if (!el) return;
+  var stem = el.getAttribute('data-stem') || '';
+  function lower(t) { t = (t || '').trim(); return t ? t.charAt(0).toLowerCase() + t.slice(1) : ''; }
+  function picked(name) {
+    var r = document.querySelector('input[name="' + name + '"]:checked');
+    return r ? lower(r.getAttribute('data-sentence')) : '';
+  }
+  function update() {
+    var approach = picked('profile_approach');
+    var scope = picked('profile_scope');
+    var parts = [stem];
+    if (approach) parts.push(approach);
+    if (scope) parts.push(scope);
+    el.textContent = parts.join(' ') + ((approach && scope) ? '.' : '...');
+  }
+  document.querySelectorAll('input[name="profile_approach"], input[name="profile_scope"]')
+    .forEach(function (r) { r.addEventListener('change', update); });
+  update(); // reflect any pre-checked (saved) values when returning via Back
+})();
+</script>

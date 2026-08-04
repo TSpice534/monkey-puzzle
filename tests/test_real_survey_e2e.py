@@ -1,11 +1,16 @@
 """Independent end-to-end verification of backlog #0003 against the REAL
 content/survey.yaml (not a small fixture) — walks the full 11-step flow via
 the Flask test client, exactly as a browser would, and checks the specific
-risk areas flagged for this change: the grid's mandatory block-advance
-behaviour, `multi_range` choose-a-range validation (backlog #0014), audience-aware wording
-(including before the router is answered), and that the existing
-radar/fingerprint chart plus the PDF/share/email routes still work against
-the new 11-question content shape.
+risk areas flagged for this change: the profile pair's mandatory block-advance
+behaviour (backlog #0017 Part B replaced the single interactive `profile_grid`
+question with two `type: single` questions, `profile_approach`/
+`profile_scope`, resolved via `profile_matrix`; a Part B follow-up tweak then
+merged those two questions onto one combined survey step with a live-updating
+sentence and a 2x3 button grid — the result page still renders a
+reconstructed labelled 3x3 grid), `multi_range` choose-a-range validation
+(backlog #0014), audience-aware wording (including before the router is
+answered), and that the existing radar/fingerprint chart plus the PDF/share/
+email routes still work against the new 11-step content shape.
 
 Every other test module in this suite drives a small fixture survey
 (survey_min.yaml / survey_grid.yaml / survey_audience.yaml) through these
@@ -29,18 +34,23 @@ PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
 INDIVIDUAL = 0
 ORGANISATION = 1
 
-# Step numbers for the real 11-question survey, per docs/SURVEY-TEMPLATE.md
-# and content/survey.yaml (both audience tracks see all 11 — no `audience`
+# Step numbers for the real 12-question survey, per docs/SURVEY-TEMPLATE.md
+# and content/survey.yaml (both audience tracks see all of it — no `audience`
 # tags are used in the real survey, per the coder's changes.md). backlog
-# #0015 moved `why_reason` from step 2 to the last step (11), shifting every
-# intervening question's step number down by one.
+# #0015 moved `why_reason` from step 2 to the last step, shifting every
+# intervening question's step number down by one; backlog #0017 Part B then
+# split the single `profile_grid` step into two (`profile_approach`/
+# `profile_scope`), shifting every subsequent question's step number up by
+# one again; a Part B follow-up tweak merged those two questions back onto
+# ONE combined step (`STEP_PROFILE`), shifting every subsequent step number
+# back down by one.
 STEP_RESPONDENT_TYPE = 1
 STEP_MOTIVATION = 2
 STEP_AMBITION = 3
 STEP_SPACE_TO_PROGRESS = 4
 STEP_NEED_MOST = 5
 STEP_HAVE_ENOUGH = 6
-STEP_PROFILE_GRID = 7
+STEP_PROFILE = 7
 STEP_TOPICS = 8
 STEP_SUPPORT_TYPE = 9
 STEP_TARGET_GROUPS = 10
@@ -86,15 +96,15 @@ def _answer_up_to_grid(client, token, audience_index):
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
 
 
-def _complete_survey(client, audience_index=INDIVIDUAL, grid='1,1', why_reason='Because it matters.'):
-    """Walk all 11 real-survey steps to completion. grid='1,1' -> entrepreneur.
-    `why_reason=None` posts the final step with no answer at all (skipped),
-    matching how every other skippable question in this suite signals 'no
-    answer' (backlog #0015: why_reason is now the last, classification-
-    triggering step)."""
+def _complete_survey(client, audience_index=INDIVIDUAL, approach='1', scope='1', why_reason='Because it matters.'):
+    """Walk all 11 real-survey steps to completion. approach='1', scope='1'
+    -> entrepreneur. `why_reason=None` posts the final step with no answer at
+    all (skipped), matching how every other skippable question in this suite
+    signals 'no answer' (backlog #0015: why_reason is now the last,
+    classification-triggering step)."""
     token = _start_new(client)
     _answer_up_to_grid(client, token, audience_index)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': grid})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': approach, 'profile_scope': scope})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
@@ -107,8 +117,8 @@ def _complete_survey(client, audience_index=INDIVIDUAL, grid='1,1', why_reason='
 # Happy path — full 11-step flow, both audience tracks
 # ---------------------------------------------------------------------------
 
-def test_full_11_step_flow_individual_completes_and_classifies_via_grid(client, db):
-    token, final = _complete_survey(client, audience_index=INDIVIDUAL, grid='1,1')  # -> entrepreneur
+def test_full_11_step_flow_individual_completes_and_classifies_via_profile_pair(client, db):
+    token, final = _complete_survey(client, audience_index=INDIVIDUAL, approach='1', scope='1')  # -> entrepreneur
 
     assert final.status_code == 302
     assert final.headers['Location'].endswith(f'/survey/{token}/result')
@@ -116,7 +126,7 @@ def test_full_11_step_flow_individual_completes_and_classifies_via_grid(client, 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.persona_id == 'entrepreneur'
     assert submission.audience == 'individual'
-    # Grid-direct resolution yields a one-hot vector (per persona.py).
+    # Profile-direct resolution yields a one-hot vector (per persona.py).
     assert submission.score_vector['entrepreneur'] == 1.0
     assert all(v == 0.0 for pid, v in submission.score_vector.items() if pid != 'entrepreneur')
     assert set(submission.score_vector.keys()) == {
@@ -130,8 +140,8 @@ def test_full_11_step_flow_individual_completes_and_classifies_via_grid(client, 
     assert submission.innovation_band == 'Late Majority'
 
 
-def test_full_11_step_flow_organisation_completes_and_classifies_via_grid(client, db):
-    token, final = _complete_survey(client, audience_index=ORGANISATION, grid='0,0')  # -> accountant
+def test_full_11_step_flow_organisation_completes_and_classifies_via_profile_pair(client, db):
+    token, final = _complete_survey(client, audience_index=ORGANISATION, approach='0', scope='0')  # -> accountant
 
     assert final.status_code == 302
     assert final.headers['Location'].endswith(f'/survey/{token}/result')
@@ -145,19 +155,24 @@ def test_full_11_step_flow_organisation_completes_and_classifies_via_grid(client
     assert submission.innovation_band == 'Late Majority'
 
 
-def test_all_nine_grid_cells_resolve_to_the_documented_persona_end_to_end(client, db):
-    """Cross-check the confirmed grid mapping table in the spec end-to-end
-    through the real route flow (not just the classifier unit test)."""
+def test_all_nine_profile_pairs_resolve_to_the_documented_persona_end_to_end(client, db):
+    """Cross-check the confirmed profile_matrix mapping table in the spec
+    end-to-end through the real route flow (not just the classifier unit
+    test)."""
     expected = {
-        (0, 2): 'inventor', (1, 2): 'architect', (2, 2): 'cooperator',
-        (0, 1): 'implementer', (1, 1): 'entrepreneur', (2, 1): 'connector',
-        (0, 0): 'accountant', (1, 0): 'communicator', (2, 0): 'activist',
+        (0, 0): 'accountant', (0, 1): 'communicator', (0, 2): 'activist',
+        (1, 0): 'implementer', (1, 1): 'entrepreneur', (1, 2): 'connector',
+        (2, 0): 'inventor', (2, 1): 'architect', (2, 2): 'cooperator',
     }
-    for (x, y), persona_id in expected.items():
-        token, final = _complete_survey(client, audience_index=INDIVIDUAL, grid=f'{x},{y}')
+    for (approach, scope), persona_id in expected.items():
+        token, final = _complete_survey(
+            client, audience_index=INDIVIDUAL, approach=str(approach), scope=str(scope),
+        )
         assert final.status_code == 302
         submission = db.session.query(Submission).filter_by(token=token).one()
-        assert submission.persona_id == persona_id, f'cell ({x},{y}) expected {persona_id}'
+        assert submission.persona_id == persona_id, (
+            f'pair (approach={approach}, scope={scope}) expected {persona_id}'
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -173,7 +188,7 @@ def test_high_scoring_answers_and_inventor_modifier_classify_as_innovators(clien
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '2'})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0'})
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '0,2'})  # -> inventor
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '2', 'profile_scope': '0'})  # -> inventor
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
@@ -187,33 +202,65 @@ def test_high_scoring_answers_and_inventor_modifier_classify_as_innovators(clien
 
 
 # ---------------------------------------------------------------------------
-# Grid — mandatory to advance (step 8 of the real survey)
+# Profile pair — mandatory to advance (combined step 7 of the real survey,
+# backlog #0017 Part B follow-up tweak)
 # ---------------------------------------------------------------------------
 
-def test_grid_step_cannot_be_skipped_on_the_real_survey(client, db):
+def test_profile_step_cannot_be_skipped_with_neither_field_on_the_real_survey(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
 
-    response = client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={})
+    response = client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={})
 
     assert response.status_code == 200
-    assert b'Please select a position on the grid to continue.' in response.data
+    assert b'Please choose an option to continue.' in response.data
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert 'profile_grid' not in submission.answers
+    assert 'profile_approach' not in submission.answers
+    assert 'profile_scope' not in submission.answers
     assert submission.persona_id is None
 
 
-def test_grid_step_get_after_failed_advance_still_shows_step_eight(client):
-    """A no-selection POST must not silently advance — GETing the same step
-    afterwards should still be the grid, not step 9."""
+def test_profile_step_cannot_be_skipped_with_only_approach_on_the_real_survey(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={})
 
-    response = client.get(f'/survey/{token}/step/{STEP_PROFILE_GRID}')
+    response = client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1'})
+
     assert response.status_code == 200
-    assert b'Where would you like to act, and how?' in response.data
+    assert b'Please choose an option to continue.' in response.data
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert 'profile_approach' not in submission.answers
+    assert 'profile_scope' not in submission.answers
+    assert submission.persona_id is None
+
+
+def test_profile_step_cannot_be_skipped_with_only_scope_on_the_real_survey(client, db):
+    token = _start_new(client)
+    _answer_up_to_grid(client, token, INDIVIDUAL)
+
+    response = client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_scope': '1'})
+
+    assert response.status_code == 200
+    assert b'Please choose an option to continue.' in response.data
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert 'profile_approach' not in submission.answers
+    assert 'profile_scope' not in submission.answers
+    assert submission.persona_id is None
+
+
+def test_profile_step_get_after_failed_advance_still_shows_step_seven(client):
+    """A no-selection POST must not silently advance — GETing the same step
+    afterwards should still be the combined profile step, not step 8."""
+    token = _start_new(client)
+    _answer_up_to_grid(client, token, INDIVIDUAL)
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={})
+
+    response = client.get(f'/survey/{token}/step/{STEP_PROFILE}')
+    assert response.status_code == 200
+    assert b'Complete the following sentence' in response.data
 
 
 # ---------------------------------------------------------------------------
@@ -223,7 +270,7 @@ def test_grid_step_get_after_failed_advance_still_shows_step_eight(client):
 def test_topics_wrong_count_rerenders_without_advancing(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1', 'profile_scope': '1'})
 
     response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': []})  # 0, needs 1-3
 
@@ -237,7 +284,7 @@ def test_topics_wrong_count_rerenders_without_advancing(client, db):
 def test_topics_too_many_also_rerenders_without_advancing(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1', 'profile_scope': '1'})
 
     response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2', '3']})  # 4, needs 1-3
 
@@ -248,7 +295,7 @@ def test_topics_too_many_also_rerenders_without_advancing(client, db):
 def test_topics_valid_count_advances_and_persists(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1', 'profile_scope': '1'})
 
     response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['2', '4', '7']})
 
@@ -262,7 +309,7 @@ def test_topics_valid_count_advances_and_persists(client, db):
 def test_topics_single_selection_advances_and_persists(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1', 'profile_scope': '1'})
 
     response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['3']})
 
@@ -276,7 +323,7 @@ def test_topics_single_selection_advances_and_persists(client, db):
 def test_topics_two_selections_advance_and_persist(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1', 'profile_scope': '1'})
 
     response = client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['1', '5']})
 
@@ -343,19 +390,6 @@ def test_target_groups_single_choice_wording_switches_by_audience(client):
     ind_body = client.get(f'/survey/{token_ind}/step/{STEP_TARGET_GROUPS}').get_data(as_text=True)
     assert 'I want to engage my audience' in ind_body
     assert 'We want to engage our audience' not in ind_body
-
-
-def test_grid_instruction_copy_switches_by_audience(client):
-    token_org = _start_new(client)
-    client.post(f'/survey/{token_org}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(ORGANISATION)})
-    _answer_up_to_grid(client, token_org, ORGANISATION)
-    org_body = client.get(f'/survey/{token_org}/step/{STEP_PROFILE_GRID}').get_data(as_text=True)
-    assert 'Find your organisation on this grid and select' in org_body
-
-    token_ind = _start_new(client)
-    _answer_up_to_grid(client, token_ind, INDIVIDUAL)
-    ind_body = client.get(f'/survey/{token_ind}/step/{STEP_PROFILE_GRID}').get_data(as_text=True)
-    assert 'Find yourself on this grid and select' in ind_body
 
 
 # ---------------------------------------------------------------------------
@@ -551,7 +585,7 @@ def test_triangle_edge_post_persists_on_the_other_two_affected_questions(client,
     affected triangle questions and must round-trip identically."""
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)  # gets past need_most/have_enough with corner picks
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1', 'profile_scope': '1'})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
 
     response = client.post(f'/survey/{token}/step/{step}', data={field: raw})
@@ -610,7 +644,7 @@ def test_survey_completes_when_all_three_triangle_questions_are_skipped(client, 
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '0'})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={})
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={})
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1', 'profile_scope': '1'})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
@@ -643,7 +677,7 @@ def test_edge_picks_on_all_three_affected_questions_read_correctly_in_result_pag
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '0'})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0,1'})       # edge
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0,1'})   # edge
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1', 'profile_scope': '1'})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0,1'})  # edge
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
@@ -685,7 +719,7 @@ def test_result_page_shows_organisation_wording_persona_description_on_the_org_t
     """backlog #0004: `submission.audience` reaches the web result page's
     persona card, which resolves `description_organisation` once the
     respondent is on the organisation track."""
-    token, _ = _complete_survey(client, audience_index=ORGANISATION, grid='1,1')  # -> entrepreneur
+    token, _ = _complete_survey(client, audience_index=ORGANISATION, approach='1', scope='1')  # -> entrepreneur
     response = client.get(f'/survey/{token}/result')
     body = response.get_data(as_text=True)
 
@@ -695,7 +729,7 @@ def test_result_page_shows_organisation_wording_persona_description_on_the_org_t
 
 
 def test_result_page_shows_individual_wording_persona_description_on_the_individual_track(client):
-    token, _ = _complete_survey(client, audience_index=INDIVIDUAL, grid='1,1')  # -> entrepreneur
+    token, _ = _complete_survey(client, audience_index=INDIVIDUAL, approach='1', scope='1')  # -> entrepreneur
     response = client.get(f'/survey/{token}/result')
     body = response.get_data(as_text=True)
 
@@ -705,7 +739,7 @@ def test_result_page_shows_individual_wording_persona_description_on_the_individ
 
 
 def test_result_page_renders_the_labelled_grid_with_the_chosen_persona(client):
-    token, _ = _complete_survey(client, grid='2,0')  # -> activist
+    token, _ = _complete_survey(client, approach='0', scope='2')  # -> activist
     response = client.get(f'/survey/{token}/result')
     body = response.get_data(as_text=True)
 
@@ -763,10 +797,13 @@ def test_result_page_renders_the_now_next_card_in_the_persona_card(client):
 
 def test_why_reason_is_the_last_step_with_the_reworded_prompt(client):
     """backlog #0015: the prompt text was reworded and the question moved to
-    step 11 (the final step, immediately after target_groups)."""
+    the final step (immediately after target_groups); backlog #0017 Part B
+    shifted that final step number from 11 to 12 when the single
+    profile_grid step became two, and a Part B follow-up tweak shifted it
+    back down to 11 when the two profile questions merged onto one step."""
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '1', 'profile_scope': '1'})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
@@ -784,7 +821,7 @@ def test_why_reason_is_the_last_step_with_the_reworded_prompt(client):
 def test_why_reason_post_triggers_classification_and_redirects_to_result(client, db):
     """backlog #0015: why_reason's POST is now the final, classification-
     triggering one — not target_groups's."""
-    token, final = _complete_survey(client, grid='1,1')  # -> entrepreneur
+    token, final = _complete_survey(client, approach='1', scope='1')  # -> entrepreneur
 
     assert final.status_code == 302
     assert final.headers['Location'].endswith(f'/survey/{token}/result')
@@ -945,7 +982,7 @@ def test_result_grid_table_structure_is_a_real_3x3_not_a_stacked_column(client):
     Guard both ends: the <td> itself must stay a plain, unstyled table cell
     (only `persona-grid-cell-wrap`, which is padding-only in theme.css), and
     the flex-styled `.grid-cell` must live on a nested element instead."""
-    token, _ = _complete_survey(client, grid='2,0')  # -> activist
+    token, _ = _complete_survey(client, approach='0', scope='2')  # -> activist
     response = client.get(f'/survey/{token}/result')
     body = response.get_data(as_text=True)
 
@@ -1132,19 +1169,29 @@ def test_email_result_route_reachable_against_real_content(client, app):
 
 
 # ---------------------------------------------------------------------------
-# Failure case — malformed grid value never reaches the classifier as a hit
+# Failure case — a malformed profile-question value never reaches the
+# classifier as a hit
 # ---------------------------------------------------------------------------
 
-def test_grid_step_with_malformed_value_is_treated_as_no_selection(client, db):
-    """A garbage (non 'x,y') value for the grid radio group must be rejected
-    by the same mandatory guard as no selection at all — not silently
-    accepted or crash the route."""
+def test_profile_step_with_malformed_approach_value_is_treated_as_no_selection(client, db):
+    """A garbage (non-integer) value for the profile_approach radio group,
+    alongside a valid profile_scope value, must be rejected by the same
+    mandatory guard as no selection at all — `_read_answer`'s `int(raw)`
+    fails, returning None, which the mandatory profile-pair guard then
+    treats identically to a skipped question — not silently accepted or a
+    crashed route, and neither answer is stored (atomic guard). (A
+    `type: single` answer can't be malformed the old grid `"x,y"` way —
+    this covers the single-value equivalent.)"""
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
 
-    response = client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': 'garbage'})
+    response = client.post(
+        f'/survey/{token}/step/{STEP_PROFILE}',
+        data={'profile_approach': 'garbage', 'profile_scope': '1'},
+    )
 
     assert response.status_code == 200
-    assert b'Please select a position on the grid to continue.' in response.data
+    assert b'Please choose an option to continue.' in response.data
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert 'profile_grid' not in submission.answers
+    assert 'profile_approach' not in submission.answers
+    assert 'profile_scope' not in submission.answers

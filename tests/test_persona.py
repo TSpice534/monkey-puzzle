@@ -1,8 +1,11 @@
-"""Persona classifier: the interactive profile grid directly resolves a
-persona (grid-direct, the primary UI path); weighted scoring is exercised
-against the small fixture survey since the real survey.yaml's weighted
-questions were replaced by the real 11-question content (backlog #0003);
-tie-break/modifiers/negative-weight behaviour is unchanged."""
+"""Persona classifier: the two profile questions (`profile_approach`/
+`profile_scope`) jointly resolve a persona directly (profile-direct, the
+primary UI path — backlog #0017 Part B replaced the old single-answer
+`profile_grid` question with this pair, resolved via `profile_matrix`);
+weighted scoring is exercised against the small fixture survey since the
+real survey.yaml's weighted questions were replaced by the real content
+(backlog #0003); tie-break/modifiers/negative-weight behaviour is
+unchanged."""
 import os
 
 import pytest
@@ -23,18 +26,20 @@ PERSONA_IDS = [
     'activist', 'connector', 'cooperator', 'entrepreneur',
 ]
 
-# The confirmed profile_grid cell -> persona mapping (content/survey.yaml,
-# question `profile_grid`) — see the spec's grid table.
+# The confirmed profile_matrix (approach, scope) -> persona mapping
+# (content/survey.yaml, `profile_matrix`) — see the spec's mapping table.
+# approach = profile_approach index (old grid Y axis), scope = profile_scope
+# index (old grid X axis).
 GRID_CELLS = [
-    (0, 2, 'inventor'),
-    (1, 2, 'architect'),
-    (2, 2, 'cooperator'),
-    (0, 1, 'implementer'),
-    (1, 1, 'entrepreneur'),
-    (2, 1, 'connector'),
     (0, 0, 'accountant'),
-    (1, 0, 'communicator'),
-    (2, 0, 'activist'),
+    (0, 1, 'communicator'),
+    (0, 2, 'activist'),
+    (1, 0, 'implementer'),
+    (1, 1, 'entrepreneur'),
+    (1, 2, 'connector'),
+    (2, 0, 'inventor'),
+    (2, 1, 'architect'),
+    (2, 2, 'cooperator'),
 ]
 
 
@@ -53,12 +58,13 @@ def weighted_config():
 
 
 # ---------------------------------------------------------------------------
-# Grid-direct persona resolution — the primary UI path (grid is mandatory)
+# Profile-direct persona resolution — the primary UI path (both profile
+# questions are mandatory)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize('x, y, expected_persona', GRID_CELLS)
-def test_grid_direct_answer_deterministically_yields_persona(config, x, y, expected_persona):
-    result = classify_submission({'profile_grid': [x, y]}, config)
+@pytest.mark.parametrize('approach, scope, expected_persona', GRID_CELLS)
+def test_profile_direct_answer_deterministically_yields_persona(config, approach, scope, expected_persona):
+    result = classify_submission({'profile_approach': approach, 'profile_scope': scope}, config)
     assert result.persona_id == expected_persona
     assert isinstance(result, PersonaResult)
     assert set(result.scores.keys()) == set(PERSONA_IDS)
@@ -66,15 +72,15 @@ def test_grid_direct_answer_deterministically_yields_persona(config, x, y, expec
 
 
 def test_resolve_profile_persona_returns_the_mapped_persona(config):
-    assert resolve_profile_persona({'profile_grid': [1, 1]}, config) == 'entrepreneur'
+    assert resolve_profile_persona({'profile_approach': 1, 'profile_scope': 1}, config) == 'entrepreneur'
 
 
-def test_grid_direct_wins_even_when_weighted_questions_were_answered(config):
-    """Only `profile_grid` (type multi_exact/triangle/etc no longer carry
-    weights in the real survey) drives the persona — a grid-direct win
+def test_profile_direct_wins_even_when_weighted_questions_were_answered(config):
+    """Only the profile pair (type multi_exact/triangle/etc no longer carry
+    weights in the real survey) drives the persona — a profile-direct win
     should hold regardless of what else was answered."""
     answers = {
-        'profile_grid': [2, 0],       # -> activist
+        'profile_approach': 0, 'profile_scope': 2,       # -> activist
         'motivation': 0,
         'ambition': 1,
         'topics': [0, 1, 2],
@@ -84,27 +90,32 @@ def test_grid_direct_wins_even_when_weighted_questions_were_answered(config):
 
 
 # ---------------------------------------------------------------------------
-# Defensive fallback — grid unanswered or malformed (UI-unreachable, since
-# the grid is mandatory to advance, but code-covered for direct-DB-edited
-# or partial submissions)
+# Defensive fallback — either profile answer missing or malformed
+# (UI-unreachable, since both are mandatory to advance, but code-covered for
+# direct-DB-edited or partial submissions)
 # ---------------------------------------------------------------------------
 
-def test_resolve_profile_persona_returns_none_when_grid_unanswered(config):
+def test_resolve_profile_persona_returns_none_when_unanswered(config):
     assert resolve_profile_persona({}, config) is None
 
 
-def test_classify_submission_falls_back_to_tie_break_when_grid_unanswered(config):
+def test_resolve_profile_persona_returns_none_when_only_one_answer_present(config):
+    assert resolve_profile_persona({'profile_approach': 1}, config) is None
+    assert resolve_profile_persona({'profile_scope': 1}, config) is None
+
+
+def test_classify_submission_falls_back_to_tie_break_when_unanswered(config):
     result = classify_submission({}, config)
     assert result.persona_id == config['scoring']['tie_break'][0]
 
 
 @pytest.mark.parametrize('malformed_answer', [None, [1]])
-def test_classify_submission_falls_back_to_tie_break_on_malformed_grid_answer(config, malformed_answer):
-    result = classify_submission({'profile_grid': malformed_answer}, config)
+def test_classify_submission_falls_back_to_tie_break_on_malformed_profile_answer(config, malformed_answer):
+    result = classify_submission({'profile_approach': malformed_answer, 'profile_scope': 0}, config)
     assert result.persona_id == config['scoring']['tie_break'][0]
 
 
-def test_resolve_profile_persona_returns_none_when_survey_has_no_profile_question(weighted_config):
+def test_resolve_profile_persona_returns_none_when_survey_has_no_profile_matrix(weighted_config):
     assert resolve_profile_persona({'q_single': 0}, weighted_config) is None
 
 

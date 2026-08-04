@@ -40,7 +40,7 @@ STEP_AMBITION = 3
 STEP_SPACE_TO_PROGRESS = 4
 STEP_NEED_MOST = 5
 STEP_HAVE_ENOUGH = 6
-STEP_PROFILE_GRID = 7
+STEP_PROFILE = 7
 STEP_TOPICS = 8
 STEP_SUPPORT_TYPE = 9
 STEP_TARGET_GROUPS = 10
@@ -62,18 +62,20 @@ def _start_new(client):
 
 
 def _complete_survey(client, token, respondent_type_data, motivation='0',
-                      ambition='0', space='0', grid='1,1'):
-    """Walk steps 2-11 to completion; step 1 (respondent_type) is driven by
+                      ambition='0', space='0', approach='1', scope='1'):
+    """Walk steps 2-12 to completion; step 1 (respondent_type) is driven by
     the caller so both the normal and the skipped-router cases can share
-    this helper. `why_reason` (step 11, backlog #0015) is now last and its
-    POST is what triggers classification."""
+    this helper. `why_reason` (the last step, backlog #0015) is now last and
+    its POST is what triggers classification. approach='1'/scope='1' ->
+    entrepreneur (backlog #0017 Part B: the old single `grid='1,1'` param
+    split into these two)."""
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data=respondent_type_data)
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={} if motivation is None else {'motivation': motivation})
     client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={} if ambition is None else {'ambition': ambition})
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={} if space is None else {'space_to_progress': space})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0'})
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': grid})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': approach, 'profile_scope': scope})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
@@ -88,7 +90,7 @@ def _complete_survey(client, token, respondent_type_data, motivation='0',
 
 def test_communicator_two_value_relationships_render_both_names_on_web_result(client, db):
     token = _start_new(client)
-    final = _complete_survey(client, token, {'respondent_type': str(INDIVIDUAL)}, grid='1,0')  # -> communicator
+    final = _complete_survey(client, token, {'respondent_type': str(INDIVIDUAL)}, approach='0', scope='1')  # -> communicator
     assert final.status_code == 302
 
     submission = db.session.query(Submission).filter_by(token=token).one()
@@ -133,7 +135,7 @@ def test_laggard_band_tagline_renders_verbatim_on_real_low_score_submission(clie
     token = _start_new(client)
     final = _complete_survey(
         client, token, {'respondent_type': str(INDIVIDUAL)},
-        motivation=None, ambition=None, space=None, grid='0,0',  # -> accountant, modifier 0
+        motivation=None, ambition=None, space=None, approach='0', scope='0',  # -> accountant, modifier 0
     )
     assert final.status_code == 302
 
@@ -203,7 +205,7 @@ def test_description_falls_back_correctly_when_router_question_is_skipped(client
     The persona description must still resolve to the individual/default
     wording, not crash, and not show organisation wording."""
     token = _start_new(client)
-    final = _complete_survey(client, token, {}, grid='1,1')  # -> entrepreneur, respondent_type skipped
+    final = _complete_survey(client, token, {}, approach='1', scope='1')  # -> entrepreneur, respondent_type skipped
     assert final.status_code == 302
 
     submission = db.session.query(Submission).filter_by(token=token).one()

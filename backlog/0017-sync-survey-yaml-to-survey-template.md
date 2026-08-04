@@ -1,26 +1,60 @@
 ---
 id: 0017
-title: Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Part A)
+title: Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Parts A+B)
 type: feature
 status: shipped
 created: 2026-08-04
-branch: feature/survey-copy-and-explanations
+branch: feature/profile-grid-to-single-select
 ---
 
 ## Phasing
 
 Split into two independent parts (confirmed with Tom 2026-08-04):
-- **Part A (shipped 2026-08-04, this item)**: items 3–6 — reword `space_to_progress`/
+- **Part A (shipped 2026-08-04)**: items 3–6 — reword `space_to_progress`/
   `support_type`/`target_groups`, add Explanation help-text to `space_to_progress`,
   `need_most`, `have_enough`, `support_type`. Content-only for 3 of 4 questions; adding
   Explanation was a new schema concept (loader had no generic help-text field for
   `spectrum`/`triangle` questions) — landed as a new optional `explanation` field
   (not a reuse of `instructions`, which was already overloaded). Reviewer verdict: SHIP.
-  Branch `feature/survey-copy-and-explanations` off `dev`, not yet merged — Tom's
-  manual review/merge.
-- **Part B (not started, needs its own backlog item)**: item 7 — replace `profile_grid`
-  widget with two single-select questions. Fully independent of Part A; can land before
-  or after #0018. File via `/request` when ready to pick up.
+  Merged `feature/survey-copy-and-explanations` into `dev` and pushed 2026-08-04.
+- **Part B (shipped 2026-08-04)**: item 7 — replaced `profile_grid` widget with two
+  single-select questions (`profile_approach`/`profile_scope`), resolved via a new
+  `profile_matrix` construct. Kept the result-page 3x3 grid visualization per Tom's
+  explicit call (reconstructed at render time via `_profile_grid_context()`, mapping
+  `approach → y`, `scope → x`) rather than deleting it as originally scoped — spec was
+  revised mid-flight after Tom's answer to that OPEN QUESTION. `type: grid` schema
+  support removed entirely (confirmed unused elsewhere); `_question_grid.html` deleted;
+  `_result_grid.html` unchanged. Tester independently re-derived all 9 persona-mapping
+  cells against the retired grid on `dev` — exact match. Reviewer independently
+  spot-checked the same. Reviewer verdict: SHIP. Branch
+  `feature/profile-grid-to-single-select` off `dev`, not yet merged — Tom's manual
+  review/merge. One non-blocking nit: `_result_grid.html`'s header comment still
+  mentions the retired `profile_question` key (comment only, guard logic unaffected).
+  Follow-up filed separately: **#0019** (`prompt_organisation` schema field — the
+  org-register prompt variant from the template has no home; Part B used the single
+  individual-register prompt for both tracks per Tom's call).
+- **Part B follow-up tweak (same branch, pre-merge)**: after Part B landed as two
+  separate survey steps (`profile_approach` at step 7, `profile_scope` at step 8, real
+  survey 12 steps total), Tom asked to merge them onto ONE combined step instead — a
+  shared prompt, a live-updating sentence ("I want to [approach fragment] [scope
+  fragment]."), and a 2x3 button grid (top row = approach options, bottom row = scope
+  options). A new `survey_steps()` helper in `app/survey/loader.py` groups the two
+  adjacent `profile_matrix` questions into one rendered step (every other question
+  keeps its own step); `profile_matrix` gains `prompt`/`sentence_stem` fields plus an
+  adjacency validation check. Persona resolution, `profile_matrix`'s cell mapping, and
+  the result-page 3x3 grid are byte-identical — this was purely a survey-time
+  presentation/step-flow change. Real survey steps back down to 11. Tester caught a real
+  bug on first pass (commit `945961a`): the live-sentence JS's `data-sentence` used plain
+  `option.label` instead of the audience-aware `option_label(option, audience)` macro
+  already driving the visible button text — dormant today (neither profile question sets
+  `label_organisation` yet) but would've shown mismatched wording the moment one does.
+  Sent back to coder, fixed in `8f4b890`, tester independently re-verified PASS (443
+  tests). Reviewer then independently traced the fix, the `audience` variable's plumbing
+  into the partial, the mandatory-guard atomicity, and the CSP nonce (first inline
+  `<script>` in the codebase — confirmed no XSS surface, textContent only, no
+  respondent-controlled interpolation). Reviewer verdict: SHIP. Branch
+  `feature/profile-grid-to-single-select` off `dev`, not yet merged — Tom's manual
+  review/merge.
 
 ## Request
 
