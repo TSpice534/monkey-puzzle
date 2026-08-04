@@ -40,11 +40,12 @@ STEP_AMBITION = 3
 STEP_SPACE_TO_PROGRESS = 4
 STEP_NEED_MOST = 5
 STEP_HAVE_ENOUGH = 6
-STEP_PROFILE_GRID = 7
-STEP_TOPICS = 8
-STEP_SUPPORT_TYPE = 9
-STEP_TARGET_GROUPS = 10
-STEP_WHY_REASON = 11
+STEP_PROFILE_APPROACH = 7
+STEP_PROFILE_SCOPE = 8
+STEP_TOPICS = 9
+STEP_SUPPORT_TYPE = 10
+STEP_TARGET_GROUPS = 11
+STEP_WHY_REASON = 12
 
 
 @pytest.fixture(autouse=True)
@@ -61,9 +62,9 @@ def _start_new(client):
     return response.headers['Location'].split('/survey/')[1].split('/step/')[0]
 
 
-def _complete_survey(client, motivation='0', ambition='0', space_to_progress='0', grid='1,1'):
-    """Walk all 11 real-survey steps to completion. grid='1,1' -> entrepreneur
-    (persona modifier +2)."""
+def _complete_survey(client, motivation='0', ambition='0', space_to_progress='0', approach='1', scope='1'):
+    """Walk all 12 real-survey steps to completion. approach='1', scope='1'
+    -> entrepreneur (persona modifier +2)."""
     token = _start_new(client)
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': motivation})
@@ -71,7 +72,8 @@ def _complete_survey(client, motivation='0', ambition='0', space_to_progress='0'
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': space_to_progress})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0'})
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': grid})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_APPROACH}', data={'profile_approach': approach})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_SCOPE}', data={'profile_scope': scope})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
@@ -140,8 +142,8 @@ def test_motivation_unlabelled_stop_renders_blank_but_scores_correctly(client, d
     # Submit the unlabelled stop as the actual answer and drive to completion
     # with ambition/space_to_progress pinned to their lowest (score 1) option,
     # so the total is directly attributable to the unlabelled motivation score.
-    token = _complete_survey(client, motivation=str(index), ambition='0', space_to_progress='0', grid='0,0')
-    # grid (0,0) -> accountant, modifier +0 (content/survey.yaml)
+    token = _complete_survey(client, motivation=str(index), ambition='0', space_to_progress='0', approach='0', scope='0')
+    # profile pair (approach=0, scope=0) -> accountant, modifier +0 (content/survey.yaml)
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == expected_contribution + 1 + 1 + 0
 
@@ -178,8 +180,8 @@ def test_email_route_actual_dispatched_message_contains_band_name_in_both_bodies
     app.config['MAIL_SERVER'] = 'smtp.example.invalid'
     app.config['MAIL_DEFAULT_SENDER'] = 'noreply@example.com'
 
-    # High-scoring path -> Innovators (inventor grid cell, +4 modifier).
-    token = _complete_survey(client, motivation='4', ambition='2', space_to_progress='2', grid='0,2')
+    # High-scoring path -> Innovators (inventor profile pair, +4 modifier).
+    token = _complete_survey(client, motivation='4', ambition='2', space_to_progress='2', approach='2', scope='0')
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_band == 'Innovators'
 

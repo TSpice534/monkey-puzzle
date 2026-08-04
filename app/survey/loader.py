@@ -7,7 +7,7 @@ the YAML must conform to — it never hardcodes survey content.
 import yaml
 from flask import current_app
 
-_VALID_TYPES = {'spectrum', 'single', 'multi', 'short_text', 'triangle', 'multi_exact', 'multi_range', 'grid'}
+_VALID_TYPES = {'spectrum', 'single', 'multi', 'short_text', 'triangle', 'multi_exact', 'multi_range'}
 _VALID_AUDIENCES = {'individual', 'organisation'}
 _VALID_OUTPUTS = {'innovation_curve', 'now', 'next', 'profile_direct', 'why'}
 _TYPES_WITH_OPTIONS = {'spectrum', 'single', 'multi', 'triangle', 'multi_exact', 'multi_range'}
@@ -39,6 +39,7 @@ def load_survey(path: str) -> dict:
         _validate_scoring(raw)
         _validate_innovation_curve(raw)
         _validate_now_next(raw)
+        _validate_profile_matrix(raw)
         return _normalise(raw)
     except SurveyConfigError:
         raise
@@ -127,16 +128,8 @@ def _validate_questions(raw):
                 "survey.yaml 'respondent_type_question' must be the id of the first entry in 'questions'"
             )
 
-    # `profile_question` is optional — when present, it names the id of the
-    # interactive grid question that directly resolves the winning persona
-    # (see `app/survey/persona.py::resolve_profile_persona`).
-    profile_id = raw.get('profile_question')
-    if profile_id is not None and (not isinstance(profile_id, str) or not profile_id):
-        raise SurveyConfigError("survey.yaml 'profile_question' must be a non-empty string")
-
     valid_persona_ids = set(raw['personas'].keys())
     seen_ids = set()
-    question_types = {}
     for q in questions:
         if not isinstance(q, dict):
             raise SurveyConfigError('every question must be a mapping')
@@ -176,7 +169,6 @@ def _validate_questions(raw):
                 f"question '{qid}' has invalid type '{qtype}'; must be one of "
                 f'{sorted(_VALID_TYPES)}'
             )
-        question_types[qid] = qtype
 
         output = q.get('output')
         if output is not None and output not in _VALID_OUTPUTS:
@@ -190,14 +182,6 @@ def _validate_questions(raw):
                 raise SurveyConfigError(f"question '{qid}' is type short_text and must not have 'options'")
             if is_router:
                 raise SurveyConfigError(f"router question '{qid}' must not be type short_text")
-            continue
-
-        if qtype == 'grid':
-            if is_router:
-                raise SurveyConfigError(f"router question '{qid}' must not be type grid")
-            if q.get('options'):
-                raise SurveyConfigError(f"question '{qid}' is type grid and must not have top-level 'options'")
-            _validate_grid_question(q, valid_persona_ids)
             continue
 
         options = q.get('options')
@@ -311,65 +295,6 @@ def _validate_questions(raw):
                 f"router question '{qid}' options must cover each of {sorted(_VALID_AUDIENCES)} at least once"
             )
 
-    if profile_id is not None:
-        if profile_id not in question_types:
-            raise SurveyConfigError(
-                f"survey.yaml 'profile_question' references unknown question id '{profile_id}'"
-            )
-        if question_types[profile_id] != 'grid':
-            raise SurveyConfigError(
-                f"survey.yaml 'profile_question' must name a question of type 'grid', "
-                f"but '{profile_id}' is type '{question_types[profile_id]}'"
-            )
-
-
-def _validate_grid_question(q, valid_persona_ids):
-    qid = q['id']
-
-    for axis_name in ('x_axis', 'y_axis'):
-        axis = q.get(axis_name)
-        if not isinstance(axis, dict) or not axis.get('label'):
-            raise SurveyConfigError(f"question '{qid}' '{axis_name}' must be a mapping with a non-empty 'label'")
-        axis_options = axis.get('options')
-        if (
-            not isinstance(axis_options, list)
-            or len(axis_options) != 3
-            or not all(isinstance(o, str) and o for o in axis_options)
-        ):
-            raise SurveyConfigError(
-                f"question '{qid}' '{axis_name}.options' must be a list of exactly 3 non-empty strings"
-            )
-
-    cells = q.get('cells')
-    if not isinstance(cells, list) or len(cells) != 9:
-        raise SurveyConfigError(f"question '{qid}' 'cells' must be a list of exactly 9 entries")
-
-    seen_coords = set()
-    seen_personas = set()
-    for i, cell in enumerate(cells):
-        if not isinstance(cell, dict):
-            raise SurveyConfigError(f"question '{qid}' cell {i} must be a mapping")
-        x, y, persona_id = cell.get('x'), cell.get('y'), cell.get('persona')
-        if (
-            not isinstance(x, int) or isinstance(x, bool) or not (0 <= x <= 2)
-            or not isinstance(y, int) or isinstance(y, bool) or not (0 <= y <= 2)
-        ):
-            raise SurveyConfigError(f"question '{qid}' cell {i} must have integer 'x' and 'y' in 0..2")
-        if persona_id not in valid_persona_ids:
-            raise SurveyConfigError(f"question '{qid}' cell {i} references unknown persona id '{persona_id}'")
-        coord = (x, y)
-        if coord in seen_coords:
-            raise SurveyConfigError(f"question '{qid}' has duplicate cell coordinate {coord}")
-        seen_coords.add(coord)
-        if persona_id in seen_personas:
-            raise SurveyConfigError(f"question '{qid}' has duplicate persona '{persona_id}' across cells")
-        seen_personas.add(persona_id)
-
-    # All 9 (x, y) combos must be present exactly once (no gaps).
-    expected_coords = {(x, y) for x in range(3) for y in range(3)}
-    if seen_coords != expected_coords:
-        raise SurveyConfigError(f"question '{qid}' 'cells' must cover every (x, y) combo in 0..2 exactly once")
-
 
 def _validate_scoring(raw):
     scoring = raw['scoring']
@@ -477,6 +402,73 @@ def _validate_now_next(raw):
             raise SurveyConfigError(
                 f"survey.yaml 'now_next' field '{field}', if present, must be a non-empty string"
             )
+
+
+def _validate_profile_matrix(raw):
+    """Optional top-level `profile_matrix` construct (backlog #0017 Part B) —
+    resolves the winning persona directly from the two profile questions'
+    selected option indices, replacing the retired `type: grid` question.
+    Absent is valid (the small test fixtures have no profile_matrix). Models
+    its cell invariants on the removed `_validate_grid_question`."""
+    matrix = raw.get('profile_matrix')
+    if matrix is None:
+        return
+
+    if not isinstance(matrix, dict):
+        raise SurveyConfigError("survey.yaml 'profile_matrix' must be a mapping")
+
+    questions_by_id = {q.get('id'): q for q in raw['questions'] if isinstance(q, dict)}
+
+    for field in ('approach_question', 'scope_question'):
+        qid = matrix.get(field)
+        if not isinstance(qid, str) or not qid:
+            raise SurveyConfigError(f"survey.yaml 'profile_matrix.{field}' must be a non-empty string")
+        question = questions_by_id.get(qid)
+        if question is None:
+            raise SurveyConfigError(f"survey.yaml 'profile_matrix.{field}' references unknown question id '{qid}'")
+        if question.get('type') != 'single' or len(question.get('options') or []) != 3:
+            raise SurveyConfigError(
+                f"survey.yaml 'profile_matrix.{field}' must name a 'type: single' question with "
+                f"exactly 3 options, but '{qid}' does not"
+            )
+
+    valid_persona_ids = set(raw['personas'].keys())
+
+    cells = matrix.get('cells')
+    if not isinstance(cells, list) or len(cells) != 9:
+        raise SurveyConfigError("survey.yaml 'profile_matrix.cells' must be a list of exactly 9 entries")
+
+    seen_coords = set()
+    seen_personas = set()
+    for i, cell in enumerate(cells):
+        if not isinstance(cell, dict):
+            raise SurveyConfigError(f"survey.yaml 'profile_matrix.cells' entry {i} must be a mapping")
+        approach, scope, persona_id = cell.get('approach'), cell.get('scope'), cell.get('persona')
+        if (
+            not isinstance(approach, int) or isinstance(approach, bool) or not (0 <= approach <= 2)
+            or not isinstance(scope, int) or isinstance(scope, bool) or not (0 <= scope <= 2)
+        ):
+            raise SurveyConfigError(
+                f"survey.yaml 'profile_matrix.cells' entry {i} must have integer 'approach' and 'scope' in 0..2"
+            )
+        if persona_id not in valid_persona_ids:
+            raise SurveyConfigError(
+                f"survey.yaml 'profile_matrix.cells' entry {i} references unknown persona id '{persona_id}'"
+            )
+        coord = (approach, scope)
+        if coord in seen_coords:
+            raise SurveyConfigError(f"survey.yaml 'profile_matrix.cells' has duplicate cell coordinate {coord}")
+        seen_coords.add(coord)
+        if persona_id in seen_personas:
+            raise SurveyConfigError(f"survey.yaml 'profile_matrix.cells' has duplicate persona '{persona_id}' across cells")
+        seen_personas.add(persona_id)
+
+    # All 9 (approach, scope) combos must be present exactly once (no gaps).
+    expected_coords = {(a, s) for a in range(3) for s in range(3)}
+    if seen_coords != expected_coords:
+        raise SurveyConfigError(
+            "survey.yaml 'profile_matrix.cells' must cover every (approach, scope) combo in 0..2 exactly once"
+        )
 
 
 def _normalise(raw):

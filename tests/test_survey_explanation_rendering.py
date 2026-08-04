@@ -6,9 +6,11 @@ survives multi-line content as visible line breaks rather than raw HTML,
 and never leaks onto a result surface (step-page-only per spec).
 
 Step numbers mirror the real-survey layout documented in
-test_real_survey_e2e.py (backlog #0015 order: router, motivation, ambition,
-space_to_progress, need_most, have_enough, profile_grid, topics,
-support_type, target_groups, why_reason).
+test_real_survey_e2e.py (order: router, motivation, ambition,
+space_to_progress, need_most, have_enough, profile_approach, profile_scope,
+topics, support_type, target_groups, why_reason — backlog #0017 Part B split
+the old single `profile_grid` step into the two profile_approach/
+profile_scope steps).
 """
 import os
 
@@ -27,11 +29,12 @@ STEP_AMBITION = 3
 STEP_SPACE_TO_PROGRESS = 4
 STEP_NEED_MOST = 5
 STEP_HAVE_ENOUGH = 6
-STEP_PROFILE_GRID = 7
-STEP_TOPICS = 8
-STEP_SUPPORT_TYPE = 9
-STEP_TARGET_GROUPS = 10
-STEP_WHY_REASON = 11
+STEP_PROFILE_APPROACH = 7
+STEP_PROFILE_SCOPE = 8
+STEP_TOPICS = 9
+STEP_SUPPORT_TYPE = 10
+STEP_TARGET_GROUPS = 11
+STEP_WHY_REASON = 12
 
 
 @pytest.fixture(autouse=True)
@@ -57,10 +60,11 @@ def _answer_up_to_grid(client, token, audience_index):
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
 
 
-def _complete_survey(client, audience_index=INDIVIDUAL, grid='1,1', why_reason='Because it matters.'):
+def _complete_survey(client, audience_index=INDIVIDUAL, approach='1', scope='1', why_reason='Because it matters.'):
     token = _start_new(client)
     _answer_up_to_grid(client, token, audience_index)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': grid})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_APPROACH}', data={'profile_approach': approach})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_SCOPE}', data={'profile_scope': scope})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
@@ -104,7 +108,8 @@ def test_need_most_and_have_enough_and_support_type_steps_render_their_explanati
     assert 'class="question-explanation' in have_enough_body
     assert 'requirements or needs you may have that are already being met' in have_enough_body
 
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_APPROACH}', data={'profile_approach': '1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_SCOPE}', data={'profile_scope': '1'})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     support_type_body = client.get(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}').get_data(as_text=True)
     assert 'class="question-explanation' in support_type_body
@@ -124,7 +129,8 @@ def test_target_groups_step_renders_no_explanation_element_at_all(client):
     not an empty `<p class="question-explanation">`."""
     token = _start_new(client)
     _answer_up_to_grid(client, token, INDIVIDUAL)
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_APPROACH}', data={'profile_approach': '1'})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_SCOPE}', data={'profile_scope': '1'})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
 

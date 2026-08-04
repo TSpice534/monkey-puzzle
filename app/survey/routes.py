@@ -48,14 +48,6 @@ def _read_answer(question, form):
     if qtype == 'short_text':
         return (form.get(qid) or '').strip()
 
-    if qtype == 'grid':
-        raw = form.get(qid)
-        try:
-            x, y = raw.split(',')
-            return [int(x), int(y)]
-        except (AttributeError, TypeError, ValueError):
-            return None
-
     if qtype == 'triangle':
         raw = form.get(qid)
         if raw is None:
@@ -102,6 +94,54 @@ def _now_next_context(submission, survey):
     """{'now': <str|None>, 'next': <str|None>} for the result surfaces, or
     None when the survey has no now_next config."""
     return resolve_now_next(submission.answers, survey, submission.audience)
+
+
+def _profile_grid_context(submission, survey):
+    """Rebuild the (x, y)-shaped grid render context for _result_grid.html
+    from the two profile questions + profile_matrix, or (None, None) when the
+    survey has no profile_matrix. Axis convention matches
+    resolve_profile_persona: profile_approach (Row 1) -> y (vertical),
+    profile_scope (Row 2) -> x (horizontal).
+
+    Returns (grid_question, grid_selected):
+      grid_question — a dict shaped like the retired grid question:
+        {'x_axis': {'label', 'options'}, 'y_axis': {'label', 'options'},
+         'cells': [{'x', 'y', 'persona'}, ...]}
+      grid_selected — [x, y] (i.e. [scope_answer, approach_answer]), or None
+        if either answer is missing/malformed (defensive; both are mandatory).
+    """
+    matrix = survey.get('profile_matrix')
+    if not matrix:
+        return None, None
+    questions_by_id = {q['id']: q for q in survey['questions']}
+    approach_q = questions_by_id.get(matrix['approach_question'])
+    scope_q = questions_by_id.get(matrix['scope_question'])
+    if approach_q is None or scope_q is None:
+        return None, None
+
+    grid_question = {
+        'x_axis': {
+            'label': scope_q['prompt'],
+            'options': [opt['label'] for opt in scope_q['options']],
+        },
+        'y_axis': {
+            'label': approach_q['prompt'],
+            'options': [opt['label'] for opt in approach_q['options']],
+        },
+        'cells': [
+            {'x': c['scope'], 'y': c['approach'], 'persona': c['persona']}
+            for c in matrix['cells']
+        ],
+    }
+
+    approach = submission.answers.get(matrix['approach_question'])
+    scope = submission.answers.get(matrix['scope_question'])
+    grid_selected = None
+    if (isinstance(approach, int) and not isinstance(approach, bool)
+            and isinstance(scope, int) and not isinstance(scope, bool)):
+        grid_selected = [scope, approach]   # [x, y]
+
+    return grid_question, grid_selected
 
 
 def _why_context(submission, survey):
@@ -165,10 +205,15 @@ def step(token, step):
                     total=total, token=token, audience=submission.audience,
                 )
 
-        # grid: a cell must be picked (mandatory)
-        if question['type'] == 'grid':
-            if not (isinstance(value, list) and len(value) == 2):
-                flash('Please select a position on the grid to continue.', 'danger')
+        # profile_matrix: both profile questions are mandatory (the retired
+        # grid was mandatory; a skipped profile question would otherwise
+        # silently fall through to the tie-break fallback and mis-classify)
+        profile_matrix = survey.get('profile_matrix') or {}
+        profile_qids = {profile_matrix.get('approach_question'),
+                        profile_matrix.get('scope_question')}
+        if question['id'] in profile_qids:
+            if not isinstance(value, int) or isinstance(value, bool):
+                flash('Please choose an option to continue.', 'danger')
                 return render_template(
                     'survey/step.html', title='The Monkey Puzzle',
                     question=question, saved_value=value, step=step,
@@ -232,14 +277,7 @@ def result(token):
     persona = survey['personas'][submission.persona_id]
     fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
 
-    grid_qid = survey.get('profile_question')
-    grid_question = None
-    grid_selected = None   # [x, y]
-    if grid_qid:
-        grid_question = next((q for q in survey['questions'] if q['id'] == grid_qid), None)
-        answer = submission.answers.get(grid_qid)
-        if isinstance(answer, list) and len(answer) == 2:
-            grid_selected = answer
+    grid_question, grid_selected = _profile_grid_context(submission, survey)
 
     return render_template(
         'survey/result.html',

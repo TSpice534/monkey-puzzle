@@ -1,8 +1,10 @@
 # The Monkey Puzzle — real survey content
 #
-# The 11-step survey from docs/SURVEY-TEMPLATE.md, owned by Rob and Andrew.
+# The 12-step survey from docs/SURVEY-TEMPLATE.md, owned by Rob and Andrew.
 # `personas`/`scoring` below are unchanged from the earlier placeholder
-# content; only `questions:` and the new `profile_question` key changed.
+# content; only `questions:` and the new `profile_matrix` construct changed
+# (backlog #0017 Part B replaced the old interactive `profile_grid` question
+# with two `type: single` questions resolved via `profile_matrix`).
 
 meta:
   version: 1
@@ -17,9 +19,9 @@ meta:
 # untagged questions are shared by both.
 respondent_type_question: respondent_type
 
-# The interactive 3x3 persona grid (question 8, `profile_grid`) directly
-# resolves the winning persona — see `app/survey/persona.py::resolve_profile_persona`.
-profile_question: profile_grid
+# The two profile questions (`profile_approach`/`profile_scope`) jointly
+# resolve the winning persona via the `profile_matrix` construct below — see
+# `app/survey/persona.py::resolve_profile_persona`.
 
 personas:
   accountant:
@@ -288,35 +290,23 @@ questions:
       - { label: "Knowledge", statement_phrase: "knowledge" }
       - { label: "Support", statement_phrase: "support" }
 
-  - id: profile_grid
-    type: grid
-    prompt: "Where would you like to act, and how?"
+  - id: profile_approach
+    type: single
     output: profile_direct
-    instructions:
-      individual: "Find yourself on this grid and select"
-      organisation: "Find your organisation on this grid and select"
-    x_axis:
-      label: "Where would you like to act?"
-      options:
-        - "Internal: own organisation and actions"
-        - "Sector: collaboration and network"
-        - "Society: storytelling and speaking out"
-    y_axis:
-      label: "What approach would you like to use?"
-      options:
-        - "Create a stage and address the topic"
-        - "Implement existing solutions"
-        - "Develop new ideas and ways to progress"
-    cells:
-      - { x: 0, y: 2, persona: inventor }
-      - { x: 1, y: 2, persona: architect }
-      - { x: 2, y: 2, persona: cooperator }
-      - { x: 0, y: 1, persona: implementer }
-      - { x: 1, y: 1, persona: entrepreneur }
-      - { x: 2, y: 1, persona: connector }
-      - { x: 0, y: 0, persona: accountant }
-      - { x: 1, y: 0, persona: communicator }
-      - { x: 2, y: 0, persona: activist }
+    prompt: 'Complete the following sentence: "I want to..."'
+    options:
+      - { label: "Create space to address the topic" }
+      - { label: "Work to implement existing solutions" }
+      - { label: "Test new ideas" }
+
+  - id: profile_scope
+    type: single
+    output: profile_direct
+    prompt: "Where do you want to focus?"
+    options:
+      - { label: "Within my own organisation" }
+      - { label: "Collaborating within my sector" }
+      - { label: "Creating impact within wider society" }
 
   - id: topics
     type: multi_range
@@ -474,3 +464,24 @@ now_next:
     This could be achieved by accessing more {support_type} to address this
     challenge. In terms of collaboration ambitions, you are keen to engage more
     {target_groups}.
+
+# Profile matrix (backlog #0017 Part B) — two single-select questions whose
+# combined answers directly resolve the winning persona, replacing the old
+# 3x3 grid input. `approach` = profile_approach option index (Y axis),
+# `scope` = profile_scope option index (X axis). Cell->persona mapping is
+# unchanged from the retired profile_grid. Used by
+# app/survey/persona.py::resolve_profile_persona AND by the result-page grid
+# reconstruction in app/survey/routes.py::_profile_grid_context.
+profile_matrix:
+  approach_question: profile_approach
+  scope_question: profile_scope
+  cells:
+    - { approach: 0, scope: 0, persona: accountant }
+    - { approach: 0, scope: 1, persona: communicator }
+    - { approach: 0, scope: 2, persona: activist }
+    - { approach: 1, scope: 0, persona: implementer }
+    - { approach: 1, scope: 1, persona: entrepreneur }
+    - { approach: 1, scope: 2, persona: connector }
+    - { approach: 2, scope: 0, persona: inventor }
+    - { approach: 2, scope: 1, persona: architect }
+    - { approach: 2, scope: 2, persona: cooperator }

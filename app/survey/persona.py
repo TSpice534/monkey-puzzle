@@ -82,20 +82,21 @@ def classify(scores: dict, config: dict) -> PersonaResult:
 
 
 def resolve_profile_persona(answers: dict, config: dict) -> str | None:
-    """Return the persona id the grid answer resolves to, or None if the survey
-    has no profile grid, the grid is unanswered, or the answer is malformed.
-    (The unanswered/malformed None path is defensive only — the UI makes the grid
-    mandatory, so normal completed submissions always resolve here.)"""
-    qid = config.get('profile_question')
-    if not qid:
+    """Return the persona id the profile pair resolves to, or None if the
+    survey has no profile_matrix, either question is unanswered, or the pair
+    matches no cell. (The unanswered None path is defensive — both questions
+    are mandatory to advance, so completed submissions always resolve.)"""
+    matrix = config.get('profile_matrix')
+    if not matrix:
         return None
-    grid = next((q for q in config['questions'] if q['id'] == qid), None)
-    answer = answers.get(qid)
-    if grid is None or not (isinstance(answer, list) and len(answer) == 2):
+    approach = answers.get(matrix['approach_question'])
+    scope = answers.get(matrix['scope_question'])
+    if not isinstance(approach, int) or isinstance(approach, bool):
         return None
-    x, y = answer
-    for cell in grid.get('cells', []):
-        if cell['x'] == x and cell['y'] == y:
+    if not isinstance(scope, int) or isinstance(scope, bool):
+        return None
+    for cell in matrix.get('cells', []):
+        if cell['approach'] == approach and cell['scope'] == scope:
             return cell['persona']
     return None
 
@@ -228,14 +229,14 @@ def resolve_now_next(answers: dict, config: dict, audience: str | None) -> dict 
 
 def classify_submission(answers: dict, config: dict) -> PersonaResult:
     """Convenience: score_submission -> apply_modifiers -> classify, preferring
-    the profile grid's direct persona resolution when available (defensive
+    the profile pair's direct persona resolution when available (defensive
     fallback to the weighted classifier's tie_break-ordered argmax otherwise —
     see `resolve_profile_persona`)."""
     scores = score_submission(answers, config)      # keeps hook invocation below
     scores = apply_modifiers(scores, config)         # existing no-op hooks preserved
     winner = resolve_profile_persona(answers, config)
     if winner is not None:
-        # Grid directly determines the persona; one-hot score_vector keeps the
+        # The profile pair directly determines the persona; one-hot score_vector keeps the
         # existing radar/fingerprint chart rendering (highlighting the winner).
         vector = {pid: (1.0 if pid == winner else 0.0) for pid in scores}
         return PersonaResult(persona_id=winner, persona=config['personas'][winner], scores=vector)

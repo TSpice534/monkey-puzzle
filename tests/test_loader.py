@@ -485,37 +485,11 @@ def test_effective_questions_filters_by_audience(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# New question types (backlog #0003): triangle, multi_exact, grid; the
-# `output` schema tag; the optional `label_organisation` option field; and
-# the `profile_question` top-level key.
+# New question types (backlog #0003): triangle, multi_exact; the `output`
+# schema tag; the optional `label_organisation` option field. The
+# `profile_matrix` top-level construct (backlog #0017 Part B) is covered in
+# its own section further below.
 # ---------------------------------------------------------------------------
-
-def _grid_question(qid='profile_grid'):
-    return {
-        'id': qid,
-        'type': 'grid',
-        'prompt': 'Where would you like to act, and how?',
-        'x_axis': {
-            'label': 'Where would you like to act?',
-            'options': ['Internal', 'Sector', 'Society'],
-        },
-        'y_axis': {
-            'label': 'What approach would you like to use?',
-            'options': ['Create a stage', 'Implement', 'Develop'],
-        },
-        'cells': [
-            {'x': 0, 'y': 2, 'persona': 'inventor'},
-            {'x': 1, 'y': 2, 'persona': 'architect'},
-            {'x': 2, 'y': 2, 'persona': 'cooperator'},
-            {'x': 0, 'y': 1, 'persona': 'implementer'},
-            {'x': 1, 'y': 1, 'persona': 'entrepreneur'},
-            {'x': 2, 'y': 1, 'persona': 'connector'},
-            {'x': 0, 'y': 0, 'persona': 'accountant'},
-            {'x': 1, 'y': 0, 'persona': 'communicator'},
-            {'x': 2, 'y': 0, 'persona': 'activist'},
-        ],
-    }
-
 
 def _triangle_question(qid='q_triangle'):
     return {
@@ -547,96 +521,138 @@ def _multi_range_question(qid='q_multi_range', choose_min=1, choose_max=3):
     }
 
 
-def test_valid_grid_question_loads(tmp_path):
-    data = _base_config()
-    data['questions'].append(_grid_question())
-    config = load_survey(_write_yaml(tmp_path, data))
-    grid = next(q for q in config['questions'] if q['id'] == 'profile_grid')
-    assert len(grid['cells']) == 9
-    assert 'options' not in grid
+def _profile_questions():
+    """The two `type: single` questions a `profile_matrix` construct can
+    reference, mirroring the real `profile_approach`/`profile_scope` shape."""
+    return [
+        {
+            'id': 'profile_approach',
+            'type': 'single',
+            'prompt': 'Complete the following sentence: "I want to..."',
+            'options': [
+                {'label': 'Create space to address the topic'},
+                {'label': 'Work to implement existing solutions'},
+                {'label': 'Test new ideas'},
+            ],
+        },
+        {
+            'id': 'profile_scope',
+            'type': 'single',
+            'prompt': 'Where do you want to focus?',
+            'options': [
+                {'label': 'Within my own organisation'},
+                {'label': 'Collaborating within my sector'},
+                {'label': 'Creating impact within wider society'},
+            ],
+        },
+    ]
 
 
-def test_grid_with_missing_axis_options_raises(tmp_path):
+def _profile_matrix_construct():
+    return {
+        'approach_question': 'profile_approach',
+        'scope_question': 'profile_scope',
+        'cells': [
+            {'approach': 0, 'scope': 0, 'persona': 'accountant'},
+            {'approach': 0, 'scope': 1, 'persona': 'communicator'},
+            {'approach': 0, 'scope': 2, 'persona': 'activist'},
+            {'approach': 1, 'scope': 0, 'persona': 'implementer'},
+            {'approach': 1, 'scope': 1, 'persona': 'entrepreneur'},
+            {'approach': 1, 'scope': 2, 'persona': 'connector'},
+            {'approach': 2, 'scope': 0, 'persona': 'inventor'},
+            {'approach': 2, 'scope': 1, 'persona': 'architect'},
+            {'approach': 2, 'scope': 2, 'persona': 'cooperator'},
+        ],
+    }
+
+
+def _config_with_profile_matrix():
     data = _base_config()
-    grid = _grid_question()
-    grid['x_axis']['options'] = ['Internal', 'Sector']  # only 2, needs 3
-    data['questions'].append(grid)
+    data['questions'].extend(_profile_questions())
+    data['profile_matrix'] = _profile_matrix_construct()
+    return data
+
+
+def test_absent_profile_matrix_is_valid(tmp_path):
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    assert config.get('profile_matrix') is None
+
+
+def test_valid_profile_matrix_loads(tmp_path):
+    config = load_survey(_write_yaml(tmp_path, _config_with_profile_matrix()))
+    assert len(config['profile_matrix']['cells']) == 9
+    assert config['profile_matrix']['approach_question'] == 'profile_approach'
+    assert config['profile_matrix']['scope_question'] == 'profile_scope'
+
+
+def test_profile_matrix_approach_question_referencing_unknown_question_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['approach_question'] = 'does_not_exist'
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
 
-def test_grid_with_wrong_cell_count_raises(tmp_path):
-    data = _base_config()
-    grid = _grid_question()
-    grid['cells'] = grid['cells'][:-1]  # only 8 cells
-    data['questions'].append(grid)
+def test_profile_matrix_scope_question_referencing_missing_question_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['scope_question'] = 'does_not_exist'
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
 
-def test_grid_with_duplicate_cell_coordinate_raises(tmp_path):
-    data = _base_config()
-    grid = _grid_question()
-    grid['cells'][1]['x'] = grid['cells'][0]['x']
-    grid['cells'][1]['y'] = grid['cells'][0]['y']
-    data['questions'].append(grid)
+def test_profile_matrix_question_not_type_single_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['approach_question'] = 'q_single'  # exists but has only 2 options
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
 
-def test_grid_with_unknown_cell_persona_raises(tmp_path):
-    data = _base_config()
-    grid = _grid_question()
-    grid['cells'][0]['persona'] = 'not-a-real-persona'
-    data['questions'].append(grid)
+def test_profile_matrix_question_with_wrong_option_count_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['questions'][-2]['options'] = data['questions'][-2]['options'][:2]  # profile_approach, only 2
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
 
-def test_grid_cell_referencing_pre_rename_persona_id_raises(tmp_path):
+def test_profile_matrix_with_wrong_cell_count_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['cells'] = data['profile_matrix']['cells'][:-1]  # only 8 cells
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_with_duplicate_cell_coordinate_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['cells'][1]['approach'] = data['profile_matrix']['cells'][0]['approach']
+    data['profile_matrix']['cells'][1]['scope'] = data['profile_matrix']['cells'][0]['scope']
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_with_unknown_cell_persona_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['cells'][0]['persona'] = 'not-a-real-persona'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_cell_referencing_pre_rename_persona_id_raises(tmp_path):
     """Failure case for backlog #0018: `personas` now only defines `inventor`
     (post-rename), so a leftover/missed reference to the old id `developer`
-    anywhere else in the config -- e.g. a grid cell some other file forgot
-    to update -- must be caught as a config error, not silently misroute or
-    crash later. This is the safety net the spec relies on to catch any
-    missed rename spot."""
-    data = _base_config()
-    grid = _grid_question()
-    grid['cells'][0]['persona'] = 'developer'  # old id, no longer a real persona
-    data['questions'].append(grid)
+    anywhere else in the config -- e.g. a profile_matrix cell some other file
+    forgot to update -- must be caught as a config error, not silently
+    misroute or crash later. This is the safety net the spec relies on to
+    catch any missed rename spot."""
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['cells'][0]['persona'] = 'developer'  # old id, no longer a real persona
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
 
 
-def test_grid_with_duplicate_persona_across_cells_raises(tmp_path):
-    data = _base_config()
-    grid = _grid_question()
-    grid['cells'][1]['persona'] = grid['cells'][0]['persona']
-    data['questions'].append(grid)
+def test_profile_matrix_with_duplicate_persona_across_cells_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['cells'][1]['persona'] = data['profile_matrix']['cells'][0]['persona']
     with pytest.raises(SurveyConfigError):
         load_survey(_write_yaml(tmp_path, data))
-
-
-def test_profile_question_naming_a_non_grid_question_raises(tmp_path):
-    data = _base_config()
-    data['profile_question'] = 'q_single'  # exists but is type 'single'
-    with pytest.raises(SurveyConfigError):
-        load_survey(_write_yaml(tmp_path, data))
-
-
-def test_profile_question_naming_a_missing_question_raises(tmp_path):
-    data = _base_config()
-    data['profile_question'] = 'does_not_exist'
-    with pytest.raises(SurveyConfigError):
-        load_survey(_write_yaml(tmp_path, data))
-
-
-def test_profile_question_naming_a_grid_question_loads(tmp_path):
-    data = _base_config()
-    data['questions'].append(_grid_question())
-    data['profile_question'] = 'profile_grid'
-    config = load_survey(_write_yaml(tmp_path, data))
-    assert config['profile_question'] == 'profile_grid'
 
 
 def test_multi_exact_valid_loads(tmp_path):
@@ -846,25 +862,6 @@ def test_explanation_valid_loads_on_short_text_question(tmp_path):
     loaded = next(q for q in config['questions'] if q['id'] == 'q_short_text')
     assert loaded['explanation'] == 'Anything you would like to add.'
 
-
-def test_explanation_empty_raises_on_grid_question(tmp_path):
-    """`grid` also `continue`s early — same coverage as short_text above."""
-    data = _base_config()
-    grid = _grid_question()
-    grid['explanation'] = ''
-    data['questions'].append(grid)
-    with pytest.raises(SurveyConfigError):
-        load_survey(_write_yaml(tmp_path, data))
-
-
-def test_explanation_valid_loads_on_grid_question(tmp_path):
-    data = _base_config()
-    grid = _grid_question()
-    grid['explanation'] = 'Find yourself on this grid and select a cell.'
-    data['questions'].append(grid)
-    config = load_survey(_write_yaml(tmp_path, data))
-    loaded = next(q for q in config['questions'] if q['id'] == 'profile_grid')
-    assert loaded['explanation'] == 'Find yourself on this grid and select a cell.'
 
 
 # ---------------------------------------------------------------------------

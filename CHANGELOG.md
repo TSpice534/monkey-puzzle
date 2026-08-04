@@ -45,6 +45,11 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   render with visible line breaks). `space_to_progress`, `need_most`, `have_enough`, and
   `support_type` all gain explanation text; `target_groups` has none, matching the source
   template.
+- Change: replaced the interactive 3x3 profile grid input with two single-select
+  questions (`profile_approach` / `profile_scope`) resolving the same 9 personas via a
+  new `profile_matrix` construct; removed `type: grid` schema support; the labelled 3x3
+  grid still renders on the result page, now driven by the two answers (backlog #0017
+  Part B).
 
 ## [v0.2.0] — 2026-07-24
 
