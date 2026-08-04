@@ -2,9 +2,9 @@
 id: 0019
 title: Add prompt_organisation schema field for org-register question prompts
 type: feature
-status: todo
+status: in-progress
 created: 2026-08-04
-branch:
+branch: feature/prompt-organisation-field
 ---
 
 ## Request
