@@ -2,7 +2,12 @@
 #
 # The 11-step survey from docs/SURVEY-TEMPLATE.md, owned by Rob and Andrew.
 # `personas`/`scoring` below are unchanged from the earlier placeholder
-# content; only `questions:` and the new `profile_question` key changed.
+# content; only `questions:` and the new `profile_matrix` construct changed
+# (backlog #0017 Part B replaced the old interactive `profile_grid` question
+# with two `type: single` questions resolved via `profile_matrix`; a Part B
+# follow-up tweak merges those two questions onto one combined survey step
+# with a live-updating sentence and a 2x3 button grid — see
+# `app/survey/loader.py::survey_steps`).
 
 meta:
   version: 1
@@ -17,9 +22,11 @@ meta:
 # untagged questions are shared by both.
 respondent_type_question: respondent_type
 
-# The interactive 3x3 persona grid (question 8, `profile_grid`) directly
-# resolves the winning persona — see `app/survey/persona.py::resolve_profile_persona`.
-profile_question: profile_grid
+# The two profile questions (`profile_approach`/`profile_scope`) jointly
+# resolve the winning persona via the `profile_matrix` construct below — see
+# `app/survey/persona.py::resolve_profile_persona`. They are collected on one
+# combined survey step (a shared prompt, a live-updating sentence, and a 2x3
+# button grid) — see `app/survey/loader.py::survey_steps`.
 
 personas:
   accountant:
@@ -37,7 +44,7 @@ personas:
       impact — reporting and measuring the data so the organisation knows
       what's actually happening, not what it hopes is happening.
     natural_allies: [communicator]
-    friends: [developer]
+    friends: [inventor]
     necessity: [implementer]
     case_studies:
       - { title: "Placeholder case study — Accountant", url: "https://example.com/case-studies/accountant" }
@@ -66,10 +73,10 @@ personas:
     resources:
       - { title: "Placeholder resource — a rollout checklist template", url: "https://example.com/resources/implementer-checklist" }
 
-  developer:
-    name: "The Developer"
+  inventor:
+    name: "The Inventor"
     tagline: "You are the thinker!"
-    icon: "icons/developer.svg"
+    icon: "icons/inventor.svg"
     description: >
       You work with difficult questions and help to develop innovative
       solutions. Your focus is innovation and new improvements — holding a
@@ -80,18 +87,18 @@ personas:
       innovative solutions. The focus is innovation and new improvements —
       holding a high standard for becoming more sustainable and taking fresh
       steps to improve on existing options.
-    natural_allies: [advocate]
+    natural_allies: [architect]
     friends: [connector]
     necessity: [implementer]
     case_studies:
-      - { title: "Placeholder case study — Developer", url: "https://example.com/case-studies/developer" }
+      - { title: "Placeholder case study — Inventor", url: "https://example.com/case-studies/inventor" }
     resources:
-      - { title: "Placeholder resource — prototyping on a small budget", url: "https://example.com/resources/developer-prototyping" }
+      - { title: "Placeholder resource — prototyping on a small budget", url: "https://example.com/resources/inventor-prototyping" }
 
-  advocate:
-    name: "The Advocate"
+  architect:
+    name: "The Architect"
     tagline: "You are the crowbar!"
-    icon: "icons/advocate.svg"
+    icon: "icons/architect.svg"
     description: >
       You open up new places, creating new spaces for conversation and
       action. Your focus is making sustainability an important topic and
@@ -101,12 +108,12 @@ personas:
       conversation and action. The focus is making sustainability an
       important topic and launching the initiatives that get things moving.
     natural_allies: [communicator]
-    friends: [developer, connector]
+    friends: [inventor, connector]
     necessity: [cooperator]
     case_studies:
-      - { title: "Placeholder case study — Advocate", url: "https://example.com/case-studies/advocate" }
+      - { title: "Placeholder case study — Architect", url: "https://example.com/case-studies/architect" }
     resources:
-      - { title: "Placeholder resource — making the case internally", url: "https://example.com/resources/advocate-case-making" }
+      - { title: "Placeholder resource — making the case internally", url: "https://example.com/resources/architect-case-making" }
 
   communicator:
     name: "The Communicator"
@@ -121,7 +128,7 @@ personas:
       visible for all. The focus is sharing information and sending knowledge
       outward — communicating to a larger group so the work doesn't stay
       hidden.
-    natural_allies: [advocate, accountant]
+    natural_allies: [architect, accountant]
     friends: [connector, cooperator]
     necessity: [implementer]
     case_studies:
@@ -189,7 +196,7 @@ personas:
       create impact that benefits progress in a wider view.
     natural_allies: [connector]
     friends: [communicator]
-    necessity: [developer]
+    necessity: [inventor]
     case_studies:
       - { title: "Placeholder case study — Cooperator", url: "https://example.com/case-studies/cooperator" }
     resources:
@@ -210,7 +217,7 @@ personas:
       an idea into a business, making a business of progress and finding the
       right financial market fit.
     natural_allies: [implementer, cooperator]
-    friends: [communicator, advocate]
+    friends: [communicator, architect]
     necessity: [accountant]
     case_studies:
       - { title: "Placeholder case study — Entrepreneur", url: "https://example.com/case-studies/entrepreneur" }
@@ -225,10 +232,6 @@ questions:
       - { label: "As an individual", audience_value: individual }
       - { label: "On behalf of an organisation", audience_value: organisation }
 
-  - id: why_reason
-    type: short_text
-    prompt: "Do you have a \"why\"? A reason why this topic is relevant or important for you?"
-
   - id: motivation
     type: spectrum
     output: innovation_curve
@@ -238,7 +241,7 @@ questions:
       - { label: "Intermediate position",                    unlabelled: true,                                                score: 2 }
       - { label: "I understand I need to act on this topic", label_organisation: "We understand we need to act on this topic", score: 3 }
       - { label: "Intermediate position",                    unlabelled: true,                                                score: 4 }
-      - { label: "It is part of my role",                    label_organisation: "We must meet our legal responsibilities",    score: 5 }
+      - { label: "I do only what is asked/required",         label_organisation: "We do only what is asked/required",    score: 5 }
 
   - id: ambition
     type: spectrum
@@ -254,18 +257,25 @@ questions:
   - id: space_to_progress
     type: spectrum
     output: innovation_curve
-    prompt: "How much space do you have to progress?"
+    prompt: "What is the current balance between your commitments and capacity?"
+    explanation: |-
+      This question is asking you to consider how much you are currently committed, and whether you feel there is enough capacity for you / your organisation to meet those commitments.
     options:
-      - { label: "A lot, I'm still operating in my comfort zone",                            label_organisation: "A lot, we're still operating in our comfort zone",                          score: 1 }
-      - { label: "Some space, I am busy but still have capacity",                            label_organisation: "Some space, we are busy but still have capacity",                           score: 3 }
-      - { label: "I feel I have good balance between my capacity and commitments",                                                                                                            score: 5 }
-      - { label: "Very little, I am highly committed and further progress is out of scope",  label_organisation: "Very little, we are highly committed and further progress is out of scope", score: 3 }
-      - { label: "None",                                                                                                                                                                     score: 1 }
+      - { label: "Few commitments, lots of capacity",             score: 1 }
+      - { label: "Some commitments, some capacity",               score: 3 }
+      - { label: "Balanced between our commitments and capacity", score: 5 }
+      - { label: "Little capacity, high level of commitment",     score: 3 }
+      - { label: "No capacity, fully commited",                   score: 1 }
 
   - id: need_most
     type: triangle
     output: next
     prompt: "What do you need most to progress?"
+    explanation: |-
+      This question is asking you to consider your additional requirements or needs:
+      - Capacity refers to skills, time and/or resources.
+      - Knowledge refers to information, training and/or applied practice
+      - Support refers to encouragement, space for community development and/or pathways to mastery / autonomy
     options:
       - { label: "More capacity", statement_phrase: "capacity" }
       - { label: "More knowledge", statement_phrase: "knowledge" }
@@ -275,40 +285,34 @@ questions:
     type: triangle
     output: now
     prompt: "What do you already have enough of?"
+    explanation: |-
+      This question is asking what requirements or needs you may have that are already being met:
+      - Capacity refers to skills, time and/or resources.
+      - Knowledge refers to information, training and/or applied practice
+      - Support refers to encouragement, space for community development and/or pathways to mastery / autonomy
     options:
       - { label: "Capacity", statement_phrase: "capacity" }
       - { label: "Knowledge", statement_phrase: "knowledge" }
       - { label: "Support", statement_phrase: "support" }
 
-  - id: profile_grid
-    type: grid
-    prompt: "Where would you like to act, and how?"
+  - id: profile_approach
+    type: single
     output: profile_direct
-    instructions:
-      individual: "Find yourself on this grid and select"
-      organisation: "Find your organisation on this grid and select"
-    x_axis:
-      label: "Where would you like to act?"
-      options:
-        - "Internal: own organisation and actions"
-        - "Sector: collaboration and network"
-        - "Society: storytelling and speaking out"
-    y_axis:
-      label: "What approach would you like to use?"
-      options:
-        - "Create a stage and address the topic"
-        - "Implement existing solutions"
-        - "Develop new ideas and ways to progress"
-    cells:
-      - { x: 0, y: 2, persona: developer }
-      - { x: 1, y: 2, persona: advocate }
-      - { x: 2, y: 2, persona: cooperator }
-      - { x: 0, y: 1, persona: implementer }
-      - { x: 1, y: 1, persona: entrepreneur }
-      - { x: 2, y: 1, persona: connector }
-      - { x: 0, y: 0, persona: accountant }
-      - { x: 1, y: 0, persona: communicator }
-      - { x: 2, y: 0, persona: activist }
+    prompt: 'Complete the following sentence: "I want to..."'
+    prompt_organisation: 'Complete the following sentence: "We want to..."'
+    options:
+      - { label: "Create space to address the topic" }
+      - { label: "Work to implement existing solutions" }
+      - { label: "Test new ideas" }
+
+  - id: profile_scope
+    type: single
+    output: profile_direct
+    prompt: "Where do you want to focus?"
+    options:
+      - { label: "Within my own organisation" }
+      - { label: "Collaborating within my sector" }
+      - { label: "Creating impact within wider society" }
 
   - id: topics
     type: multi_range
@@ -330,7 +334,12 @@ questions:
   - id: support_type
     type: triangle
     output: next
-    prompt: "What type of support do you desire?"
+    prompt: "What type of assistance do you desire?"
+    explanation: |-
+      This question is asking you to consider what kind of assistance would help you achieve your goals:
+      - Information, where you are finding/sharing appropriate knowledge
+      - Training, where you are taught new information or skills
+      - Mentoring, where you work in collaboration focussed on your case.
     options:
       - { label: "Information", statement_phrase: "information" }
       - { label: "Training", statement_phrase: "training" }
@@ -339,7 +348,7 @@ questions:
   - id: target_groups
     type: single
     output: next
-    prompt: "What target groups would you like to collaborate with the most?"
+    prompt: "Who are you trying to work with?"
     options:
       - { label: "I want to engage my audience",                  label_organisation: "We want to engage our audience",                  statement_phrase: "with your audience" }
       - { label: "I want to partner with my suppliers",           label_organisation: "We want to partner with our suppliers",           statement_phrase: "with suppliers" }
@@ -347,13 +356,18 @@ questions:
       - { label: "I want to entice policy makers",                label_organisation: "We want to entice policy makers",                 statement_phrase: "with policy makers" }
       - { label: "I want to focus on own organisation first",     label_organisation: "We want to focus on our own organisation first",  statement_phrase: "within your own organisation" }
 
+  - id: why_reason
+    type: short_text
+    output: why
+    prompt: "In one sentence, why is this work on this topic important to you?"
+
 scoring:
   method: persona_vector
   tie_break:
     - accountant
     - implementer
-    - developer
-    - advocate
+    - inventor
+    - architect
     - communicator
     - activist
     - connector
@@ -373,10 +387,10 @@ innovation_curve:
     cooperator: 3
     connector: 3
     activist: 4
-    advocate: 3
+    architect: 3
     entrepreneur: 2
     communicator: 1
-    developer: 4
+    inventor: 4
     implementer: 1
     accountant: 0
   bands:
@@ -456,3 +470,30 @@ now_next:
     This could be achieved by accessing more {support_type} to address this
     challenge. In terms of collaboration ambitions, you are keen to engage more
     {target_groups}.
+
+# Profile matrix (backlog #0017 Part B) — two single-select questions whose
+# combined answers directly resolve the winning persona, replacing the old
+# 3x3 grid input. `approach` = profile_approach option index (Y axis),
+# `scope` = profile_scope option index (X axis). Cell->persona mapping is
+# unchanged from the retired profile_grid. Used by
+# app/survey/persona.py::resolve_profile_persona AND by the result-page grid
+# reconstruction in app/survey/routes.py::_profile_grid_context. `prompt` and
+# `sentence_stem` (Part B follow-up tweak) drive the combined survey step's
+# shared legend and live-updating sentence — see
+# app/templates/survey/_question_profile_pair.html.
+profile_matrix:
+  prompt: "Finish the following sentence..."
+  sentence_stem: "I want to"
+  sentence_stem_organisation: "We want to"
+  approach_question: profile_approach
+  scope_question: profile_scope
+  cells:
+    - { approach: 0, scope: 0, persona: accountant }
+    - { approach: 0, scope: 1, persona: communicator }
+    - { approach: 0, scope: 2, persona: activist }
+    - { approach: 1, scope: 0, persona: implementer }
+    - { approach: 1, scope: 1, persona: entrepreneur }
+    - { approach: 1, scope: 2, persona: connector }
+    - { approach: 2, scope: 0, persona: inventor }
+    - { approach: 2, scope: 1, persona: architect }
+    - { approach: 2, scope: 2, persona: cooperator }

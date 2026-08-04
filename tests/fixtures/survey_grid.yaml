@@ -1,6 +1,10 @@
 # Fixture survey exercising the new question types added for backlog #0003:
-# `grid` (profile-direct persona resolution), `triangle`, `multi_exact`, and
-# per-audience `label_organisation` wording. Small enough to drive the full
+# `triangle`, `multi_exact`, and per-audience `label_organisation` wording,
+# plus the two profile_approach/profile_scope single-select questions +
+# `profile_matrix` construct that replaced the old `profile_grid` question
+# (backlog #0017 Part B). The two profile questions collapse onto one
+# combined survey step (backlog #0017 Part B follow-up tweak) — see
+# `app/survey/loader.py::survey_steps`. Small enough to drive the full
 # step->step->result flow in a handful of requests.
 meta:
   version: 1
@@ -8,7 +12,6 @@ meta:
   personas_count: 9
 
 respondent_type_question: respondent_type
-profile_question: profile_grid
 
 personas:
   accountant:
@@ -19,12 +22,12 @@ personas:
     name: "The Implementer"
     tagline: "Tagline"
     description: "Description"
-  developer:
-    name: "The Developer"
+  inventor:
+    name: "The Inventor"
     tagline: "Tagline"
     description: "Description"
-  advocate:
-    name: "The Advocate"
+  architect:
+    name: "The Architect"
     tagline: "Tagline"
     description: "Description"
   communicator:
@@ -81,34 +84,23 @@ questions:
       - { label: "Item 3" }
       - { label: "Item 4" }
 
-  - id: profile_grid
-    type: grid
-    prompt: "Where would you like to act, and how?"
-    instructions:
-      individual: "Find yourself on this grid and select"
-      organisation: "Find your organisation on this grid and select"
-    x_axis:
-      label: "Where would you like to act?"
-      options:
-        - "Internal: own organisation and actions"
-        - "Sector: collaboration and network"
-        - "Society: storytelling and speaking out"
-    y_axis:
-      label: "What approach would you like to use?"
-      options:
-        - "Create a stage and address the topic"
-        - "Implement existing solutions"
-        - "Develop new ideas and ways to progress"
-    cells:
-      - { x: 0, y: 2, persona: developer }
-      - { x: 1, y: 2, persona: advocate }
-      - { x: 2, y: 2, persona: cooperator }
-      - { x: 0, y: 1, persona: implementer }
-      - { x: 1, y: 1, persona: entrepreneur }
-      - { x: 2, y: 1, persona: connector }
-      - { x: 0, y: 0, persona: accountant }
-      - { x: 1, y: 0, persona: communicator }
-      - { x: 2, y: 0, persona: activist }
+  - id: profile_approach
+    type: single
+    output: profile_direct
+    prompt: 'Complete the following sentence: "I want to..."'
+    options:
+      - { label: "Create space to address the topic", label_organisation: "Create space, as an org, to address the topic" }
+      - { label: "Work to implement existing solutions" }
+      - { label: "Test new ideas" }
+
+  - id: profile_scope
+    type: single
+    output: profile_direct
+    prompt: "Where do you want to focus?"
+    options:
+      - { label: "Within my own organisation" }
+      - { label: "Collaborating within my sector" }
+      - { label: "Creating impact within wider society" }
 
   - id: q_multi_range
     type: multi_range
@@ -127,8 +119,8 @@ scoring:
   tie_break:
     - accountant
     - implementer
-    - developer
-    - advocate
+    - inventor
+    - architect
     - communicator
     - activist
     - connector
@@ -136,3 +128,19 @@ scoring:
     - entrepreneur
   equity_modifier: { enabled: false }
   rogers_curve: { enabled: false }
+
+profile_matrix:
+  prompt: "Finish the following sentence..."
+  sentence_stem: "I want to"
+  approach_question: profile_approach
+  scope_question: profile_scope
+  cells:
+    - { approach: 0, scope: 0, persona: accountant }
+    - { approach: 0, scope: 1, persona: communicator }
+    - { approach: 0, scope: 2, persona: activist }
+    - { approach: 1, scope: 0, persona: implementer }
+    - { approach: 1, scope: 1, persona: entrepreneur }
+    - { approach: 1, scope: 2, persona: connector }
+    - { approach: 2, scope: 0, persona: inventor }
+    - { approach: 2, scope: 1, persona: architect }
+    - { approach: 2, scope: 2, persona: cooperator }

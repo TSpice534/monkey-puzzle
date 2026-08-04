@@ -4,7 +4,7 @@
 
 Tom is building a new platform, **The Monkey Puzzle** — a quick, graphical, no-login
 self-assessment that outputs a personalised sustainability *persona* ("your sustainable
-who"): one of nine profiles (Accountant, Implementer, Developer, Advocate, Communicator,
+who"): one of nine profiles (Accountant, Implementer, Inventor, Architect, Communicator,
 Activist, Connector, Cooperator, Entrepreneur). Framing is "know yourself," not
 "measure what you're doing wrong." Primary pilot: the Federation of Music Conferences
 (32 conferences), later extending to European cultural/business events.

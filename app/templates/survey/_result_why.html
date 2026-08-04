@@ -1,0 +1,11 @@
+{# Respondent's own free-text "why" answer (backlog #0015) — shared partial
+   included inside _persona_card.html, reaching the web result page + PDF.
+   Guarded on an empty/absent answer (the question is skippable; old
+   submissions predate it). Plain string, no `| safe` — Jinja auto-escaping
+   only, since this is user-entered free text. #}
+{% if why %}
+<div class="mt-3">
+  <h2 class="h6">Why this matters to you</h2>
+  <p class="mb-0 fst-italic">{{ why }}</p>
+</div>
+{% endif %}

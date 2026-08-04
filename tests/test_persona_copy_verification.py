@@ -35,16 +35,16 @@ INDIVIDUAL = 0
 ORGANISATION = 1
 
 STEP_RESPONDENT_TYPE = 1
-STEP_WHY_REASON = 2
-STEP_MOTIVATION = 3
-STEP_AMBITION = 4
-STEP_SPACE_TO_PROGRESS = 5
-STEP_NEED_MOST = 6
-STEP_HAVE_ENOUGH = 7
-STEP_PROFILE_GRID = 8
-STEP_TOPICS = 9
-STEP_SUPPORT_TYPE = 10
-STEP_TARGET_GROUPS = 11
+STEP_MOTIVATION = 2
+STEP_AMBITION = 3
+STEP_SPACE_TO_PROGRESS = 4
+STEP_NEED_MOST = 5
+STEP_HAVE_ENOUGH = 6
+STEP_PROFILE = 7
+STEP_TOPICS = 8
+STEP_SUPPORT_TYPE = 9
+STEP_TARGET_GROUPS = 10
+STEP_WHY_REASON = 11
 
 
 @pytest.fixture(autouse=True)
@@ -62,21 +62,24 @@ def _start_new(client):
 
 
 def _complete_survey(client, token, respondent_type_data, motivation='0',
-                      ambition='0', space='0', grid='1,1'):
-    """Walk steps 2-11 to completion; step 1 (respondent_type) is driven by
+                      ambition='0', space='0', approach='1', scope='1'):
+    """Walk steps 2-12 to completion; step 1 (respondent_type) is driven by
     the caller so both the normal and the skipped-router cases can share
-    this helper."""
+    this helper. `why_reason` (the last step, backlog #0015) is now last and
+    its POST is what triggers classification. approach='1'/scope='1' ->
+    entrepreneur (backlog #0017 Part B: the old single `grid='1,1'` param
+    split into these two)."""
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data=respondent_type_data)
-    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={} if motivation is None else {'motivation': motivation})
     client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={} if ambition is None else {'ambition': ambition})
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={} if space is None else {'space_to_progress': space})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0'})
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': grid})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': approach, 'profile_scope': scope})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
-    return client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    return client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +90,7 @@ def _complete_survey(client, token, respondent_type_data, motivation='0',
 
 def test_communicator_two_value_relationships_render_both_names_on_web_result(client, db):
     token = _start_new(client)
-    final = _complete_survey(client, token, {'respondent_type': str(INDIVIDUAL)}, grid='1,0')  # -> communicator
+    final = _complete_survey(client, token, {'respondent_type': str(INDIVIDUAL)}, approach='0', scope='1')  # -> communicator
     assert final.status_code == 302
 
     submission = db.session.query(Submission).filter_by(token=token).one()
@@ -96,8 +99,8 @@ def test_communicator_two_value_relationships_render_both_names_on_web_result(cl
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
     assert 'The Communicator' in body
     assert 'You are the voice!' in body
-    # natural_allies: [advocate, accountant] -> both must render, comma-separated
-    assert 'The Advocate, The Accountant' in body
+    # natural_allies: [architect, accountant] -> both must render, comma-separated
+    assert 'The Architect, The Accountant' in body
     # friends: [connector, cooperator] -> both must render, comma-separated
     assert 'The Connector, The Cooperator' in body
 
@@ -118,7 +121,7 @@ def test_communicator_two_value_relationships_render_both_names_in_pdf(app):
             'pdf/result.html', persona=communicator, personas=survey['personas'],
             fingerprint_svg='<svg></svg>', innovation=None, audience=None,
         )
-    assert 'The Advocate, The Accountant' in html
+    assert 'The Architect, The Accountant' in html
     assert 'The Connector, The Cooperator' in html
 
 
@@ -132,7 +135,7 @@ def test_laggard_band_tagline_renders_verbatim_on_real_low_score_submission(clie
     token = _start_new(client)
     final = _complete_survey(
         client, token, {'respondent_type': str(INDIVIDUAL)},
-        motivation=None, ambition=None, space=None, grid='0,0',  # -> accountant, modifier 0
+        motivation=None, ambition=None, space=None, approach='0', scope='0',  # -> accountant, modifier 0
     )
     assert final.status_code == 302
 
@@ -202,7 +205,7 @@ def test_description_falls_back_correctly_when_router_question_is_skipped(client
     The persona description must still resolve to the individual/default
     wording, not crash, and not show organisation wording."""
     token = _start_new(client)
-    final = _complete_survey(client, token, {}, grid='1,1')  # -> entrepreneur, respondent_type skipped
+    final = _complete_survey(client, token, {}, approach='1', scope='1')  # -> entrepreneur, respondent_type skipped
     assert final.status_code == 302
 
     submission = db.session.query(Submission).filter_by(token=token).one()
@@ -262,7 +265,7 @@ def test_email_bodies_never_render_persona_relationships(app):
         assert label not in text_body
         assert label not in html_body
 
-    for related_name in ('The Implementer', 'The Cooperator', 'The Communicator', 'The Advocate', 'The Accountant'):
+    for related_name in ('The Implementer', 'The Cooperator', 'The Communicator', 'The Architect', 'The Accountant'):
         assert related_name not in text_body
         assert related_name not in html_body
 

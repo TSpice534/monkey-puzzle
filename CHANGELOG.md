@@ -6,6 +6,74 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.3.0] — 2026-08-04
+
+- Change: reword and move the "why" question, surface it on results (backlog #0015) —
+  `why_reason` (`content/survey.yaml`) is reworded from "Do you have a \"why\"? A reason
+  why this topic is relevant or important for you?" to "In one sentence, why is this work
+  on this topic important to you?", moves from question 2 to the last question in the
+  survey (after `target_groups`), and gains a new `output: why` tag (added to
+  `app/survey/loader.py`'s `_VALID_OUTPUTS`). The respondent's own free-text answer now
+  renders on the web result page and in the PDF report, via a new `_why_context` builder in
+  `app/survey/routes.py` (mirroring `_now_next_context`), threaded through
+  `generate_result_pdf`'s new `why` kwarg, and a new shared partial
+  `app/templates/survey/_result_why.html` included in `_persona_card.html` just below the
+  persona description. Skipped/blank answers and submissions predating the question render
+  nothing — no crash, no guard needed on the step route
+- Change: replace landing page lead copy with survey description text (backlog #0016) —
+  `app/templates/index.html`'s `<p class="lead">` now describes what the survey captures
+  and that results are personalised and shareable, replacing the prior "what it is / how
+  many questions" blurb.
+- Change: rename the Developer and Advocate personas to Inventor and Architect (backlog
+  #0018) — a full id-level rename (`developer`→`inventor`, `advocate`→`architect`) across
+  `content/survey.yaml` (persona blocks, relation lists, grid cells, tie-break order,
+  innovation-curve persona modifiers), the two persona icon SVGs under
+  `app/static/icons/` (renamed, no content change), all test fixtures and test files that
+  mirror the real persona set, and the persona-name lists in `README.md`,
+  `docs/INNOVATION-SCORING-TEMPLATE.md`, `docs/PRODUCTION-PLAN.md`, and
+  `docs/PROFILES-TEMPLATE.md` (also fixes that doc's stale relationship-column references
+  to the old names). Taglines, descriptions, grid positions, and tie-break/modifier values
+  are unchanged — a pure token rename.
+- Change: reword four question prompts/options and add per-question help text (backlog
+  #0017 Part A) — `content/survey.yaml`'s `space_to_progress` prompt and all 5 option
+  labels move to audience-neutral wording (drops `label_organisation` on that question),
+  `support_type`'s prompt changes to "What type of assistance do you desire?", and
+  `target_groups`'s prompt changes to "Who are you trying to work with?" (options
+  unchanged on both). Also adds a new optional per-question `explanation` string field —
+  distinct from `instructions` — validated generically in `app/survey/loader.py` for every
+  question type, and rendered once, auto-escaped, below the prompt in
+  `app/templates/survey/step.html` (`.question-explanation`, `white-space: pre-line` in
+  `app/static/css/theme.css`, so multi-line explanations stored as YAML block scalars
+  render with visible line breaks). `space_to_progress`, `need_most`, `have_enough`, and
+  `support_type` all gain explanation text; `target_groups` has none, matching the source
+  template.
+- Change: replaced the interactive 3x3 profile grid input with two single-select
+  questions (`profile_approach` / `profile_scope`) resolving the same 9 personas via a
+  new `profile_matrix` construct; removed `type: grid` schema support; the labelled 3x3
+  grid still renders on the result page, now driven by the two answers (backlog #0017
+  Part B).
+- Change: merged the two profile questions (`profile_approach` / `profile_scope`) onto a
+  single survey page with a shared prompt, a live-updating sentence, and a 2x3 button
+  grid; both selections remain mandatory and resolve the same persona via
+  `profile_matrix` (backlog #0017 Part B follow-up). A new `survey_steps()` helper in
+  `app/survey/loader.py` groups the two adjacent profile questions into one rendered
+  step (every other question keeps its own step); `profile_matrix` gains `prompt`/
+  `sentence_stem` fields and an adjacency validation check; persona resolution and the
+  result-page grid are unchanged. The real survey drops from 12 steps back to 11.
+- Change: add org-register prompt support and fix the profile step's aria-label register
+  (backlog #0019) — a new optional per-question `prompt_organisation` string field
+  (loader-validated, same shape as `label_organisation`), rendered via a new
+  `question_prompt(question, audience)` macro in `app/templates/survey/_macros.html`.
+  `content/survey.yaml`'s `profile_approach` question is the only one that gains a
+  `prompt_organisation` ("Complete the following sentence: \"We want to...\""), matching
+  `docs/SURVEY-TEMPLATE.md` — no other question has a distinct org-register prompt.
+  `profile_matrix` gains a matching optional `sentence_stem_organisation` ("We want to"),
+  resolved in `app/survey/routes.py::_render_step` so the combined profile step's live
+  sentence flips register on the org track. `_question_profile_pair.html`'s two
+  `role="radiogroup"` `aria-label`s, which previously used `question.prompt` directly and
+  so stayed individual-register even on the org track, now go through `question_prompt`
+  too, alongside `step.html`'s single-question legend.
+
 ## [v0.2.0] — 2026-07-24
 
 - Feature: topics question (Q9) — choose up to 3, not exactly 3 (backlog #0014) —

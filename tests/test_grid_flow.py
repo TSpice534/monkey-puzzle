@@ -1,9 +1,14 @@
 """Route tests for the new question types added for backlog #0003: the
-interactive persona grid (mandatory to advance, grid-direct classification),
-`triangle`, `multi_exact`, and per-audience option wording. Also covers
-`multi_range` (backlog #0014: choose-a-range, not exactly-N). Uses
-tests/fixtures/survey_grid.yaml (6 steps: respondent_type, q_worded,
-q_triangle, q_multi_exact, profile_grid, q_multi_range)."""
+profile-pair questions (`profile_approach`/`profile_scope`, mandatory to
+advance, profile-direct classification — replaced the old interactive
+`profile_grid` widget per backlog #0017 Part B, though the result page still
+renders a reconstructed labelled 3x3 grid), `triangle`, `multi_exact`, and
+per-audience option wording. Also covers `multi_range` (backlog #0014:
+choose-a-range, not exactly-N). Uses tests/fixtures/survey_grid.yaml (6
+steps: respondent_type, q_worded, q_triangle, q_multi_exact, profile
+(combined, step 5), q_multi_range (step 6) — a backlog #0017 Part B
+follow-up tweak merged profile_approach/profile_scope onto one combined
+step)."""
 import os
 
 import pytest
@@ -34,7 +39,7 @@ def _start_new(client):
 
 def _answer_up_to_grid(client, token, audience=INDIVIDUAL, worded_index=0):
     """POST steps 1-4 (router, q_worded, q_triangle, q_multi_exact), leaving
-    step 5 (profile_grid) unanswered."""
+    step 5 (the combined profile step) unanswered."""
     client.post(f'/survey/{token}/step/1', data={'respondent_type': str(audience)})
     client.post(f'/survey/{token}/step/2', data={'q_worded': str(worded_index)})
     client.post(f'/survey/{token}/step/3', data={'q_triangle': '0'})
@@ -42,10 +47,10 @@ def _answer_up_to_grid(client, token, audience=INDIVIDUAL, worded_index=0):
 
 
 def _answer_up_to_multi_range(client, token, audience=INDIVIDUAL, worded_index=0):
-    """POST steps 1-5 (router, q_worded, q_triangle, q_multi_exact,
-    profile_grid), leaving step 6 (q_multi_range) unanswered."""
+    """POST steps 1-5 (router, q_worded, q_triangle, q_multi_exact, the
+    combined profile step), leaving step 6 (q_multi_range) unanswered."""
     _answer_up_to_grid(client, token, audience=audience, worded_index=worded_index)
-    client.post(f'/survey/{token}/step/5', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '1', 'profile_scope': '1'})
 
 
 def _input_tag(body, input_id):
@@ -62,22 +67,24 @@ def _input_tag(body, input_id):
 
 
 # ---------------------------------------------------------------------------
-# Grid — persistence and grid-direct classification
+# Profile pair — persistence and profile-direct classification (combined
+# step, backlog #0017 Part B follow-up tweak)
 # ---------------------------------------------------------------------------
 
-def test_grid_step_post_persists_selected_cell(client, db):
+def test_profile_pair_step_post_persists_both_selected_options(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '1', 'profile_scope': '1'})
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert submission.answers['profile_grid'] == [1, 1]
+    assert submission.answers['profile_approach'] == 1
+    assert submission.answers['profile_scope'] == 1
 
 
-def test_completing_survey_classifies_to_the_grid_mapped_persona(client, db):
+def test_completing_survey_classifies_to_the_profile_mapped_persona(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_grid': '1,1'})  # -> entrepreneur
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '1', 'profile_scope': '1'})  # -> entrepreneur
     final = client.post(f'/survey/{token}/step/6', data={'q_multi_range': ['0']})
 
     assert final.status_code == 302
@@ -88,33 +95,63 @@ def test_completing_survey_classifies_to_the_grid_mapped_persona(client, db):
 
 
 # ---------------------------------------------------------------------------
-# Grid — mandatory to advance
+# Profile pair — mandatory to advance (both fields required, combined step)
 # ---------------------------------------------------------------------------
 
-def test_grid_step_with_no_selection_rerenders_without_advancing(client, db):
+def test_profile_step_with_neither_field_rerenders_without_advancing(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
     response = client.post(f'/survey/{token}/step/5', data={})
 
     assert response.status_code == 200
-    assert b'Please select a position on the grid to continue.' in response.data
+    assert b'Please choose an option to continue.' in response.data
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert 'profile_grid' not in submission.answers
+    assert 'profile_approach' not in submission.answers
+    assert 'profile_scope' not in submission.answers
     assert submission.persona_id is None
 
 
-def test_grid_step_with_a_valid_cell_advances(client, db):
+def test_profile_step_with_only_approach_rerenders_without_advancing(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    response = client.post(f'/survey/{token}/step/5', data={'profile_grid': '0,0'})  # -> accountant
+    response = client.post(f'/survey/{token}/step/5', data={'profile_approach': '0'})
+
+    assert response.status_code == 200
+    assert b'Please choose an option to continue.' in response.data
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert 'profile_approach' not in submission.answers
+    assert 'profile_scope' not in submission.answers
+    assert submission.persona_id is None
+
+
+def test_profile_step_with_only_scope_rerenders_without_advancing(client, db):
+    token = _start_new(client)
+    _answer_up_to_grid(client, token)
+    response = client.post(f'/survey/{token}/step/5', data={'profile_scope': '0'})
+
+    assert response.status_code == 200
+    assert b'Please choose an option to continue.' in response.data
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert 'profile_approach' not in submission.answers
+    assert 'profile_scope' not in submission.answers
+    assert submission.persona_id is None
+
+
+def test_profile_step_with_both_fields_advances(client, db):
+    token = _start_new(client)
+    _answer_up_to_grid(client, token)
+    response = client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '0'})
 
     assert response.status_code == 302
     assert response.headers['Location'].endswith(f'/survey/{token}/step/6')
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert submission.answers['profile_grid'] == [0, 0]
-    assert submission.persona_id is None  # not yet classified — q_multi_range still pending
+    assert submission.answers['profile_approach'] == 0
+    assert submission.answers['profile_scope'] == 0
+    assert submission.persona_id is None  # not yet classified — later steps still pending
 
 
 # ---------------------------------------------------------------------------
@@ -316,6 +353,33 @@ def test_before_routing_the_default_wording_is_used(client):
     assert b'individual' in response.data.lower()
 
 
+def test_combined_profile_step_live_sentence_data_uses_audience_aware_wording(client):
+    """The visible button label on the combined profile step is
+    audience-aware (`option_label` picks `label_organisation` on the
+    organisation track, same as every other question — see
+    test_organisation_track_shows_the_organisation_wording above). The live
+    sentence's `data-sentence` attribute drives what the JS widget echoes
+    back to the respondent and must show the SAME text the respondent just
+    read on the button, not the individual-track default they never saw."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/1', data={'respondent_type': str(ORGANISATION)})
+    client.post(f'/survey/{token}/step/2', data={'q_worded': '0'})
+    client.post(f'/survey/{token}/step/3', data={'q_triangle': '0'})
+    client.post(f'/survey/{token}/step/4', data={'q_multi_exact': ['0', '1']})
+
+    response = client.get(f'/survey/{token}/step/5')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    # The button itself correctly shows the organisation wording.
+    assert 'Create space, as an org, to address the topic' in body
+    # The live-sentence widget's data-sentence attribute (what the on-change
+    # JS actually echoes into the sentence) must match what's on the button,
+    # not silently fall back to the individual-track label.
+    approach_0 = _input_tag(body, 'profile_approach_0')
+    assert 'data-sentence="Create space, as an org, to address the topic"' in approach_0
+
+
 # ---------------------------------------------------------------------------
 # Result page
 # ---------------------------------------------------------------------------
@@ -323,7 +387,7 @@ def test_before_routing_the_default_wording_is_used(client):
 def test_result_page_renders_the_labelled_grid_with_chosen_persona(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_grid': '2,0'})  # -> activist
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '2'})  # -> activist
     client.post(f'/survey/{token}/step/6', data={'q_multi_range': ['0']})
 
     response = client.get(f'/survey/{token}/result')
@@ -349,7 +413,7 @@ def test_security_headers_present_on_grid_step(client):
 def test_security_headers_present_on_result_page(client):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_grid': '0,0'})
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '0'})
     client.post(f'/survey/{token}/step/6', data={'q_multi_range': ['0']})
 
     response = client.get(f'/survey/{token}/result')

@@ -16,3 +16,12 @@
 | 0012 | Clamp innovation-curve score to 15, shrink the curve graphic to match | change | shipped | 2026-07-17 |
 | 0013 | Replace spectrum slider with click-to-select box row | change | shipped | 2026-07-24 |
 | 0014 | Topics question (Q9) — allow choosing up to 3, not exactly 3 | change | shipped | 2026-07-24 |
+| 0015 | Reword "why" question, move to end of survey, show answer on results + PDF | change | shipped | 2026-08-04 |
+| 0016 | Add survey description copy to landing page | change | shipped | 2026-08-04 |
+| 0017 | Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Parts A+B) | feature | shipped | 2026-08-04 |
+| 0018 | Rename Developer→Inventor and Advocate→Architect personas (id + copy) | change | shipped | 2026-08-04 |
+| 0019 | Add prompt_organisation schema field for org-register question prompts | feature | shipped | 2026-08-04 |
+| 0020 | Remove radial graph from results page | change | todo | 2026-08-04 |
+| 0021 | Cap free-text answer length and rate-limit /start and /step | bug | todo | 2026-08-04 |
+| 0022 | Cache/offload og:image and PDF rendering so they stop blocking sync Gunicorn workers | change | todo | 2026-08-04 |
+| 0023 | Split pytest and other test-only deps out of the production requirements lock | change | todo | 2026-08-04 |

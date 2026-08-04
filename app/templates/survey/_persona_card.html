@@ -10,6 +10,8 @@
     <p class="lead">{{ persona.tagline }}</p>
     <p>{{ persona_description(persona, audience) }}</p>
 
+    {% include "survey/_result_why.html" %}
+
     {% include "survey/_result_now_next.html" %}
 
     {% if persona.natural_allies %}

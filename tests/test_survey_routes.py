@@ -10,7 +10,7 @@ from app.survey.loader import clear_survey_cache, load_survey
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), 'fixtures', 'survey_min.yaml')
 
 PERSONA_IDS = [
-    'accountant', 'implementer', 'developer', 'advocate', 'communicator',
+    'accountant', 'implementer', 'inventor', 'architect', 'communicator',
     'activist', 'connector', 'cooperator', 'entrepreneur',
 ]
 
@@ -119,7 +119,7 @@ def test_step_post_short_text_is_trimmed(client, db):
 
 def test_completing_final_step_sets_persona_and_score_vector(client, db):
     token = _start_new(client)
-    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})       # developer: 2
+    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})       # inventor: 2
     client.post(f'/survey/{token}/step/2', data={'q_multi': ['0', '1']})  # implementer:1, communicator:1
     client.post(f'/survey/{token}/step/3', data={'q_spectrum': '1'})     # entrepreneur: 1
     final_response = client.post(f'/survey/{token}/step/4', data={'q_short_text': 'because reasons'})
@@ -128,7 +128,7 @@ def test_completing_final_step_sets_persona_and_score_vector(client, db):
     assert final_response.headers['Location'].endswith(f'/survey/{token}/result')
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert submission.persona_id == 'developer'
+    assert submission.persona_id == 'inventor'
     assert set(submission.score_vector.keys()) == set(PERSONA_IDS)
 
 
@@ -140,11 +140,29 @@ def test_result_page_renders_persona_name_after_completion(client):
     client.post(f'/survey/{token}/step/4', data={'q_short_text': ''})
 
     survey = load_survey(FIXTURE_PATH)
-    persona_name = survey['personas']['developer']['name']
+    persona_name = survey['personas']['inventor']['name']
 
     response = client.get(f'/survey/{token}/result')
     assert response.status_code == 200
     assert persona_name.encode() in response.data
+
+
+def test_result_page_renders_nothing_for_why_when_fixture_has_no_output_why_question(client):
+    """backlog #0015: `_why_context` returns None when the survey has no
+    `output: why` question at all (this fixture's `q_short_text` carries no
+    `output` tag) — the small-fixture route tests must keep passing with no
+    'Why this matters to you' section rendered."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})
+    client.post(f'/survey/{token}/step/2', data={'q_multi': []})
+    client.post(f'/survey/{token}/step/3', data={'q_spectrum': '0'})
+    client.post(f'/survey/{token}/step/4', data={'q_short_text': 'some free text'})
+
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Why this matters to you' not in body
 
 
 def test_answers_accumulate_across_all_steps(client, db):
@@ -176,13 +194,13 @@ def test_resubmitting_final_step_reclassifies_with_new_answer(client, db):
     re-submits the final step) — the persona/score_vector must reflect the
     *new* answers, not silently keep the stale classification."""
     token = _start_new(client)
-    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})       # developer: 2
+    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})       # inventor: 2
     client.post(f'/survey/{token}/step/2', data={'q_multi': []})
     client.post(f'/survey/{token}/step/3', data={'q_spectrum': '0'})
     client.post(f'/survey/{token}/step/4', data={'q_short_text': ''})
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert submission.persona_id == 'developer'
+    assert submission.persona_id == 'inventor'
 
     # Go back to step 1 and pick the other option, then re-complete.
     client.post(f'/survey/{token}/step/1', data={'q_single': '1'})       # accountant: 2
@@ -204,13 +222,13 @@ def test_editing_earlier_step_after_completion_does_not_retroactively_update_res
     result page is only recomputed when the final step is (re)submitted,
     documenting the actual persist-then-classify behaviour."""
     token = _start_new(client)
-    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})       # developer: 2
+    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})       # inventor: 2
     client.post(f'/survey/{token}/step/2', data={'q_multi': []})
     client.post(f'/survey/{token}/step/3', data={'q_spectrum': '0'})
     client.post(f'/survey/{token}/step/4', data={'q_short_text': ''})
 
     submission = db.session.query(Submission).filter_by(token=token).one()
-    assert submission.persona_id == 'developer'
+    assert submission.persona_id == 'inventor'
 
     # Revisit step 1 and change the answer, but stop there (no re-submission
     # of the final step).
@@ -218,7 +236,7 @@ def test_editing_earlier_step_after_completion_does_not_retroactively_update_res
 
     db.session.refresh(submission)
     assert submission.answers['q_single'] == 1
-    assert submission.persona_id == 'developer'  # unchanged until re-completed
+    assert submission.persona_id == 'inventor'  # unchanged until re-completed
 
     response = client.get(f'/survey/{token}/result')
     assert response.status_code == 200  # already classified, so no redirect

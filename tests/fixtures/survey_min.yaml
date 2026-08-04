@@ -15,12 +15,12 @@ personas:
     name: "The Implementer"
     tagline: "Tagline"
     description: "Description"
-  developer:
-    name: "The Developer"
+  inventor:
+    name: "The Inventor"
     tagline: "Tagline"
     description: "Description"
-  advocate:
-    name: "The Advocate"
+  architect:
+    name: "The Architect"
     tagline: "Tagline"
     description: "Description"
   communicator:
@@ -50,7 +50,7 @@ questions:
     prompt: "Pick one"
     dimension: roots
     options:
-      - { label: "Option A", weights: { developer: 2 } }
+      - { label: "Option A", weights: { inventor: 2 } }
       - { label: "Option B", weights: { accountant: 2 } }
 
   - id: q_multi
@@ -79,8 +79,8 @@ scoring:
   tie_break:
     - accountant
     - implementer
-    - developer
-    - advocate
+    - inventor
+    - architect
     - communicator
     - activist
     - connector
