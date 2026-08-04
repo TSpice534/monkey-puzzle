@@ -43,7 +43,18 @@ Split into two independent parts (confirmed with Tom 2026-08-04):
   keeps its own step); `profile_matrix` gains `prompt`/`sentence_stem` fields plus an
   adjacency validation check. Persona resolution, `profile_matrix`'s cell mapping, and
   the result-page 3x3 grid are byte-identical — this was purely a survey-time
-  presentation/step-flow change. Real survey steps back down to 11.
+  presentation/step-flow change. Real survey steps back down to 11. Tester caught a real
+  bug on first pass (commit `945961a`): the live-sentence JS's `data-sentence` used plain
+  `option.label` instead of the audience-aware `option_label(option, audience)` macro
+  already driving the visible button text — dormant today (neither profile question sets
+  `label_organisation` yet) but would've shown mismatched wording the moment one does.
+  Sent back to coder, fixed in `8f4b890`, tester independently re-verified PASS (443
+  tests). Reviewer then independently traced the fix, the `audience` variable's plumbing
+  into the partial, the mandatory-guard atomicity, and the CSP nonce (first inline
+  `<script>` in the codebase — confirmed no XSS surface, textContent only, no
+  respondent-controlled interpolation). Reviewer verdict: SHIP. Branch
+  `feature/profile-grid-to-single-select` off `dev`, not yet merged — Tom's manual
+  review/merge.
 
 ## Request
 
