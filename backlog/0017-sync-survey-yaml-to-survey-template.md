@@ -1,26 +1,30 @@
 ---
 id: 0017
-title: Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Part A)
+title: Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Part B)
 type: feature
-status: shipped
+status: in-progress
 created: 2026-08-04
-branch: feature/survey-copy-and-explanations
+branch: feature/profile-grid-to-single-select
 ---
 
 ## Phasing
 
 Split into two independent parts (confirmed with Tom 2026-08-04):
-- **Part A (shipped 2026-08-04, this item)**: items 3–6 — reword `space_to_progress`/
+- **Part A (shipped 2026-08-04)**: items 3–6 — reword `space_to_progress`/
   `support_type`/`target_groups`, add Explanation help-text to `space_to_progress`,
   `need_most`, `have_enough`, `support_type`. Content-only for 3 of 4 questions; adding
   Explanation was a new schema concept (loader had no generic help-text field for
   `spectrum`/`triangle` questions) — landed as a new optional `explanation` field
   (not a reuse of `instructions`, which was already overloaded). Reviewer verdict: SHIP.
-  Branch `feature/survey-copy-and-explanations` off `dev`, not yet merged — Tom's
-  manual review/merge.
-- **Part B (not started, needs its own backlog item)**: item 7 — replace `profile_grid`
-  widget with two single-select questions. Fully independent of Part A; can land before
-  or after #0018. File via `/request` when ready to pick up.
+  Merged `feature/survey-copy-and-explanations` into `dev` and pushed 2026-08-04.
+- **Part B (in progress, this item now)**: item 7 — replace `profile_grid` widget with
+  two single-select button-row questions. The biggest, riskiest item in the backlog:
+  loader schema change, `resolve_profile_persona` rewrite, `_question_grid.html`
+  retired, `_result_grid.html`/`charts.py` need checking for grid-specific assumptions,
+  several test files updated. Confirmed with Tom this is a full widget replacement, not
+  a copy tweak. Depends on #0018's renamed ids (`inventor`/`architect`) already being in
+  `dev` — confirmed present before branching. Branch
+  `feature/profile-grid-to-single-select` off `dev`.
 
 ## Request
 
