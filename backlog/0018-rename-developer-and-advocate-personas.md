@@ -2,7 +2,7 @@
 id: 0018
 title: Rename Developer→Inventor and Advocate→Architect personas (id + copy)
 type: change
-status: in-progress
+status: shipped
 created: 2026-08-04
 branch: feature/rename-developer-advocate-personas
 ---
