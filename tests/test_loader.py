@@ -810,6 +810,121 @@ def test_multi_range_valid_instructions_loads(tmp_path):
     assert loaded['instructions'] == 'Choose up to 3 options.'
 
 
+def test_explanation_empty_raises(tmp_path):
+    data = _base_config()
+    q = _triangle_question()
+    q['explanation'] = ''
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_explanation_valid_loads(tmp_path):
+    data = _base_config()
+    q = _triangle_question()
+    q['explanation'] = 'This question is asking you to consider your options.'
+    data['questions'].append(q)
+    config = load_survey(_write_yaml(tmp_path, data))
+    loaded = next(q for q in config['questions'] if q['id'] == 'q_triangle')
+    assert loaded['explanation'] == 'This question is asking you to consider your options.'
+
+
+def test_explanation_empty_raises_on_short_text_question(tmp_path):
+    """`short_text` `continue`s early in the validation loop — the
+    `explanation` check must still fire because it sits above that
+    early-exit, not skip validation for this type."""
+    data = _base_config()
+    data['questions'][1]['explanation'] = ''  # q_short_text
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_explanation_valid_loads_on_short_text_question(tmp_path):
+    data = _base_config()
+    data['questions'][1]['explanation'] = 'Anything you would like to add.'
+    config = load_survey(_write_yaml(tmp_path, data))
+    loaded = next(q for q in config['questions'] if q['id'] == 'q_short_text')
+    assert loaded['explanation'] == 'Anything you would like to add.'
+
+
+def test_explanation_empty_raises_on_grid_question(tmp_path):
+    """`grid` also `continue`s early — same coverage as short_text above."""
+    data = _base_config()
+    grid = _grid_question()
+    grid['explanation'] = ''
+    data['questions'].append(grid)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_explanation_valid_loads_on_grid_question(tmp_path):
+    data = _base_config()
+    grid = _grid_question()
+    grid['explanation'] = 'Find yourself on this grid and select a cell.'
+    data['questions'].append(grid)
+    config = load_survey(_write_yaml(tmp_path, data))
+    loaded = next(q for q in config['questions'] if q['id'] == 'profile_grid')
+    assert loaded['explanation'] == 'Find yourself on this grid and select a cell.'
+
+
+# ---------------------------------------------------------------------------
+# backlog #0017 Part A — real content/survey.yaml: reworded copy + explanation
+# ---------------------------------------------------------------------------
+
+def test_real_survey_space_to_progress_scores_unchanged_and_label_organisation_dropped():
+    """The relabel (backlog #0017 Part A) must not have touched the
+    underlying innovation-curve scores, and `label_organisation` must be
+    genuinely absent from every option on this question (not merely unused
+    elsewhere) — the question is audience-neutral now."""
+    config = load_survey(REAL_SURVEY_PATH)
+    question = next(q for q in config['questions'] if q['id'] == 'space_to_progress')
+
+    assert [opt['score'] for opt in question['options']] == [1, 3, 5, 3, 1]
+    assert all('label_organisation' not in opt for opt in question['options'])
+    assert [opt['label'] for opt in question['options']] == [
+        'Few commitments, lots of capacity',
+        'Some commitments, some capacity',
+        'Balanced between our commitments and capacity',
+        'Little capacity, high level of commitment',
+        'No capacity, fully commited',
+    ]
+
+
+def test_real_survey_explanation_present_on_the_four_expected_questions():
+    config = load_survey(REAL_SURVEY_PATH)
+    by_id = {q['id']: q for q in config['questions']}
+
+    for qid in ('space_to_progress', 'need_most', 'have_enough', 'support_type'):
+        assert by_id[qid].get('explanation'), f"'{qid}' should have a non-empty explanation"
+
+
+def test_real_survey_target_groups_has_no_explanation():
+    config = load_survey(REAL_SURVEY_PATH)
+    question = next(q for q in config['questions'] if q['id'] == 'target_groups')
+    assert question.get('explanation') is None
+    assert question['prompt'] == 'Who are you trying to work with?'
+
+
+def test_real_survey_support_type_prompt_reworded():
+    config = load_survey(REAL_SURVEY_PATH)
+    question = next(q for q in config['questions'] if q['id'] == 'support_type')
+    assert question['prompt'] == 'What type of assistance do you desire?'
+
+
+def test_real_survey_multiline_explanations_contain_newlines_not_html():
+    """The three bulleted explanations must be stored as real newlines (YAML
+    block scalars), not raw `<br>` HTML — the template relies on CSS
+    `white-space: pre-line` to turn `\\n` into visible line breaks."""
+    config = load_survey(REAL_SURVEY_PATH)
+    by_id = {q['id']: q for q in config['questions']}
+
+    for qid in ('need_most', 'have_enough', 'support_type'):
+        explanation = by_id[qid]['explanation']
+        assert '\n' in explanation
+        assert '<br>' not in explanation
+        assert '<br/>' not in explanation
+
+
 def test_triangle_valid_three_option_loads(tmp_path):
     data = _base_config()
     data['questions'].append(_triangle_question())
