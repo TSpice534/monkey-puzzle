@@ -21,3 +21,4 @@
 | 0017 | Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Parts A+B) | feature | shipped | 2026-08-04 |
 | 0018 | Rename Developer→Inventor and Advocate→Architect personas (id + copy) | change | shipped | 2026-08-04 |
 | 0019 | Add prompt_organisation schema field for org-register question prompts | feature | shipped | 2026-08-04 |
+| 0020 | Remove radial graph from results page | change | todo | 2026-08-04 |
