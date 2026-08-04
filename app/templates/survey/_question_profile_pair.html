@@ -1,4 +1,4 @@
-{% from "survey/_macros.html" import option_label %}
+{% from "survey/_macros.html" import option_label, question_prompt %}
 {# Combined profile pair (backlog #0017 Part B tweak): one shared prompt (the
    step legend), a live-updating sentence, and a 2x3 button grid — top row =
    approach options, bottom row = scope options. Native radios styled as cards
@@ -11,7 +11,7 @@
    aria-live="polite" aria-atomic="true"
    data-stem="{{ sentence_stem }}">{{ sentence_stem }}...</p>
 
-<div class="row g-3 mb-3" role="radiogroup" aria-label="{{ approach_question.prompt }}">
+<div class="row g-3 mb-3" role="radiogroup" aria-label="{{ question_prompt(approach_question, audience) }}">
   {% for option in approach_question.options %}
   <div class="col-12 col-sm-4">
     <input class="visually-hidden option-card-input" type="radio"
@@ -26,7 +26,7 @@
   {% endfor %}
 </div>
 
-<div class="row g-3" role="radiogroup" aria-label="{{ scope_question.prompt }}">
+<div class="row g-3" role="radiogroup" aria-label="{{ question_prompt(scope_question, audience) }}">
   {% for option in scope_question.options %}
   <div class="col-12 col-sm-4">
     <input class="visually-hidden option-card-input" type="radio"

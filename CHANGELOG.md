@@ -58,6 +58,19 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   step (every other question keeps its own step); `profile_matrix` gains `prompt`/
   `sentence_stem` fields and an adjacency validation check; persona resolution and the
   result-page grid are unchanged. The real survey drops from 12 steps back to 11.
+- Change: add org-register prompt support and fix the profile step's aria-label register
+  (backlog #0019) — a new optional per-question `prompt_organisation` string field
+  (loader-validated, same shape as `label_organisation`), rendered via a new
+  `question_prompt(question, audience)` macro in `app/templates/survey/_macros.html`.
+  `content/survey.yaml`'s `profile_approach` question is the only one that gains a
+  `prompt_organisation` ("Complete the following sentence: \"We want to...\""), matching
+  `docs/SURVEY-TEMPLATE.md` — no other question has a distinct org-register prompt.
+  `profile_matrix` gains a matching optional `sentence_stem_organisation` ("We want to"),
+  resolved in `app/survey/routes.py::_render_step` so the combined profile step's live
+  sentence flips register on the org track. `_question_profile_pair.html`'s two
+  `role="radiogroup"` `aria-label`s, which previously used `question.prompt` directly and
+  so stayed individual-register even on the org track, now go through `question_prompt`
+  too, alongside `step.html`'s single-question legend.
 
 ## [v0.2.0] — 2026-07-24
 

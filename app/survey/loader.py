@@ -150,6 +150,14 @@ def _validate_questions(raw):
                 f"question '{qid}' field 'explanation', if present, must be a non-empty string"
             )
 
+        prompt_organisation = q.get('prompt_organisation')
+        if prompt_organisation is not None and (
+            not isinstance(prompt_organisation, str) or not prompt_organisation
+        ):
+            raise SurveyConfigError(
+                f"question '{qid}' field 'prompt_organisation', if present, must be a non-empty string"
+            )
+
         is_router = qid == router_id
 
         audience = q.get('audience')
@@ -423,6 +431,14 @@ def _validate_profile_matrix(raw):
         value = matrix.get(field)
         if not isinstance(value, str) or not value:
             raise SurveyConfigError(f"survey.yaml 'profile_matrix.{field}' must be a non-empty string")
+
+    sentence_stem_organisation = matrix.get('sentence_stem_organisation')
+    if sentence_stem_organisation is not None and (
+        not isinstance(sentence_stem_organisation, str) or not sentence_stem_organisation
+    ):
+        raise SurveyConfigError(
+            "survey.yaml 'profile_matrix.sentence_stem_organisation', if present, must be a non-empty string"
+        )
 
     for field in ('approach_question', 'scope_question'):
         qid = matrix.get(field)

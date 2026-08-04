@@ -299,6 +299,7 @@ questions:
     type: single
     output: profile_direct
     prompt: 'Complete the following sentence: "I want to..."'
+    prompt_organisation: 'Complete the following sentence: "We want to..."'
     options:
       - { label: "Create space to address the topic" }
       - { label: "Work to implement existing solutions" }
@@ -483,6 +484,7 @@ now_next:
 profile_matrix:
   prompt: "Finish the following sentence..."
   sentence_stem: "I want to"
+  sentence_stem_organisation: "We want to"
   approach_question: profile_approach
   scope_question: profile_scope
   cells:

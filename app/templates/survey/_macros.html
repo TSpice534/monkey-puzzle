@@ -11,3 +11,10 @@
 {% macro persona_description(persona, audience) -%}
 {{ persona.description_organisation if audience == 'organisation' and persona.description_organisation else persona.description }}
 {%- endmacro %}
+
+{# Audience-aware question prompt. `prompt_organisation` (optional) wins only
+   once `audience == 'organisation'`; before routing (`audience` is None) or on
+   the individual track, `prompt` (the default) is used. #}
+{% macro question_prompt(question, audience) -%}
+{{ question.prompt_organisation if audience == 'organisation' and question.prompt_organisation else question.prompt }}
+{%- endmacro %}

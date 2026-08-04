@@ -171,9 +171,12 @@ def _render_step(survey, step_questions, submission, step, total, token, saved):
     if len(step_questions) == 2:            # combined profile pair
         matrix = survey['profile_matrix']
         approach_q, scope_q = step_questions
+        stem = matrix['sentence_stem']
+        if submission.audience == 'organisation' and matrix.get('sentence_stem_organisation'):
+            stem = matrix['sentence_stem_organisation']
         return render_template(
             'survey/step.html', combined_profile=True,
-            profile_prompt=matrix['prompt'], sentence_stem=matrix['sentence_stem'],
+            profile_prompt=matrix['prompt'], sentence_stem=stem,
             approach_question=approach_q, scope_question=scope_q,
             saved_approach=saved.get(approach_q['id']),
             saved_scope=saved.get(scope_q['id']), **common)
