@@ -1,10 +1,13 @@
 # The Monkey Puzzle — real survey content
 #
-# The 12-step survey from docs/SURVEY-TEMPLATE.md, owned by Rob and Andrew.
+# The 11-step survey from docs/SURVEY-TEMPLATE.md, owned by Rob and Andrew.
 # `personas`/`scoring` below are unchanged from the earlier placeholder
 # content; only `questions:` and the new `profile_matrix` construct changed
 # (backlog #0017 Part B replaced the old interactive `profile_grid` question
-# with two `type: single` questions resolved via `profile_matrix`).
+# with two `type: single` questions resolved via `profile_matrix`; a Part B
+# follow-up tweak merges those two questions onto one combined survey step
+# with a live-updating sentence and a 2x3 button grid — see
+# `app/survey/loader.py::survey_steps`).
 
 meta:
   version: 1
@@ -21,7 +24,9 @@ respondent_type_question: respondent_type
 
 # The two profile questions (`profile_approach`/`profile_scope`) jointly
 # resolve the winning persona via the `profile_matrix` construct below — see
-# `app/survey/persona.py::resolve_profile_persona`.
+# `app/survey/persona.py::resolve_profile_persona`. They are collected on one
+# combined survey step (a shared prompt, a live-updating sentence, and a 2x3
+# button grid) — see `app/survey/loader.py::survey_steps`.
 
 personas:
   accountant:
@@ -471,8 +476,13 @@ now_next:
 # `scope` = profile_scope option index (X axis). Cell->persona mapping is
 # unchanged from the retired profile_grid. Used by
 # app/survey/persona.py::resolve_profile_persona AND by the result-page grid
-# reconstruction in app/survey/routes.py::_profile_grid_context.
+# reconstruction in app/survey/routes.py::_profile_grid_context. `prompt` and
+# `sentence_stem` (Part B follow-up tweak) drive the combined survey step's
+# shared legend and live-updating sentence — see
+# app/templates/survey/_question_profile_pair.html.
 profile_matrix:
+  prompt: "Finish the following sentence..."
+  sentence_stem: "I want to"
   approach_question: profile_approach
   scope_question: profile_scope
   cells:

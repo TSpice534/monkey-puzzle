@@ -419,6 +419,11 @@ def _validate_profile_matrix(raw):
 
     questions_by_id = {q.get('id'): q for q in raw['questions'] if isinstance(q, dict)}
 
+    for field in ('prompt', 'sentence_stem'):
+        value = matrix.get(field)
+        if not isinstance(value, str) or not value:
+            raise SurveyConfigError(f"survey.yaml 'profile_matrix.{field}' must be a non-empty string")
+
     for field in ('approach_question', 'scope_question'):
         qid = matrix.get(field)
         if not isinstance(qid, str) or not qid:
@@ -431,6 +436,19 @@ def _validate_profile_matrix(raw):
                 f"survey.yaml 'profile_matrix.{field}' must name a 'type: single' question with "
                 f"exactly 3 options, but '{qid}' does not"
             )
+
+    # Adjacency check: the combined survey step (loader.survey_steps) relies
+    # on scope_question following approach_question directly in the raw
+    # question order (neither is audience-tagged, so they stay adjacent in
+    # every effective_questions() result too).
+    approach_id, scope_id = matrix.get('approach_question'), matrix.get('scope_question')
+    ordered_ids = [q.get('id') for q in raw['questions'] if isinstance(q, dict)]
+    approach_pos = ordered_ids.index(approach_id) if approach_id in ordered_ids else -1
+    if approach_pos == -1 or approach_pos + 1 >= len(ordered_ids) or ordered_ids[approach_pos + 1] != scope_id:
+        raise SurveyConfigError(
+            "survey.yaml 'profile_matrix.scope_question' must immediately follow "
+            "'profile_matrix.approach_question' in 'questions'"
+        )
 
     valid_persona_ids = set(raw['personas'].keys())
 
@@ -508,6 +526,29 @@ def effective_questions(survey: dict, audience: str = None) -> list:
         if not tags or audience in tags:
             result.append(q)
     return result
+
+
+def survey_steps(survey: dict, audience: str = None) -> list:
+    """The rendered steps for a submission, in order. Every question is its own
+    step, EXCEPT the two profile_matrix questions (approach_question directly
+    followed by scope_question), which collapse into one combined step. Returns
+    a list of steps; each step is a non-empty list of question dicts."""
+    questions = effective_questions(survey, audience)
+    matrix = survey.get('profile_matrix') or {}
+    approach_id = matrix.get('approach_question')
+    scope_id = matrix.get('scope_question')
+    steps, i = [], 0
+    while i < len(questions):
+        q = questions[i]
+        if (approach_id and q['id'] == approach_id
+                and i + 1 < len(questions)
+                and questions[i + 1]['id'] == scope_id):
+            steps.append([q, questions[i + 1]])
+            i += 2
+        else:
+            steps.append([q])
+            i += 1
+    return steps
 
 
 def get_survey() -> dict:

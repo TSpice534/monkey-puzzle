@@ -550,6 +550,8 @@ def _profile_questions():
 
 def _profile_matrix_construct():
     return {
+        'prompt': 'Finish the following sentence...',
+        'sentence_stem': 'I want to',
         'approach_question': 'profile_approach',
         'scope_question': 'profile_scope',
         'cells': [
@@ -583,6 +585,50 @@ def test_valid_profile_matrix_loads(tmp_path):
     assert len(config['profile_matrix']['cells']) == 9
     assert config['profile_matrix']['approach_question'] == 'profile_approach'
     assert config['profile_matrix']['scope_question'] == 'profile_scope'
+    assert config['profile_matrix']['prompt'] == 'Finish the following sentence...'
+    assert config['profile_matrix']['sentence_stem'] == 'I want to'
+
+
+def test_profile_matrix_missing_prompt_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    del data['profile_matrix']['prompt']
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_empty_prompt_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['prompt'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_missing_sentence_stem_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    del data['profile_matrix']['sentence_stem']
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_empty_sentence_stem_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['sentence_stem'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_scope_question_not_immediately_after_approach_raises(tmp_path):
+    """The combined survey step (loader.survey_steps) depends on
+    scope_question following approach_question directly in `questions`."""
+    data = _config_with_profile_matrix()
+    questions = data['questions']
+    approach_pos = next(i for i, q in enumerate(questions) if q['id'] == 'profile_approach')
+    scope_pos = next(i for i, q in enumerate(questions) if q['id'] == 'profile_scope')
+    assert scope_pos == approach_pos + 1  # sanity: builder starts adjacent
+    spacer = _multi_exact_question(qid='q_spacer')
+    questions.insert(approach_pos + 1, spacer)  # now approach, spacer, scope
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
 
 
 def test_profile_matrix_approach_question_referencing_unknown_question_raises(tmp_path):

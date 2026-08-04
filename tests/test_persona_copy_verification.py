@@ -40,12 +40,11 @@ STEP_AMBITION = 3
 STEP_SPACE_TO_PROGRESS = 4
 STEP_NEED_MOST = 5
 STEP_HAVE_ENOUGH = 6
-STEP_PROFILE_APPROACH = 7
-STEP_PROFILE_SCOPE = 8
-STEP_TOPICS = 9
-STEP_SUPPORT_TYPE = 10
-STEP_TARGET_GROUPS = 11
-STEP_WHY_REASON = 12
+STEP_PROFILE = 7
+STEP_TOPICS = 8
+STEP_SUPPORT_TYPE = 9
+STEP_TARGET_GROUPS = 10
+STEP_WHY_REASON = 11
 
 
 @pytest.fixture(autouse=True)
@@ -76,8 +75,7 @@ def _complete_survey(client, token, respondent_type_data, motivation='0',
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={} if space is None else {'space_to_progress': space})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0'})
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_APPROACH}', data={'profile_approach': approach})
-    client.post(f'/survey/{token}/step/{STEP_PROFILE_SCOPE}', data={'profile_scope': scope})
+    client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': approach, 'profile_scope': scope})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})

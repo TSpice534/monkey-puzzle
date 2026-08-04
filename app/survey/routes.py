@@ -8,7 +8,7 @@ from app.models import Submission
 from app.pdf_utils import generate_result_pdf
 from app.survey import bp
 from app.survey.charts import render_fingerprint_svg, render_innovation_curve_svg, render_share_card_svg
-from app.survey.loader import effective_questions, get_survey
+from app.survey.loader import get_survey, survey_steps
 from app.survey.persona import classify_submission, resolve_innovation_curve, resolve_now_next
 
 
@@ -144,6 +144,45 @@ def _profile_grid_context(submission, survey):
     return grid_question, grid_selected
 
 
+def _guard_message(question, value, survey):
+    """Return a flash message if `value` fails `question`'s advance rule, else None."""
+    qtype = question['type']
+    if qtype == 'multi_exact':
+        n = question['choose_exactly']
+        if not (isinstance(value, list) and len(value) == n):
+            return f'Please select exactly {n} option{"s" if n != 1 else ""}.'
+    if qtype == 'multi_range':
+        lo, hi = question['choose_min'], question['choose_max']
+        if not (isinstance(value, list) and lo <= len(value) <= hi):
+            return f'Please select between {lo} and {hi} options.'
+    matrix = survey.get('profile_matrix') or {}
+    if question['id'] in {matrix.get('approach_question'), matrix.get('scope_question')}:
+        if not isinstance(value, int) or isinstance(value, bool):
+            return 'Please choose an option to continue.'
+    return None
+
+
+def _render_step(survey, step_questions, submission, step, total, token, saved):
+    """Render survey/step.html for either a single-question step or the
+    combined profile step (approach_question immediately followed by
+    scope_question — see loader.survey_steps)."""
+    common = dict(title='The Monkey Puzzle', step=step, total=total,
+                  token=token, audience=submission.audience)
+    if len(step_questions) == 2:            # combined profile pair
+        matrix = survey['profile_matrix']
+        approach_q, scope_q = step_questions
+        return render_template(
+            'survey/step.html', combined_profile=True,
+            profile_prompt=matrix['prompt'], sentence_stem=matrix['sentence_stem'],
+            approach_question=approach_q, scope_question=scope_q,
+            saved_approach=saved.get(approach_q['id']),
+            saved_scope=saved.get(scope_q['id']), **common)
+    question = step_questions[0]
+    return render_template(
+        'survey/step.html', combined_profile=False,
+        question=question, saved_value=saved.get(question['id']), **common)
+
+
 def _why_context(submission, survey):
     """The respondent's free-text `output: why` answer for the result
     surfaces (stripped), or None when the survey has no `output: why`
@@ -171,67 +210,42 @@ def step(token, step):
     submission = _get_submission_or_404(token)
 
     survey = get_survey()
-    questions = effective_questions(survey, submission.audience)
-    total = len(questions)
+    steps = survey_steps(survey, submission.audience)
+    total = len(steps)
 
     if step < 1 or step > total:
         abort(404)
 
-    question = questions[step - 1]
+    step_questions = steps[step - 1]
 
     if request.method == 'POST':
-        value = _read_answer(question, request.form)
-
-        # multi_exact: exact count required
-        if question['type'] == 'multi_exact':
-            n = question['choose_exactly']
-            if not (isinstance(value, list) and len(value) == n):
-                flash(f'Please select exactly {n} option{"s" if n != 1 else ""}.', 'danger')
-                return render_template(
-                    'survey/step.html', title='The Monkey Puzzle',
-                    question=question, saved_value=value, step=step,
-                    total=total, token=token, audience=submission.audience,
-                )
-
-        # multi_range: count must be within [choose_min, choose_max]
-        if question['type'] == 'multi_range':
-            lo = question['choose_min']
-            hi = question['choose_max']
-            if not (isinstance(value, list) and lo <= len(value) <= hi):
-                flash(f'Please select between {lo} and {hi} options.', 'danger')
-                return render_template(
-                    'survey/step.html', title='The Monkey Puzzle',
-                    question=question, saved_value=value, step=step,
-                    total=total, token=token, audience=submission.audience,
-                )
-
-        # profile_matrix: both profile questions are mandatory (the retired
-        # grid was mandatory; a skipped profile question would otherwise
-        # silently fall through to the tie-break fallback and mis-classify)
-        profile_matrix = survey.get('profile_matrix') or {}
-        profile_qids = {profile_matrix.get('approach_question'),
-                        profile_matrix.get('scope_question')}
-        if question['id'] in profile_qids:
-            if not isinstance(value, int) or isinstance(value, bool):
-                flash('Please choose an option to continue.', 'danger')
-                return render_template(
-                    'survey/step.html', title='The Monkey Puzzle',
-                    question=question, saved_value=value, step=step,
-                    total=total, token=token, audience=submission.audience,
-                )
+        saved = {q['id']: submission.answers.get(q['id']) for q in step_questions}
+        read = {}
+        for q in step_questions:
+            value = _read_answer(q, request.form)
+            saved[q['id']] = value
+            msg = _guard_message(q, value, survey)
+            if msg:
+                flash(msg, 'danger')
+                return _render_step(survey, step_questions, submission, step, total, token, saved)
+            read[q['id']] = value
 
         # JSON columns need reassignment, not in-place mutation, to be
         # picked up reliably by SQLAlchemy.
-        submission.answers = {**submission.answers, question['id']: value}
+        submission.answers = {**submission.answers, **read}
 
-        if question['id'] == survey.get('respondent_type_question'):
+        # Router recompute (router is always its own single-question step 1)
+        router_id = survey.get('respondent_type_question')
+        if router_id in read:
+            question = next(q for q in step_questions if q['id'] == router_id)
+            value = read[router_id]
             options = question.get('options', [])
             chosen = options[value] if isinstance(value, int) and 0 <= value < len(options) else None
             submission.audience = chosen.get('audience_value') if chosen else None
             # Recompute — answering the router changes which questions
             # (and therefore what `total` is) apply for the rest of the flow.
-            questions = effective_questions(survey, submission.audience)
-            total = len(questions)
+            steps = survey_steps(survey, submission.audience)
+            total = len(steps)
 
         if step < total:
             db.session.commit()
@@ -247,17 +261,8 @@ def step(token, step):
         db.session.commit()
         return redirect(url_for('survey.result', token=token))
 
-    saved_value = submission.answers.get(question['id'])
-    return render_template(
-        'survey/step.html',
-        title='The Monkey Puzzle',
-        question=question,
-        saved_value=saved_value,
-        step=step,
-        total=total,
-        token=token,
-        audience=submission.audience,
-    )
+    saved = {q['id']: submission.answers.get(q['id']) for q in step_questions}
+    return _render_step(survey, step_questions, submission, step, total, token, saved)
 
 
 @bp.route('/<token>/result')
@@ -266,10 +271,10 @@ def result(token):
     survey = get_survey()
 
     if submission.persona_id is None:
-        questions = effective_questions(survey, submission.audience)
+        steps = survey_steps(survey, submission.audience)
         next_step = next(
-            (i for i, q in enumerate(questions, start=1)
-             if q['id'] not in submission.answers),
+            (i for i, sq in enumerate(steps, start=1)
+             if any(q['id'] not in submission.answers for q in sq)),
             1,
         )
         return redirect(url_for('survey.step', token=token, step=next_step))

@@ -2,8 +2,10 @@
 # `triangle`, `multi_exact`, and per-audience `label_organisation` wording,
 # plus the two profile_approach/profile_scope single-select questions +
 # `profile_matrix` construct that replaced the old `profile_grid` question
-# (backlog #0017 Part B). Small enough to drive the full step->step->result
-# flow in a handful of requests.
+# (backlog #0017 Part B). The two profile questions collapse onto one
+# combined survey step (backlog #0017 Part B follow-up tweak) — see
+# `app/survey/loader.py::survey_steps`. Small enough to drive the full
+# step->step->result flow in a handful of requests.
 meta:
   version: 1
   title: "Grid Fixture Survey"
@@ -128,6 +130,8 @@ scoring:
   rogers_curve: { enabled: false }
 
 profile_matrix:
+  prompt: "Finish the following sentence..."
+  sentence_stem: "I want to"
   approach_question: profile_approach
   scope_question: profile_scope
   cells:

@@ -50,6 +50,14 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   new `profile_matrix` construct; removed `type: grid` schema support; the labelled 3x3
   grid still renders on the result page, now driven by the two answers (backlog #0017
   Part B).
+- Change: merged the two profile questions (`profile_approach` / `profile_scope`) onto a
+  single survey page with a shared prompt, a live-updating sentence, and a 2x3 button
+  grid; both selections remain mandatory and resolve the same persona via
+  `profile_matrix` (backlog #0017 Part B follow-up). A new `survey_steps()` helper in
+  `app/survey/loader.py` groups the two adjacent profile questions into one rendered
+  step (every other question keeps its own step); `profile_matrix` gains `prompt`/
+  `sentence_stem` fields and an adjacency validation check; persona resolution and the
+  result-page grid are unchanged. The real survey drops from 12 steps back to 11.
 
 ## [v0.2.0] — 2026-07-24
 

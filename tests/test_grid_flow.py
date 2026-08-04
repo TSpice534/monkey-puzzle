@@ -4,9 +4,11 @@ advance, profile-direct classification — replaced the old interactive
 `profile_grid` widget per backlog #0017 Part B, though the result page still
 renders a reconstructed labelled 3x3 grid), `triangle`, `multi_exact`, and
 per-audience option wording. Also covers `multi_range` (backlog #0014:
-choose-a-range, not exactly-N). Uses tests/fixtures/survey_grid.yaml (7
-steps: respondent_type, q_worded, q_triangle, q_multi_exact, profile_approach,
-profile_scope, q_multi_range)."""
+choose-a-range, not exactly-N). Uses tests/fixtures/survey_grid.yaml (6
+steps: respondent_type, q_worded, q_triangle, q_multi_exact, profile
+(combined, step 5), q_multi_range (step 6) — a backlog #0017 Part B
+follow-up tweak merged profile_approach/profile_scope onto one combined
+step)."""
 import os
 
 import pytest
@@ -37,7 +39,7 @@ def _start_new(client):
 
 def _answer_up_to_grid(client, token, audience=INDIVIDUAL, worded_index=0):
     """POST steps 1-4 (router, q_worded, q_triangle, q_multi_exact), leaving
-    step 5 (profile_approach) unanswered."""
+    step 5 (the combined profile step) unanswered."""
     client.post(f'/survey/{token}/step/1', data={'respondent_type': str(audience)})
     client.post(f'/survey/{token}/step/2', data={'q_worded': str(worded_index)})
     client.post(f'/survey/{token}/step/3', data={'q_triangle': '0'})
@@ -45,12 +47,10 @@ def _answer_up_to_grid(client, token, audience=INDIVIDUAL, worded_index=0):
 
 
 def _answer_up_to_multi_range(client, token, audience=INDIVIDUAL, worded_index=0):
-    """POST steps 1-6 (router, q_worded, q_triangle, q_multi_exact,
-    profile_approach, profile_scope), leaving step 7 (q_multi_range)
-    unanswered."""
+    """POST steps 1-5 (router, q_worded, q_triangle, q_multi_exact, the
+    combined profile step), leaving step 6 (q_multi_range) unanswered."""
     _answer_up_to_grid(client, token, audience=audience, worded_index=worded_index)
-    client.post(f'/survey/{token}/step/5', data={'profile_approach': '1'})
-    client.post(f'/survey/{token}/step/6', data={'profile_scope': '1'})
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '1', 'profile_scope': '1'})
 
 
 def _input_tag(body, input_id):
@@ -67,14 +67,14 @@ def _input_tag(body, input_id):
 
 
 # ---------------------------------------------------------------------------
-# Profile pair — persistence and profile-direct classification
+# Profile pair — persistence and profile-direct classification (combined
+# step, backlog #0017 Part B follow-up tweak)
 # ---------------------------------------------------------------------------
 
-def test_profile_pair_step_post_persists_selected_option(client, db):
+def test_profile_pair_step_post_persists_both_selected_options(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_approach': '1'})
-    client.post(f'/survey/{token}/step/6', data={'profile_scope': '1'})
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '1', 'profile_scope': '1'})
 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.answers['profile_approach'] == 1
@@ -84,9 +84,8 @@ def test_profile_pair_step_post_persists_selected_option(client, db):
 def test_completing_survey_classifies_to_the_profile_mapped_persona(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_approach': '1'})
-    client.post(f'/survey/{token}/step/6', data={'profile_scope': '1'})  # -> entrepreneur
-    final = client.post(f'/survey/{token}/step/7', data={'q_multi_range': ['0']})
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '1', 'profile_scope': '1'})  # -> entrepreneur
+    final = client.post(f'/survey/{token}/step/6', data={'q_multi_range': ['0']})
 
     assert final.status_code == 302
     assert final.headers['Location'].endswith(f'/survey/{token}/result')
@@ -96,10 +95,10 @@ def test_completing_survey_classifies_to_the_profile_mapped_persona(client, db):
 
 
 # ---------------------------------------------------------------------------
-# Profile pair — mandatory to advance
+# Profile pair — mandatory to advance (both fields required, combined step)
 # ---------------------------------------------------------------------------
 
-def test_profile_approach_step_with_no_selection_rerenders_without_advancing(client, db):
+def test_profile_step_with_neither_field_rerenders_without_advancing(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
     response = client.post(f'/survey/{token}/step/5', data={})
@@ -109,33 +108,49 @@ def test_profile_approach_step_with_no_selection_rerenders_without_advancing(cli
 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert 'profile_approach' not in submission.answers
+    assert 'profile_scope' not in submission.answers
     assert submission.persona_id is None
 
 
-def test_profile_scope_step_with_no_selection_rerenders_without_advancing(client, db):
+def test_profile_step_with_only_approach_rerenders_without_advancing(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0'})
-    response = client.post(f'/survey/{token}/step/6', data={})
+    response = client.post(f'/survey/{token}/step/5', data={'profile_approach': '0'})
 
     assert response.status_code == 200
     assert b'Please choose an option to continue.' in response.data
 
     submission = db.session.query(Submission).filter_by(token=token).one()
+    assert 'profile_approach' not in submission.answers
     assert 'profile_scope' not in submission.answers
     assert submission.persona_id is None
 
 
-def test_profile_approach_step_with_a_valid_option_advances(client, db):
+def test_profile_step_with_only_scope_rerenders_without_advancing(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    response = client.post(f'/survey/{token}/step/5', data={'profile_approach': '0'})
+    response = client.post(f'/survey/{token}/step/5', data={'profile_scope': '0'})
+
+    assert response.status_code == 200
+    assert b'Please choose an option to continue.' in response.data
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert 'profile_approach' not in submission.answers
+    assert 'profile_scope' not in submission.answers
+    assert submission.persona_id is None
+
+
+def test_profile_step_with_both_fields_advances(client, db):
+    token = _start_new(client)
+    _answer_up_to_grid(client, token)
+    response = client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '0'})
 
     assert response.status_code == 302
     assert response.headers['Location'].endswith(f'/survey/{token}/step/6')
 
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.answers['profile_approach'] == 0
+    assert submission.answers['profile_scope'] == 0
     assert submission.persona_id is None  # not yet classified — later steps still pending
 
 
@@ -178,7 +193,7 @@ def test_multi_exact_exact_count_advances_and_persists(client, db):
 def test_multi_range_too_few_rerenders_without_advancing(client, db):
     token = _start_new(client)
     _answer_up_to_multi_range(client, token)
-    response = client.post(f'/survey/{token}/step/7', data={})  # 0 selections, needs 1-3
+    response = client.post(f'/survey/{token}/step/6', data={})  # 0 selections, needs 1-3
 
     assert response.status_code == 200
     assert b'Please select between 1 and 3 options.' in response.data
@@ -191,7 +206,7 @@ def test_multi_range_too_many_rerenders_without_advancing(client, db):
     token = _start_new(client)
     _answer_up_to_multi_range(client, token)
     response = client.post(
-        f'/survey/{token}/step/7',
+        f'/survey/{token}/step/6',
         data={'q_multi_range': ['0', '1', '2', '3']},  # 4 selections, needs 1-3
     )
 
@@ -205,7 +220,7 @@ def test_multi_range_too_many_rerenders_without_advancing(client, db):
 def test_multi_range_valid_count_advances_and_persists(client, db):
     token = _start_new(client)
     _answer_up_to_multi_range(client, token)
-    response = client.post(f'/survey/{token}/step/7', data={'q_multi_range': ['2', '0']})
+    response = client.post(f'/survey/{token}/step/6', data={'q_multi_range': ['2', '0']})
 
     assert response.status_code == 302
 
@@ -216,7 +231,7 @@ def test_multi_range_valid_count_advances_and_persists(client, db):
 def test_multi_range_step_renders_instructions_line(client):
     token = _start_new(client)
     _answer_up_to_multi_range(client, token)
-    response = client.get(f'/survey/{token}/step/7')
+    response = client.get(f'/survey/{token}/step/6')
 
     assert response.status_code == 200
     assert b'Choose up to 3 options.' in response.data
@@ -229,7 +244,7 @@ def test_multi_range_too_many_rerender_keeps_the_partial_selection_checked(clien
     token = _start_new(client)
     _answer_up_to_multi_range(client, token)
     response = client.post(
-        f'/survey/{token}/step/7',
+        f'/survey/{token}/step/6',
         data={'q_multi_range': ['0', '1', '2', '3']},  # 4 selections, over choose_max
     )
     body = response.get_data(as_text=True)
@@ -345,9 +360,8 @@ def test_before_routing_the_default_wording_is_used(client):
 def test_result_page_renders_the_labelled_grid_with_chosen_persona(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0'})
-    client.post(f'/survey/{token}/step/6', data={'profile_scope': '2'})  # -> activist
-    client.post(f'/survey/{token}/step/7', data={'q_multi_range': ['0']})
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '2'})  # -> activist
+    client.post(f'/survey/{token}/step/6', data={'q_multi_range': ['0']})
 
     response = client.get(f'/survey/{token}/result')
     assert response.status_code == 200
@@ -372,9 +386,8 @@ def test_security_headers_present_on_grid_step(client):
 def test_security_headers_present_on_result_page(client):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0'})
-    client.post(f'/survey/{token}/step/6', data={'profile_scope': '0'})
-    client.post(f'/survey/{token}/step/7', data={'q_multi_range': ['0']})
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '0'})
+    client.post(f'/survey/{token}/step/6', data={'q_multi_range': ['0']})
 
     response = client.get(f'/survey/{token}/result')
     assert response.headers['X-Frame-Options'] == 'DENY'

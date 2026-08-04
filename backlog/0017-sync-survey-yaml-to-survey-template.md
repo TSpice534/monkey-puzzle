@@ -33,6 +33,17 @@ Split into two independent parts (confirmed with Tom 2026-08-04):
   Follow-up filed separately: **#0019** (`prompt_organisation` schema field — the
   org-register prompt variant from the template has no home; Part B used the single
   individual-register prompt for both tracks per Tom's call).
+- **Part B follow-up tweak (same branch, pre-merge)**: after Part B landed as two
+  separate survey steps (`profile_approach` at step 7, `profile_scope` at step 8, real
+  survey 12 steps total), Tom asked to merge them onto ONE combined step instead — a
+  shared prompt, a live-updating sentence ("I want to [approach fragment] [scope
+  fragment]."), and a 2x3 button grid (top row = approach options, bottom row = scope
+  options). A new `survey_steps()` helper in `app/survey/loader.py` groups the two
+  adjacent `profile_matrix` questions into one rendered step (every other question
+  keeps its own step); `profile_matrix` gains `prompt`/`sentence_stem` fields plus an
+  adjacency validation check. Persona resolution, `profile_matrix`'s cell mapping, and
+  the result-page 3x3 grid are byte-identical — this was purely a survey-time
+  presentation/step-flow change. Real survey steps back down to 11.
 
 ## Request
 
