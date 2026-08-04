@@ -16,7 +16,7 @@
 | 0012 | Clamp innovation-curve score to 15, shrink the curve graphic to match | change | shipped | 2026-07-17 |
 | 0013 | Replace spectrum slider with click-to-select box row | change | shipped | 2026-07-24 |
 | 0014 | Topics question (Q9) — allow choosing up to 3, not exactly 3 | change | shipped | 2026-07-24 |
-| 0015 | Reword "why" question, move to end of survey, show answer on results + PDF | change | in-progress | 2026-08-04 |
+| 0015 | Reword "why" question, move to end of survey, show answer on results + PDF | change | shipped | 2026-08-04 |
 | 0016 | Add survey description copy to landing page | change | shipped | 2026-08-04 |
 | 0017 | Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md | feature | todo | 2026-08-04 |
 | 0018 | Rename Developer→Inventor and Advocate→Architect personas (id + copy) | change | todo | 2026-08-04 |
