@@ -1,8 +1,8 @@
 ---
 id: 0017
-title: Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md
+title: Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Part A)
 type: feature
-status: in-progress
+status: shipped
 created: 2026-08-04
 branch: feature/survey-copy-and-explanations
 ---
@@ -10,13 +10,17 @@ branch: feature/survey-copy-and-explanations
 ## Phasing
 
 Split into two independent parts (confirmed with Tom 2026-08-04):
-- **Part A** (this build): items 3–6 — reword `space_to_progress`/`support_type`/
-  `target_groups`, add Explanation help-text to `space_to_progress`, `need_most`,
-  `have_enough`, `support_type`. Content-only for 3 of 4 questions; adding Explanation
-  is a new schema concept (loader has no generic help-text field for
-  `spectrum`/`triangle` questions) so it's a real design decision, not purely mechanical.
-- **Part B** (separate, later build): item 7 — replace `profile_grid` widget with two
-  single-select questions. Fully independent of Part A; can land before or after #0018.
+- **Part A (shipped 2026-08-04, this item)**: items 3–6 — reword `space_to_progress`/
+  `support_type`/`target_groups`, add Explanation help-text to `space_to_progress`,
+  `need_most`, `have_enough`, `support_type`. Content-only for 3 of 4 questions; adding
+  Explanation was a new schema concept (loader had no generic help-text field for
+  `spectrum`/`triangle` questions) — landed as a new optional `explanation` field
+  (not a reuse of `instructions`, which was already overloaded). Reviewer verdict: SHIP.
+  Branch `feature/survey-copy-and-explanations` off `dev`, not yet merged — Tom's
+  manual review/merge.
+- **Part B (not started, needs its own backlog item)**: item 7 — replace `profile_grid`
+  widget with two single-select questions. Fully independent of Part A; can land before
+  or after #0018. File via `/request` when ready to pick up.
 
 ## Request
 
