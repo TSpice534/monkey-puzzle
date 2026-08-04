@@ -17,7 +17,7 @@
     <input class="visually-hidden option-card-input" type="radio"
            id="profile_approach_{{ option.index }}"
            name="profile_approach" value="{{ option.index }}"
-           data-sentence="{{ option.label }}"
+           data-sentence="{{ option_label(option, audience) }}"
            {% if saved_approach == option.index %}checked{% endif %}>
     <label class="option-card" for="profile_approach_{{ option.index }}">
       {{ option_label(option, audience) }}
@@ -32,7 +32,7 @@
     <input class="visually-hidden option-card-input" type="radio"
            id="profile_scope_{{ option.index }}"
            name="profile_scope" value="{{ option.index }}"
-           data-sentence="{{ option.label }}"
+           data-sentence="{{ option_label(option, audience) }}"
            {% if saved_scope == option.index %}checked{% endif %}>
     <label class="option-card" for="profile_scope_{{ option.index }}">
       {{ option_label(option, audience) }}

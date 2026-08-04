@@ -89,7 +89,7 @@ questions:
     output: profile_direct
     prompt: 'Complete the following sentence: "I want to..."'
     options:
-      - { label: "Create space to address the topic" }
+      - { label: "Create space to address the topic", label_organisation: "Create space, as an org, to address the topic" }
       - { label: "Work to implement existing solutions" }
       - { label: "Test new ideas" }
 

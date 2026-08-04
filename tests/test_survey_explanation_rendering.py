@@ -7,10 +7,11 @@ and never leaks onto a result surface (step-page-only per spec).
 
 Step numbers mirror the real-survey layout documented in
 test_real_survey_e2e.py (order: router, motivation, ambition,
-space_to_progress, need_most, have_enough, profile_approach, profile_scope,
-topics, support_type, target_groups, why_reason — backlog #0017 Part B split
-the old single `profile_grid` step into the two profile_approach/
-profile_scope steps).
+space_to_progress, need_most, have_enough, profile (combined), topics,
+support_type, target_groups, why_reason — backlog #0017 Part B replaced the
+old single `profile_grid` step with the profile_approach/profile_scope pair,
+briefly as two separate steps before a same-branch follow-up tweak merged
+them back onto one combined step).
 """
 import os
 

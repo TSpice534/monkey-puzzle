@@ -353,6 +353,33 @@ def test_before_routing_the_default_wording_is_used(client):
     assert b'individual' in response.data.lower()
 
 
+def test_combined_profile_step_live_sentence_data_uses_audience_aware_wording(client):
+    """The visible button label on the combined profile step is
+    audience-aware (`option_label` picks `label_organisation` on the
+    organisation track, same as every other question — see
+    test_organisation_track_shows_the_organisation_wording above). The live
+    sentence's `data-sentence` attribute drives what the JS widget echoes
+    back to the respondent and must show the SAME text the respondent just
+    read on the button, not the individual-track default they never saw."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/1', data={'respondent_type': str(ORGANISATION)})
+    client.post(f'/survey/{token}/step/2', data={'q_worded': '0'})
+    client.post(f'/survey/{token}/step/3', data={'q_triangle': '0'})
+    client.post(f'/survey/{token}/step/4', data={'q_multi_exact': ['0', '1']})
+
+    response = client.get(f'/survey/{token}/step/5')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    # The button itself correctly shows the organisation wording.
+    assert 'Create space, as an org, to address the topic' in body
+    # The live-sentence widget's data-sentence attribute (what the on-change
+    # JS actually echoes into the sentence) must match what's on the button,
+    # not silently fall back to the individual-track label.
+    approach_0 = _input_tag(body, 'profile_approach_0')
+    assert 'data-sentence="Create space, as an org, to address the topic"' in approach_0
+
+
 # ---------------------------------------------------------------------------
 # Result page
 # ---------------------------------------------------------------------------
