@@ -9,7 +9,7 @@ Adjust/offset innovation score depending on the profile outcome:
 
 | Profile | Cooperator | Connector | Activist | Architect | Entrepreneur | Communicator | Inventor | Implementer | Accountant |
 | ------- | ---------- | --------- | -------- | -------- | ------------ | ------------ | --------- | ----------- | ---------- |
-| Score   | +2         | +1        | +4       | +2       | +2           | +1           | +4        | +1          | 0          |
+| Score   | +3         | +3        | +4       | +3       | +2           | +1           | +4        | +1          | 0          |
 
 ## All Sections/Total Scoring:
 
