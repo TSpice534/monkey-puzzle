@@ -2,9 +2,9 @@
 id: 0015
 title: Reword "why" question, move to end of survey, show answer on results + PDF
 type: change
-status: todo
+status: shipped
 created: 2026-08-04
-branch:
+branch: feature/why-question-reword-move-and-display
 ---
 
 ## Request

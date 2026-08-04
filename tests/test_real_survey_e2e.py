@@ -31,18 +31,20 @@ ORGANISATION = 1
 
 # Step numbers for the real 11-question survey, per docs/SURVEY-TEMPLATE.md
 # and content/survey.yaml (both audience tracks see all 11 — no `audience`
-# tags are used in the real survey, per the coder's changes.md).
+# tags are used in the real survey, per the coder's changes.md). backlog
+# #0015 moved `why_reason` from step 2 to the last step (11), shifting every
+# intervening question's step number down by one.
 STEP_RESPONDENT_TYPE = 1
-STEP_WHY_REASON = 2
-STEP_MOTIVATION = 3
-STEP_AMBITION = 4
-STEP_SPACE_TO_PROGRESS = 5
-STEP_NEED_MOST = 6
-STEP_HAVE_ENOUGH = 7
-STEP_PROFILE_GRID = 8
-STEP_TOPICS = 9
-STEP_SUPPORT_TYPE = 10
-STEP_TARGET_GROUPS = 11
+STEP_MOTIVATION = 2
+STEP_AMBITION = 3
+STEP_SPACE_TO_PROGRESS = 4
+STEP_NEED_MOST = 5
+STEP_HAVE_ENOUGH = 6
+STEP_PROFILE_GRID = 7
+STEP_TOPICS = 8
+STEP_SUPPORT_TYPE = 9
+STEP_TARGET_GROUPS = 10
+STEP_WHY_REASON = 11
 TOTAL_STEPS = 11
 
 
@@ -77,7 +79,6 @@ def _input_tag(body, input_id):
 
 def _answer_up_to_grid(client, token, audience_index):
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(audience_index)})
-    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '0'})
     client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '0'})
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '0'})
@@ -85,14 +86,20 @@ def _answer_up_to_grid(client, token, audience_index):
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
 
 
-def _complete_survey(client, audience_index=INDIVIDUAL, grid='1,1'):
-    """Walk all 11 real-survey steps to completion. grid='1,1' -> entrepreneur."""
+def _complete_survey(client, audience_index=INDIVIDUAL, grid='1,1', why_reason='Because it matters.'):
+    """Walk all 11 real-survey steps to completion. grid='1,1' -> entrepreneur.
+    `why_reason=None` posts the final step with no answer at all (skipped),
+    matching how every other skippable question in this suite signals 'no
+    answer' (backlog #0015: why_reason is now the last, classification-
+    triggering step)."""
     token = _start_new(client)
     _answer_up_to_grid(client, token, audience_index)
     client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': grid})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
-    final = client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    why_data = {} if why_reason is None else {'why_reason': why_reason}
+    final = client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data=why_data)
     return token, final
 
 
@@ -161,7 +168,6 @@ def test_all_nine_grid_cells_resolve_to_the_documented_persona_end_to_end(client
 def test_high_scoring_answers_and_developer_modifier_classify_as_innovators(client, db):
     token = _start_new(client)
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
-    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '4'})
     client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '2'})
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '2'})
@@ -170,7 +176,8 @@ def test_high_scoring_answers_and_developer_modifier_classify_as_innovators(clie
     client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '0,2'})  # -> developer
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
-    final = client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    final = client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
 
     assert final.status_code == 302
     submission = db.session.query(Submission).filter_by(token=token).one()
@@ -367,7 +374,7 @@ def test_motivation_unlabelled_stop_label_text_is_not_rendered(client):
     # The 3 labelled boxes are still present.
     assert 'I feel the need to act on this topic' in body
     assert 'I understand I need to act on this topic' in body
-    assert 'It is part of my role' in body
+    assert 'I do only what is asked/required' in body
 
 
 @pytest.mark.parametrize('index', [0, 1, 2, 3, 4])
@@ -455,7 +462,7 @@ def test_ambition_apostrophe_option_renders_correctly_on_organisation_track(clie
 
 
 def test_motivation_last_option_label_appears_twice_full_box_and_adjacent_mix_span(client):
-    """`motivation`'s index-4 label ("It is part of my role") now
+    """`motivation`'s index-4 label ("I do only what is asked/required") now
     legitimately appears twice: once as its own full box, and once inside
     the adjacent mix box's (index 3) visually-hidden flanking-label span —
     not a bug, the expected box-row a11y pattern (backlog #0013)."""
@@ -465,7 +472,7 @@ def test_motivation_last_option_label_appears_twice_full_box_and_adjacent_mix_sp
     body = response.get_data(as_text=True)
 
     assert response.status_code == 200
-    assert body.count('It is part of my role') == 2
+    assert body.count('I do only what is asked/required') == 2
     # The old static slider-label row's class combination is gone entirely.
     assert 'class="d-flex justify-content-between small text-muted">' not in body
 
@@ -598,7 +605,6 @@ def test_survey_completes_when_all_three_triangle_questions_are_skipped(client, 
     their contribution rather than erroring."""
     token = _start_new(client)
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
-    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '0'})
     client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '0'})
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '0'})
@@ -607,7 +613,8 @@ def test_survey_completes_when_all_three_triangle_questions_are_skipped(client, 
     client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={})
-    final = client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    final = client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
 
     assert final.status_code == 302
     assert final.headers['Location'].endswith(f'/survey/{token}/result')
@@ -631,7 +638,6 @@ def test_edge_picks_on_all_three_affected_questions_read_correctly_in_result_pag
     this must hold for all 3 affected questions, not just `need_most`."""
     token = _start_new(client)
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
-    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '0'})
     client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '0'})
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '0'})
@@ -640,7 +646,8 @@ def test_edge_picks_on_all_three_affected_questions_read_correctly_in_result_pag
     client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0,1'})  # edge
-    final = client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    final = client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     assert final.status_code == 302
 
     response = client.get(f'/survey/{token}/result')
@@ -747,6 +754,187 @@ def test_result_page_renders_the_now_next_card_in_the_persona_card(client):
     allies_pos = body.index('Natural allies')
     grid_pos = body.index('Your position on the grid')
     assert description_pos < now_next_pos < allies_pos < grid_pos
+
+
+# ---------------------------------------------------------------------------
+# Respondent's own "why" answer (backlog #0015) — reworded prompt, moved to
+# the last step, surfaced on the web result page and in the PDF.
+# ---------------------------------------------------------------------------
+
+def test_why_reason_is_the_last_step_with_the_reworded_prompt(client):
+    """backlog #0015: the prompt text was reworded and the question moved to
+    step 11 (the final step, immediately after target_groups)."""
+    token = _start_new(client)
+    _answer_up_to_grid(client, token, INDIVIDUAL)
+    client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': '1,1'})
+    client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
+    client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
+    client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+
+    response = client.get(f'/survey/{token}/step/{STEP_WHY_REASON}')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'In one sentence, why is this work on this topic important to you?' in body
+    # The old prompt must be gone entirely.
+    assert 'Do you have a "why"?' not in body
+    assert 'Question 11 of 11' in body
+
+
+def test_why_reason_post_triggers_classification_and_redirects_to_result(client, db):
+    """backlog #0015: why_reason's POST is now the final, classification-
+    triggering one — not target_groups's."""
+    token, final = _complete_survey(client, grid='1,1')  # -> entrepreneur
+
+    assert final.status_code == 302
+    assert final.headers['Location'].endswith(f'/survey/{token}/result')
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert submission.persona_id == 'entrepreneur'
+    assert submission.answers['why_reason'] == 'Because it matters.'
+
+
+def test_result_page_renders_the_why_answer_in_the_persona_card(client):
+    """backlog #0015: the respondent's own free-text why answer renders
+    inside the persona card, below the description and above Now/Next."""
+    token, _ = _complete_survey(client, why_reason='Because our venue must cut emissions.')
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Why this matters to you' in body
+    assert 'Because our venue must cut emissions.' in body
+
+    description_pos = body.index('Your sustainable who')
+    why_pos = body.index('Why this matters to you')
+    now_next_pos = body.index('Now and next')
+    assert description_pos < why_pos < now_next_pos
+
+
+def test_result_page_renders_nothing_for_why_when_skipped(client, db):
+    """Edge case: why_reason is skippable — a blank answer must not crash
+    the result page and must not render the heading/section at all."""
+    token, final = _complete_survey(client, why_reason=None)
+    assert final.status_code == 302
+
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    # short_text stores the empty string when untouched, not None — the
+    # blank-vs-absent distinction is exactly what `_why_context` normalises.
+    assert submission.answers['why_reason'] == ''
+
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Why this matters to you' not in body
+
+
+def test_result_page_renders_nothing_for_why_when_whitespace_only(client):
+    """Whitespace-only free text must be treated the same as blank/absent —
+    `_why_context` strips before checking truthiness."""
+    token, final = _complete_survey(client, why_reason='   ')
+    assert final.status_code == 302
+
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Why this matters to you' not in body
+
+
+def test_result_page_autoescapes_the_why_answer(client):
+    """No `| safe` on the why partial — user-entered free text containing
+    HTML-significant characters must render escaped, never as live markup."""
+    token, _ = _complete_survey(client, why_reason='Fish & chips <script>alert(1)</script>')
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Fish &amp; chips &lt;script&gt;alert(1)&lt;/script&gt;' in body
+    assert '<script>alert(1)</script>' not in body
+
+
+def test_download_pdf_includes_the_why_answer(client):
+    token, _ = _complete_survey(client, why_reason='Because our venue must cut emissions.')
+    response = client.get(f'/survey/{token}/pdf')
+    assert response.status_code == 200
+    assert response.mimetype == 'application/pdf'
+    assert response.data.startswith(b'%PDF')
+
+
+def test_pdf_result_template_renders_the_why_answer(app):
+    """generate_result_pdf threads `why` into `pdf/result.html` — checked the
+    same way as the other PDF-context assertions in this module (WeasyPrint's
+    rasterised PDF bytes aren't text-greppable, so render the template
+    directly and inspect the source HTML)."""
+    from flask import render_template
+
+    persona = {
+        'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd',
+        'natural_allies': [], 'friends': [], 'necessity': [], 'case_studies': [], 'resources': [],
+    }
+
+    with app.app_context():
+        html = render_template(
+            'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
+            fingerprint_svg='<svg></svg>', why='Because our venue must cut emissions.', audience=None,
+        )
+    assert 'Why this matters to you' in html
+    assert 'Because our venue must cut emissions.' in html
+
+
+def test_pdf_result_template_renders_nothing_when_why_is_none(app):
+    from flask import render_template
+
+    persona = {
+        'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd',
+        'natural_allies': [], 'friends': [], 'necessity': [], 'case_studies': [], 'resources': [],
+    }
+
+    with app.app_context():
+        html = render_template(
+            'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
+            fingerprint_svg='<svg></svg>', why=None, audience=None,
+        )
+    assert 'Why this matters to you' not in html
+
+
+def test_pdf_result_template_autoescapes_ampersand_in_why_answer(app):
+    from flask import render_template
+
+    persona = {
+        'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd',
+        'natural_allies': [], 'friends': [], 'necessity': [], 'case_studies': [], 'resources': [],
+    }
+
+    with app.app_context():
+        html = render_template(
+            'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
+            fingerprint_svg='<svg></svg>', why='Fish & chips', audience=None,
+        )
+    assert 'Fish &amp; chips' in html
+    assert 'Fish & chips' not in html
+
+
+def test_email_bodies_never_render_the_why_answer(app):
+    """`email_result()`/`send_result_email` were deliberately left untouched
+    per the spec — email surfacing wasn't requested."""
+    from flask import render_template
+
+    persona = {'name': 'The Entrepreneur', 'tagline': 't', 'description': 'd'}
+
+    with app.app_context():
+        text_body = render_template(
+            'email/result.txt', persona=persona, result_url='https://example.com/r',
+            innovation=None, audience=None,
+        )
+        html_body = render_template(
+            'email/result.html', persona=persona, result_url='https://example.com/r',
+            innovation=None, audience=None,
+        )
+
+    assert 'Why this matters to you' not in text_body
+    assert 'Why this matters to you' not in html_body
 
 
 def test_result_grid_table_structure_is_a_real_3x3_not_a_stacked_column(client):

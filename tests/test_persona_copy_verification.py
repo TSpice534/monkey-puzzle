@@ -35,16 +35,16 @@ INDIVIDUAL = 0
 ORGANISATION = 1
 
 STEP_RESPONDENT_TYPE = 1
-STEP_WHY_REASON = 2
-STEP_MOTIVATION = 3
-STEP_AMBITION = 4
-STEP_SPACE_TO_PROGRESS = 5
-STEP_NEED_MOST = 6
-STEP_HAVE_ENOUGH = 7
-STEP_PROFILE_GRID = 8
-STEP_TOPICS = 9
-STEP_SUPPORT_TYPE = 10
-STEP_TARGET_GROUPS = 11
+STEP_MOTIVATION = 2
+STEP_AMBITION = 3
+STEP_SPACE_TO_PROGRESS = 4
+STEP_NEED_MOST = 5
+STEP_HAVE_ENOUGH = 6
+STEP_PROFILE_GRID = 7
+STEP_TOPICS = 8
+STEP_SUPPORT_TYPE = 9
+STEP_TARGET_GROUPS = 10
+STEP_WHY_REASON = 11
 
 
 @pytest.fixture(autouse=True)
@@ -65,9 +65,9 @@ def _complete_survey(client, token, respondent_type_data, motivation='0',
                       ambition='0', space='0', grid='1,1'):
     """Walk steps 2-11 to completion; step 1 (respondent_type) is driven by
     the caller so both the normal and the skipped-router cases can share
-    this helper."""
+    this helper. `why_reason` (step 11, backlog #0015) is now last and its
+    POST is what triggers classification."""
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data=respondent_type_data)
-    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={} if motivation is None else {'motivation': motivation})
     client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={} if ambition is None else {'ambition': ambition})
     client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={} if space is None else {'space_to_progress': space})
@@ -76,7 +76,8 @@ def _complete_survey(client, token, respondent_type_data, motivation='0',
     client.post(f'/survey/{token}/step/{STEP_PROFILE_GRID}', data={'profile_grid': grid})
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
-    return client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    return client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
 
 
 # ---------------------------------------------------------------------------

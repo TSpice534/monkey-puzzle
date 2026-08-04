@@ -104,6 +104,20 @@ def _now_next_context(submission, survey):
     return resolve_now_next(submission.answers, survey, submission.audience)
 
 
+def _why_context(submission, survey):
+    """The respondent's free-text `output: why` answer for the result
+    surfaces (stripped), or None when the survey has no `output: why`
+    question, the submission never answered it, or the answer is blank
+    (the question is skippable; old submissions predate it)."""
+    q = next((q for q in survey['questions'] if q.get('output') == 'why'), None)
+    if q is None:
+        return None
+    raw = submission.answers.get(q['id'])
+    if not isinstance(raw, str):
+        return None
+    return raw.strip() or None
+
+
 @bp.route('/start')
 def start():
     submission = Submission()
@@ -238,6 +252,7 @@ def result(token):
         grid_selected=grid_selected,
         innovation=_innovation_context(submission, survey),
         now_next=_now_next_context(submission, survey),
+        why=_why_context(submission, survey),
         audience=submission.audience,
     )
 
@@ -259,9 +274,10 @@ def download_pdf(token):
     fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
     innovation = _innovation_context(submission, survey)
     now_next = _now_next_context(submission, survey)
+    why = _why_context(submission, survey)
     pdf_bytes = generate_result_pdf(
         persona, survey['personas'], fingerprint_svg,
-        innovation=innovation, now_next=now_next, base_url=request.url_root, audience=submission.audience,
+        innovation=innovation, now_next=now_next, why=why, base_url=request.url_root, audience=submission.audience,
     )
     filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle.pdf"
     response = Response(pdf_bytes, mimetype='application/pdf')

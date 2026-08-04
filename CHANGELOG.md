@@ -6,6 +6,18 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: reword and move the "why" question, surface it on results (backlog #0015) —
+  `why_reason` (`content/survey.yaml`) is reworded from "Do you have a \"why\"? A reason
+  why this topic is relevant or important for you?" to "In one sentence, why is this work
+  on this topic important to you?", moves from question 2 to the last question in the
+  survey (after `target_groups`), and gains a new `output: why` tag (added to
+  `app/survey/loader.py`'s `_VALID_OUTPUTS`). The respondent's own free-text answer now
+  renders on the web result page and in the PDF report, via a new `_why_context` builder in
+  `app/survey/routes.py` (mirroring `_now_next_context`), threaded through
+  `generate_result_pdf`'s new `why` kwarg, and a new shared partial
+  `app/templates/survey/_result_why.html` included in `_persona_card.html` just below the
+  persona description. Skipped/blank answers and submissions predating the question render
+  nothing — no crash, no guard needed on the step route
 - Change: replace landing page lead copy with survey description text (backlog #0016) —
   `app/templates/index.html`'s `<p class="lead">` now describes what the survey captures
   and that results are personalised and shareable, replacing the prior "what it is / how
