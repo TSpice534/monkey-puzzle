@@ -147,6 +147,24 @@ def test_result_page_renders_persona_name_after_completion(client):
     assert persona_name.encode() in response.data
 
 
+def test_result_page_renders_nothing_for_why_when_fixture_has_no_output_why_question(client):
+    """backlog #0015: `_why_context` returns None when the survey has no
+    `output: why` question at all (this fixture's `q_short_text` carries no
+    `output` tag) — the small-fixture route tests must keep passing with no
+    'Why this matters to you' section rendered."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})
+    client.post(f'/survey/{token}/step/2', data={'q_multi': []})
+    client.post(f'/survey/{token}/step/3', data={'q_spectrum': '0'})
+    client.post(f'/survey/{token}/step/4', data={'q_short_text': 'some free text'})
+
+    response = client.get(f'/survey/{token}/result')
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'Why this matters to you' not in body
+
+
 def test_answers_accumulate_across_all_steps(client, db):
     """Each step's answer must still be present after later steps are
     submitted — submission.answers is a running accumulation, not just the

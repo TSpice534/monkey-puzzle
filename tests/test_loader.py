@@ -808,6 +808,15 @@ def test_valid_output_value_loads(tmp_path):
     assert config['questions'][0]['output'] == 'now'
 
 
+def test_why_output_value_loads(tmp_path):
+    """backlog #0015: `output: why` is a plain passthrough answer, no
+    top-level construct needed — just an allow-listed tag value."""
+    data = _base_config()
+    data['questions'][0]['output'] = 'why'
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['questions'][0]['output'] == 'why'
+
+
 def test_option_with_no_weights_loads_cleanly(tmp_path):
     """Regression guard: `weights` is now optional on single/spectrum/multi/
     triangle/multi_exact options — a missing `weights` must not raise."""

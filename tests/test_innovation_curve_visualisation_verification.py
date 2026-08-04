@@ -50,16 +50,16 @@ REAL_SURVEY_PATH = os.path.join(REPO_ROOT, 'content', 'survey.yaml')
 INDIVIDUAL = 0
 
 STEP_RESPONDENT_TYPE = 1
-STEP_WHY_REASON = 2
-STEP_MOTIVATION = 3
-STEP_AMBITION = 4
-STEP_SPACE_TO_PROGRESS = 5
-STEP_NEED_MOST = 6
-STEP_HAVE_ENOUGH = 7
-STEP_PROFILE_GRID = 8
-STEP_TOPICS = 9
-STEP_SUPPORT_TYPE = 10
-STEP_TARGET_GROUPS = 11
+STEP_MOTIVATION = 2
+STEP_AMBITION = 3
+STEP_SPACE_TO_PROGRESS = 4
+STEP_NEED_MOST = 5
+STEP_HAVE_ENOUGH = 6
+STEP_PROFILE_GRID = 7
+STEP_TOPICS = 8
+STEP_SUPPORT_TYPE = 9
+STEP_TARGET_GROUPS = 10
+STEP_WHY_REASON = 11
 
 
 @pytest.fixture(autouse=True)
@@ -106,7 +106,6 @@ def _complete_survey(client, motivation='0', ambition='0', space_to_progress='0'
     specific totals in this suite."""
     token = _start_new(client)
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
-    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     client.post(f'/survey/{token}/step/{STEP_MOTIVATION}',
                 data={} if motivation is None else {'motivation': motivation})
     client.post(f'/survey/{token}/step/{STEP_AMBITION}',
@@ -119,6 +118,7 @@ def _complete_survey(client, motivation='0', ambition='0', space_to_progress='0'
     client.post(f'/survey/{token}/step/{STEP_TOPICS}', data={'topics': ['0', '1', '2']})
     client.post(f'/survey/{token}/step/{STEP_SUPPORT_TYPE}', data={'support_type': '0'})
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
+    client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     return token
 
 
