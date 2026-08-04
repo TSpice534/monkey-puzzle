@@ -18,3 +18,4 @@
 | 0014 | Topics question (Q9) — allow choosing up to 3, not exactly 3 | change | shipped | 2026-07-24 |
 | 0015 | Reword "why" question, move to end of survey, show answer on results + PDF | change | todo | 2026-08-04 |
 | 0016 | Add survey description copy to landing page | change | todo | 2026-08-04 |
+| 0017 | Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md | feature | todo | 2026-08-04 |
