@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.3.0] — 2026-08-04
+
 - Change: reword and move the "why" question, surface it on results (backlog #0015) —
   `why_reason` (`content/survey.yaml`) is reworded from "Do you have a \"why\"? A reason
   why this topic is relevant or important for you?" to "In one sentence, why is this work
