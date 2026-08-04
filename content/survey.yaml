@@ -225,10 +225,6 @@ questions:
       - { label: "As an individual", audience_value: individual }
       - { label: "On behalf of an organisation", audience_value: organisation }
 
-  - id: why_reason
-    type: short_text
-    prompt: "Do you have a \"why\"? A reason why this topic is relevant or important for you?"
-
   - id: motivation
     type: spectrum
     output: innovation_curve
@@ -346,6 +342,11 @@ questions:
       - { label: "I want to collaborate with knowledge partners", label_organisation: "We want to collaborate with knowledge partners", statement_phrase: "with knowledge partners" }
       - { label: "I want to entice policy makers",                label_organisation: "We want to entice policy makers",                 statement_phrase: "with policy makers" }
       - { label: "I want to focus on own organisation first",     label_organisation: "We want to focus on our own organisation first",  statement_phrase: "within your own organisation" }
+
+  - id: why_reason
+    type: short_text
+    output: why
+    prompt: "In one sentence, why is this work on this topic important to you?"
 
 scoring:
   method: persona_vector

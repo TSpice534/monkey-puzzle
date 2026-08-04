@@ -9,7 +9,7 @@ from flask import current_app
 
 _VALID_TYPES = {'spectrum', 'single', 'multi', 'short_text', 'triangle', 'multi_exact', 'multi_range', 'grid'}
 _VALID_AUDIENCES = {'individual', 'organisation'}
-_VALID_OUTPUTS = {'innovation_curve', 'now', 'next', 'profile_direct'}
+_VALID_OUTPUTS = {'innovation_curve', 'now', 'next', 'profile_direct', 'why'}
 _TYPES_WITH_OPTIONS = {'spectrum', 'single', 'multi', 'triangle', 'multi_exact', 'multi_range'}
 
 _cache = {}
