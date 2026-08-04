@@ -151,6 +151,12 @@ def _validate_questions(raw):
         if not q.get('prompt'):
             raise SurveyConfigError(f"question '{qid}' is missing a non-empty 'prompt'")
 
+        explanation = q.get('explanation')
+        if explanation is not None and (not isinstance(explanation, str) or not explanation):
+            raise SurveyConfigError(
+                f"question '{qid}' field 'explanation', if present, must be a non-empty string"
+            )
+
         is_router = qid == router_id
 
         audience = q.get('audience')

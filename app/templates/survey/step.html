@@ -8,6 +8,10 @@
     <fieldset class="mb-4">
       <legend class="h4 mb-3">{{ question.prompt }}</legend>
 
+      {% if question.explanation %}
+      <p class="question-explanation text-muted small mb-3">{{ question.explanation }}</p>
+      {% endif %}
+
       {% if question.type == 'single' %}
         {% include "survey/_question_single.html" %}
       {% elif question.type == 'triangle' %}

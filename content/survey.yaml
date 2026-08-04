@@ -250,18 +250,25 @@ questions:
   - id: space_to_progress
     type: spectrum
     output: innovation_curve
-    prompt: "How much space do you have to progress?"
+    prompt: "What is the current balance between your commitments and capacity?"
+    explanation: |-
+      This question is asking you to consider how much you are currently committed, and whether you feel there is enough capacity for you / your organisation to meet those commitments.
     options:
-      - { label: "A lot, I'm still operating in my comfort zone",                            label_organisation: "A lot, we're still operating in our comfort zone",                          score: 1 }
-      - { label: "Some space, I am busy but still have capacity",                            label_organisation: "Some space, we are busy but still have capacity",                           score: 3 }
-      - { label: "I feel I have good balance between my capacity and commitments",                                                                                                            score: 5 }
-      - { label: "Very little, I am highly committed and further progress is out of scope",  label_organisation: "Very little, we are highly committed and further progress is out of scope", score: 3 }
-      - { label: "None",                                                                                                                                                                     score: 1 }
+      - { label: "Few commitments, lots of capacity",             score: 1 }
+      - { label: "Some commitments, some capacity",               score: 3 }
+      - { label: "Balanced between our commitments and capacity", score: 5 }
+      - { label: "Little capacity, high level of commitment",     score: 3 }
+      - { label: "No capacity, fully commited",                   score: 1 }
 
   - id: need_most
     type: triangle
     output: next
     prompt: "What do you need most to progress?"
+    explanation: |-
+      This question is asking you to consider your additional requirements or needs:
+      - Capacity refers to skills, time and/or resources.
+      - Knowledge refers to information, training and/or applied practice
+      - Support refers to encouragement, space for community development and/or pathways to mastery / autonomy
     options:
       - { label: "More capacity", statement_phrase: "capacity" }
       - { label: "More knowledge", statement_phrase: "knowledge" }
@@ -271,6 +278,11 @@ questions:
     type: triangle
     output: now
     prompt: "What do you already have enough of?"
+    explanation: |-
+      This question is asking what requirements or needs you may have that are already being met:
+      - Capacity refers to skills, time and/or resources.
+      - Knowledge refers to information, training and/or applied practice
+      - Support refers to encouragement, space for community development and/or pathways to mastery / autonomy
     options:
       - { label: "Capacity", statement_phrase: "capacity" }
       - { label: "Knowledge", statement_phrase: "knowledge" }
@@ -326,7 +338,12 @@ questions:
   - id: support_type
     type: triangle
     output: next
-    prompt: "What type of support do you desire?"
+    prompt: "What type of assistance do you desire?"
+    explanation: |-
+      This question is asking you to consider what kind of assistance would help you achieve your goals:
+      - Information, where you are finding/sharing appropriate knowledge
+      - Training, where you are taught new information or skills
+      - Mentoring, where you work in collaboration focussed on your case.
     options:
       - { label: "Information", statement_phrase: "information" }
       - { label: "Training", statement_phrase: "training" }
@@ -335,7 +352,7 @@ questions:
   - id: target_groups
     type: single
     output: next
-    prompt: "What target groups would you like to collaborate with the most?"
+    prompt: "Who are you trying to work with?"
     options:
       - { label: "I want to engage my audience",                  label_organisation: "We want to engage our audience",                  statement_phrase: "with your audience" }
       - { label: "I want to partner with my suppliers",           label_organisation: "We want to partner with our suppliers",           statement_phrase: "with suppliers" }

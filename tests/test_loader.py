@@ -810,6 +810,25 @@ def test_multi_range_valid_instructions_loads(tmp_path):
     assert loaded['instructions'] == 'Choose up to 3 options.'
 
 
+def test_explanation_empty_raises(tmp_path):
+    data = _base_config()
+    q = _triangle_question()
+    q['explanation'] = ''
+    data['questions'].append(q)
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_explanation_valid_loads(tmp_path):
+    data = _base_config()
+    q = _triangle_question()
+    q['explanation'] = 'This question is asking you to consider your options.'
+    data['questions'].append(q)
+    config = load_survey(_write_yaml(tmp_path, data))
+    loaded = next(q for q in config['questions'] if q['id'] == 'q_triangle')
+    assert loaded['explanation'] == 'This question is asking you to consider your options.'
+
+
 def test_triangle_valid_three_option_loads(tmp_path):
     data = _base_config()
     data['questions'].append(_triangle_question())

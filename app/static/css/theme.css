@@ -282,3 +282,9 @@
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
+
+/* Per-question explanation help-text (backlog #0017 Part A) — rendered once
+   generically in step.html below the prompt. Content is stored in
+   survey.yaml as a YAML block scalar with real newlines, not raw HTML, so
+   this turns those newlines into visible line breaks. */
+.question-explanation { white-space: pre-line; }

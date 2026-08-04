@@ -32,6 +32,19 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   `docs/PROFILES-TEMPLATE.md` (also fixes that doc's stale relationship-column references
   to the old names). Taglines, descriptions, grid positions, and tie-break/modifier values
   are unchanged — a pure token rename.
+- Change: reword four question prompts/options and add per-question help text (backlog
+  #0017 Part A) — `content/survey.yaml`'s `space_to_progress` prompt and all 5 option
+  labels move to audience-neutral wording (drops `label_organisation` on that question),
+  `support_type`'s prompt changes to "What type of assistance do you desire?", and
+  `target_groups`'s prompt changes to "Who are you trying to work with?" (options
+  unchanged on both). Also adds a new optional per-question `explanation` string field —
+  distinct from `instructions` — validated generically in `app/survey/loader.py` for every
+  question type, and rendered once, auto-escaped, below the prompt in
+  `app/templates/survey/step.html` (`.question-explanation`, `white-space: pre-line` in
+  `app/static/css/theme.css`, so multi-line explanations stored as YAML block scalars
+  render with visible line breaks). `space_to_progress`, `need_most`, `have_enough`, and
+  `support_type` all gain explanation text; `target_groups` has none, matching the source
+  template.
 
 ## [v0.2.0] — 2026-07-24
 
