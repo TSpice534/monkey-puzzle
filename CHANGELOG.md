@@ -6,6 +6,9 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: remove the radial (fingerprint) chart from the web results page (backlog #0020) —
+  dropped from `app/templates/survey/result.html` and `routes.py::result()`. PDF, emailed
+  copy, and the share-card PNG each render it independently and are unaffected.
 - Fix: split test-only deps out of the production requirements lock (backlog #0023) —
   `pytest` moved from `requirements.in` into a new `requirements-dev.in`/`requirements-dev.txt`
   (pip-tools layered lock, `-c requirements.txt`), so `pytest`, `iniconfig`, and `pluggy` no
