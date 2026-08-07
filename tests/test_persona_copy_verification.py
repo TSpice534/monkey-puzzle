@@ -119,7 +119,7 @@ def test_communicator_two_value_relationships_render_both_names_in_pdf(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=communicator, personas=survey['personas'],
-            fingerprint_svg='<svg></svg>', innovation=None, audience=None,
+            innovation=None, audience=None,
         )
     assert 'The Architect, The Accountant' in html
     assert 'The Connector, The Cooperator' in html
@@ -162,7 +162,7 @@ def test_laggard_band_tagline_renders_verbatim_in_pdf(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas=survey['personas'],
-            fingerprint_svg='<svg></svg>', innovation=innovation, audience=None,
+            innovation=innovation, audience=None,
         )
     assert 'You are a Laggard. Wanker.' in html
 
