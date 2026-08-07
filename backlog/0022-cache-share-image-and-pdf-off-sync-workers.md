@@ -2,9 +2,9 @@
 id: 0022
 title: Cache/offload og:image and PDF rendering so they stop blocking sync Gunicorn workers
 type: change
-status: todo
+status: in-progress
 created: 2026-08-04
-branch:
+branch: feature/cache-share-image-and-pdf
 ---
 
 ## Request
