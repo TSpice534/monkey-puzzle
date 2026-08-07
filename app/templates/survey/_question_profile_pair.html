@@ -7,6 +7,9 @@
    routes.step / _guard_message). Degrades gracefully without JS: the radios
    still work and submit; only the live sentence stays at its stem. #}
 
+{% if profile_instructions %}
+<p class="text-muted small mb-2">{{ profile_instructions }}</p>
+{% endif %}
 <p class="profile-sentence h5 mb-4" id="profile-sentence"
    aria-live="polite" aria-atomic="true"
    data-stem="{{ sentence_stem }}">{{ sentence_stem }}...</p>
@@ -25,6 +28,8 @@
   </div>
   {% endfor %}
 </div>
+
+<hr class="my-4" aria-hidden="true">
 
 <div class="row g-3" role="radiogroup" aria-label="{{ question_prompt(scope_question, audience) }}">
   {% for option in scope_question.options %}

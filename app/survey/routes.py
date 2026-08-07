@@ -184,6 +184,7 @@ def _render_step(survey, step_questions, submission, step, total, token, saved):
         return render_template(
             'survey/step.html', combined_profile=True,
             profile_prompt=matrix['prompt'], sentence_stem=stem,
+            profile_instructions=matrix.get('instructions'),
             approach_question=approach_q, scope_question=scope_q,
             saved_approach=saved.get(approach_q['id']),
             saved_scope=saved.get(scope_q['id']), **common)

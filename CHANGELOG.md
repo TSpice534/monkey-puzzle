@@ -6,6 +6,11 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: add an instruction line and visual separator to the combined profile step (Question
+  7) (backlog #0024) — new optional `profile_matrix.instructions` field in `content/survey.yaml`
+  ("Select one option from the top AND bottom row"), validated in `loader.py` and rendered in
+  `_question_profile_pair.html` above the live sentence, plus an `<hr>` divider between the
+  approach and scope option rows.
 - Change: remove the radial (fingerprint) chart from the web results page (backlog #0020) —
   dropped from `app/templates/survey/result.html` and `routes.py::result()`. PDF, emailed
   copy, and the share-card PNG each render it independently and are unaffected.
