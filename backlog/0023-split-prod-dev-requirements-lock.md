@@ -2,9 +2,9 @@
 id: 0023
 title: Split pytest and other test-only deps out of the production requirements lock
 type: change
-status: todo
+status: shipped
 created: 2026-08-04
-branch:
+branch: quickship/split-prod-dev-requirements-lock
 ---
 
 ## Request

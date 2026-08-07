@@ -483,6 +483,7 @@ now_next:
 # app/templates/survey/_question_profile_pair.html.
 profile_matrix:
   prompt: "Finish the following sentence..."
+  instructions: "Select one option from the top AND bottom row"
   sentence_stem: "I want to"
   sentence_stem_organisation: "We want to"
   approach_question: profile_approach

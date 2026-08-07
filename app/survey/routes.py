@@ -3,13 +3,20 @@ from email_validator import EmailNotValidError, validate_email
 from flask import Response, abort, current_app, flash, redirect, render_template, request, url_for
 
 from app import db, limiter
+from app.asset_cache import get_or_render
 from app.email_utils import send_result_email
 from app.models import Submission
-from app.pdf_utils import generate_result_pdf
+from app.pdf_utils import generate_result_pdf, html_to_pdf, render_result_html
 from app.survey import bp
 from app.survey.charts import render_fingerprint_svg, render_innovation_curve_svg, render_share_card_svg
 from app.survey.loader import get_survey, survey_steps
 from app.survey.persona import classify_submission, resolve_innovation_curve, resolve_now_next
+
+# Max stored length for free-text (short_text) answers, in characters. Server-side
+# cap bounding the size of the answers JSON column (DoS guard, #0021). The textarea
+# maxlength in _question_short_text.html mirrors this as a client hint; this value
+# is authoritative.
+MAX_SHORT_TEXT_CHARS = 2000
 
 
 def _get_submission_or_404(token):
@@ -46,7 +53,7 @@ def _read_answer(question, form):
         return indices
 
     if qtype == 'short_text':
-        return (form.get(qid) or '').strip()
+        return (form.get(qid) or '').strip()[:MAX_SHORT_TEXT_CHARS]
 
     if qtype == 'triangle':
         raw = form.get(qid)
@@ -177,6 +184,7 @@ def _render_step(survey, step_questions, submission, step, total, token, saved):
         return render_template(
             'survey/step.html', combined_profile=True,
             profile_prompt=matrix['prompt'], sentence_stem=stem,
+            profile_instructions=matrix.get('instructions'),
             approach_question=approach_q, scope_question=scope_q,
             saved_approach=saved.get(approach_q['id']),
             saved_scope=saved.get(scope_q['id']), **common)
@@ -201,6 +209,7 @@ def _why_context(submission, survey):
 
 
 @bp.route('/start')
+@limiter.limit('60 per minute')
 def start():
     submission = Submission()
     db.session.add(submission)
@@ -209,6 +218,7 @@ def start():
 
 
 @bp.route('/<token>/step/<int:step>', methods=['GET', 'POST'])
+@limiter.limit('180 per minute')
 def step(token, step):
     submission = _get_submission_or_404(token)
 
@@ -283,7 +293,6 @@ def result(token):
         return redirect(url_for('survey.step', token=token, step=next_step))
 
     persona = survey['personas'][submission.persona_id]
-    fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
 
     grid_question, grid_selected = _profile_grid_context(submission, survey)
 
@@ -293,7 +302,6 @@ def result(token):
         submission=submission,
         persona=persona,
         personas=survey['personas'],
-        fingerprint_svg=fingerprint_svg,
         grid_question=grid_question,
         grid_selected=grid_selected,
         innovation=_innovation_context(submission, survey),
@@ -307,7 +315,10 @@ def result(token):
 def share_image(token):
     submission, survey, persona = _require_classified(token)
     svg = render_share_card_svg(persona, submission.score_vector, survey['personas'])
-    png = cairosvg.svg2png(bytestring=svg.encode(), output_width=1200, output_height=630)
+    png = get_or_render(
+        svg, '.png',
+        lambda: cairosvg.svg2png(bytestring=svg.encode(), output_width=1200, output_height=630),
+    )
     response = Response(png, mimetype='image/png')
     # Deterministic per submission once classified — safe to cache.
     response.headers['Cache-Control'] = 'public, max-age=86400, immutable'
@@ -321,9 +332,13 @@ def download_pdf(token):
     innovation = _innovation_context(submission, survey)
     now_next = _now_next_context(submission, survey)
     why = _why_context(submission, survey)
-    pdf_bytes = generate_result_pdf(
+    html = render_result_html(
         persona, survey['personas'], fingerprint_svg,
-        innovation=innovation, now_next=now_next, why=why, base_url=request.url_root, audience=submission.audience,
+        innovation=innovation, now_next=now_next, why=why, audience=submission.audience,
+    )
+    pdf_bytes = get_or_render(
+        html + '\x00' + (request.url_root or ''), '.pdf',
+        lambda: html_to_pdf(html, base_url=request.url_root),
     )
     filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle.pdf"
     response = Response(pdf_bytes, mimetype='application/pdf')

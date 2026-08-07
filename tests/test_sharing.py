@@ -39,6 +39,28 @@ def _complete_survey(client):
     return token
 
 
+def _complete_survey_as_accountant(client):
+    """Same shape as `_complete_survey`, but picks the other q_single option
+    so the submission lands on 'accountant' instead — a distinct persona,
+    used to prove the asset cache doesn't collide across submissions."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/1', data={'q_single': '1'})       # accountant: 2
+    client.post(f'/survey/{token}/step/2', data={'q_multi': []})
+    client.post(f'/survey/{token}/step/3', data={'q_spectrum': '0'})
+    client.post(f'/survey/{token}/step/4', data={'q_short_text': ''})
+    return token
+
+
+def _clear_asset_cache(app):
+    """TestConfig's ASSET_CACHE_DIR is shared class-wide across the whole test
+    run (content-addressed reuse is intended, not a leak — see conftest.py),
+    so a cache-behaviour test must clear it first to guarantee a real miss on
+    its own first request, regardless of what earlier tests already warmed."""
+    cache_dir = app.config['ASSET_CACHE_DIR']
+    for name in os.listdir(cache_dir):
+        os.remove(os.path.join(cache_dir, name))
+
+
 # ---------------------------------------------------------------------------
 # result page — OG tags + share/PDF/email UI
 # ---------------------------------------------------------------------------
@@ -88,6 +110,60 @@ def test_share_image_404_unknown_token(client):
     assert response.status_code == 404
 
 
+def test_share_image_is_cached_second_request_skips_rasterise(client, app, monkeypatch):
+    """backlog #0022 — the on-disk asset cache should skip re-rasterising an
+    already-rendered share card on a second request for the same token."""
+    import cairosvg
+    import app.survey.routes as routes_module
+
+    _clear_asset_cache(app)
+
+    calls = []
+    real_svg2png = cairosvg.svg2png
+
+    def _counting_svg2png(*args, **kwargs):
+        calls.append(1)
+        return real_svg2png(*args, **kwargs)
+
+    monkeypatch.setattr(routes_module.cairosvg, 'svg2png', _counting_svg2png)
+
+    token = _complete_survey(client)
+    first = client.get(f'/survey/{token}/share.png')
+    second = client.get(f'/survey/{token}/share.png')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.mimetype == 'image/png'
+    assert second.mimetype == 'image/png'
+    assert first.data == second.data
+    assert len(calls) == 1
+
+
+def test_share_image_cache_key_does_not_collide_across_different_personas(client, app):
+    """backlog #0022 — the cache is keyed by the rendered SVG (persona-
+    specific), not by token, so two submissions landing on different
+    personas must get their own distinct cache entry and their own
+    correct image, never share or clobber one another's."""
+    _clear_asset_cache(app)
+
+    inventor_token = _complete_survey(client)
+    accountant_token = _complete_survey_as_accountant(client)
+
+    inventor_png = client.get(f'/survey/{inventor_token}/share.png').data
+    accountant_png = client.get(f'/survey/{accountant_token}/share.png').data
+
+    assert inventor_png.startswith(PNG_MAGIC)
+    assert accountant_png.startswith(PNG_MAGIC)
+    assert inventor_png != accountant_png
+
+    # Re-fetching each must still return its own image, not the other's.
+    assert client.get(f'/survey/{inventor_token}/share.png').data == inventor_png
+    assert client.get(f'/survey/{accountant_token}/share.png').data == accountant_png
+
+    cache_files = [f for f in os.listdir(app.config['ASSET_CACHE_DIR']) if f.endswith('.png')]
+    assert len(cache_files) == 2
+
+
 # ---------------------------------------------------------------------------
 # pdf
 # ---------------------------------------------------------------------------
@@ -117,6 +193,34 @@ def test_download_pdf_404_before_completion(client):
 def test_download_pdf_404_unknown_token(client):
     response = client.get('/survey/not-a-real-token/pdf')
     assert response.status_code == 404
+
+
+def test_download_pdf_is_cached_second_request_skips_weasyprint(client, app, monkeypatch):
+    """backlog #0022 — the on-disk asset cache should skip re-running
+    WeasyPrint on a second request for the same token."""
+    import app.survey.routes as routes_module
+
+    _clear_asset_cache(app)
+
+    calls = []
+    real_html_to_pdf = routes_module.html_to_pdf
+
+    def _counting_html_to_pdf(*args, **kwargs):
+        calls.append(1)
+        return real_html_to_pdf(*args, **kwargs)
+
+    monkeypatch.setattr(routes_module, 'html_to_pdf', _counting_html_to_pdf)
+
+    token = _complete_survey(client)
+    first = client.get(f'/survey/{token}/pdf')
+    second = client.get(f'/survey/{token}/pdf')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.data.startswith(b'%PDF')
+    assert second.data.startswith(b'%PDF')
+    assert first.data == second.data
+    assert len(calls) == 1
 
 
 # ---------------------------------------------------------------------------

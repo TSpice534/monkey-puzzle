@@ -646,6 +646,34 @@ def test_profile_matrix_valid_sentence_stem_organisation_loads(tmp_path):
     assert config['profile_matrix']['sentence_stem_organisation'] == 'We want to'
 
 
+def test_profile_matrix_instructions_absent_is_valid(tmp_path):
+    """instructions is optional -- every existing profile_matrix fixture that
+    omits it (as `_profile_matrix_construct` does) must still load."""
+    config = load_survey(_write_yaml(tmp_path, _config_with_profile_matrix()))
+    assert config['profile_matrix'].get('instructions') is None
+
+
+def test_profile_matrix_non_string_instructions_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['instructions'] = 123
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_empty_instructions_raises(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['instructions'] = ''
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_profile_matrix_valid_instructions_loads(tmp_path):
+    data = _config_with_profile_matrix()
+    data['profile_matrix']['instructions'] = 'Select one option from the top AND bottom row'
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['profile_matrix']['instructions'] == 'Select one option from the top AND bottom row'
+
+
 def test_profile_matrix_scope_question_not_immediately_after_approach_raises(tmp_path):
     """The combined survey step (loader.survey_steps) depends on
     scope_question following approach_question directly in `questions`."""

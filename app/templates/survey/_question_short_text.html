@@ -1,5 +1,5 @@
 <div class="mb-2">
   <label class="visually-hidden" for="{{ question.id }}_input">{{ question.prompt }}</label>
   <textarea class="form-control" id="{{ question.id }}_input" name="{{ question.id }}"
-            rows="4" placeholder="Type your answer&hellip;">{{ saved_value or '' }}</textarea>
+            rows="4" maxlength="2000" placeholder="Type your answer&hellip;">{{ saved_value or '' }}</textarea>
 </div>

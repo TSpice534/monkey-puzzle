@@ -2,9 +2,9 @@
 id: 0021
 title: Cap free-text answer length and rate-limit /start and /step
 type: bug
-status: todo
+status: shipped
 created: 2026-08-04
-branch:
+branch: feature/cap-freetext-length-ratelimit
 ---
 
 ## Request

@@ -117,6 +117,33 @@ def test_step_post_short_text_is_trimmed(client, db):
     assert submission.answers['q_short_text'] == 'hello world'
 
 
+def test_step_post_short_text_is_capped_at_max_length(client, db):
+    """A scripted client posting an over-length answer gets it truncated
+    server-side (backlog #0021) — no error, submission continues normally."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})
+    client.post(f'/survey/{token}/step/2', data={'q_multi': ['0']})
+    client.post(f'/survey/{token}/step/3', data={'q_spectrum': '1'})
+    client.post(f'/survey/{token}/step/4', data={'q_short_text': 'x' * 3000})
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert len(submission.answers['q_short_text']) == 2000
+
+
+def test_step_post_short_text_at_exactly_max_length_is_unchanged(client, db):
+    """Exactly-at-the-limit edge case (backlog #0021): `s[:2000]` where
+    `len(s) == 2000` passes through unchanged — the cap must not lop off a
+    character it shouldn't."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/1', data={'q_single': '0'})
+    client.post(f'/survey/{token}/step/2', data={'q_multi': ['0']})
+    client.post(f'/survey/{token}/step/3', data={'q_spectrum': '1'})
+    exact = 'y' * 2000
+    client.post(f'/survey/{token}/step/4', data={'q_short_text': exact})
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert submission.answers['q_short_text'] == exact
+    assert len(submission.answers['q_short_text']) == 2000
+
+
 def test_completing_final_step_sets_persona_and_score_vector(client, db):
     token = _start_new(client)
     client.post(f'/survey/{token}/step/1', data={'q_single': '0'})       # inventor: 2
@@ -302,3 +329,115 @@ def test_security_headers_present_on_result_page(client):
     response = client.get(f'/survey/{token}/result')
     assert response.headers['X-Frame-Options'] == 'DENY'
     assert 'Content-Security-Policy' in response.headers
+
+
+# ---------------------------------------------------------------------------
+# Rate limiting (backlog #0021 — storage-exhaustion DoS guard)
+# ---------------------------------------------------------------------------
+
+def test_start_is_rate_limited():
+    """/start creates a row per request, so it's the row-flooding abuse
+    surface — rate-limited to 60/min.
+
+    RATELIMIT_ENABLED is read once by Flask-Limiter at init_app time, so
+    this needs its own app instance built with it already True — mutating
+    app.config after create_app() has no effect on an already-initialised
+    limiter.
+    """
+    from app import create_app
+    from app import db as _db
+    from tests.conftest import TestConfig
+
+    class RateLimitedConfig(TestConfig):
+        RATELIMIT_ENABLED = True
+        SURVEY_PATH = FIXTURE_PATH
+
+    application = create_app(RateLimitedConfig)
+    with application.app_context():
+        _db.create_all()
+        client = application.test_client()
+
+        statuses = [client.get('/survey/start').status_code for _ in range(61)]
+
+        _db.session.remove()
+        _db.drop_all()
+
+    assert statuses[:60] == [302] * 60
+    assert statuses[60] == 429
+
+
+def test_step_is_rate_limited():
+    """/<token>/step writes an answer per request — rate-limited to
+    180/min, generous enough that a normal run (GET+POST per question)
+    never trips it, but scripted flooding does.
+    """
+    from app import create_app
+    from app import db as _db
+    from tests.conftest import TestConfig
+
+    class RateLimitedConfig(TestConfig):
+        RATELIMIT_ENABLED = True
+        SURVEY_PATH = FIXTURE_PATH
+
+    application = create_app(RateLimitedConfig)
+    with application.app_context():
+        _db.create_all()
+        client = application.test_client()
+        token = _start_new(client)
+
+        statuses = [
+            client.get(f'/survey/{token}/step/1').status_code for _ in range(181)
+        ]
+
+        _db.session.remove()
+        _db.drop_all()
+
+    assert statuses[:180] == [200] * 180
+    assert statuses[180] == 429
+
+
+def test_normal_survey_run_does_not_trip_either_rate_limit():
+    """Edge case (backlog #0021 spec): a full legit survey run — one
+    /start, then a GET+POST pair per step through to completion — must not
+    trip the 60/min `/start` or 180/min `/step` limits at the specced
+    numbers, even with RATELIMIT_ENABLED=True. The fixture survey has 4
+    steps, so this is 1 + (4 * 2) = 9 requests total, nowhere near either
+    threshold — a regression here would mean the limits are too tight for
+    real respondents.
+    """
+    from app import create_app
+    from app import db as _db
+    from tests.conftest import TestConfig
+
+    class RateLimitedConfig(TestConfig):
+        RATELIMIT_ENABLED = True
+        SURVEY_PATH = FIXTURE_PATH
+
+    application = create_app(RateLimitedConfig)
+    with application.app_context():
+        _db.create_all()
+        client = application.test_client()
+
+        start_response = client.get('/survey/start')
+        assert start_response.status_code == 302
+        token = start_response.headers['Location'].split('/survey/')[1].split('/step/')[0]
+
+        answers = [{'q_single': '0'}, {'q_multi': ['0']}, {'q_spectrum': '1'}, {'q_short_text': 'because reasons'}]
+        for step, data in enumerate(answers, start=1):
+            get_response = client.get(f'/survey/{token}/step/{step}')
+            assert get_response.status_code == 200
+            post_response = client.post(f'/survey/{token}/step/{step}', data=data)
+            assert post_response.status_code == 302
+
+        _db.session.remove()
+        _db.drop_all()
+
+
+def test_start_is_not_rate_limited_when_ratelimit_disabled(client):
+    """Edge case (backlog #0021 spec): `tests/conftest.py:TestConfig` sets
+    RATELIMIT_ENABLED = False, which every other test in this module
+    (including this one, via the ordinary `client` fixture) relies on
+    implicitly. Assert it directly: a flood well past the 60/min `/start`
+    threshold must never 429 while the limiter is disabled."""
+    statuses = [client.get('/survey/start').status_code for _ in range(65)]
+    assert statuses == [302] * 65

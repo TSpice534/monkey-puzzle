@@ -1,0 +1,4 @@
+-c requirements.txt
+
+# Test-only — installed locally and in CI, never on the production server
+pytest

@@ -6,6 +6,32 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.3.1] — 2026-08-07
+
+- Change: add an instruction line and visual separator to the combined profile step (Question
+  7) (backlog #0024) — new optional `profile_matrix.instructions` field in `content/survey.yaml`
+  ("Select one option from the top AND bottom row"), validated in `loader.py` and rendered in
+  `_question_profile_pair.html` above the live sentence, plus an `<hr>` divider between the
+  approach and scope option rows.
+- Change: remove the radial (fingerprint) chart from the web results page (backlog #0020) —
+  dropped from `app/templates/survey/result.html` and `routes.py::result()`. PDF, emailed
+  copy, and the share-card PNG each render it independently and are unaffected.
+- Fix: split test-only deps out of the production requirements lock (backlog #0023) —
+  `pytest` moved from `requirements.in` into a new `requirements-dev.in`/`requirements-dev.txt`
+  (pip-tools layered lock, `-c requirements.txt`), so `pytest`, `iniconfig`, and `pluggy` no
+  longer install on the production server via `DEPLOY.md`'s `pip install -r requirements.txt`.
+  Local dev/CI now installs both files.
+- Change: cache the share-card PNG and result PDF on disk (backlog #0022) — `share_image`
+  and `download_pdf` now rasterise each distinct asset once (content-addressed cache under
+  `ASSET_CACHE_DIR`) and serve repeats from disk, so social-crawler `og:image` fetches and
+  PDF re-downloads no longer tie up the 3 sync Gunicorn workers. Self-invalidates when
+  `content/survey.yaml` is retuned.
+- Fix: cap free-text answer length and rate-limit /start and /step (backlog #0021) — `short_text`
+  answers are truncated to `MAX_SHORT_TEXT_CHARS` (2000) in `_read_answer` and the textarea in
+  `_question_short_text.html` gains a matching `maxlength`; `/start` and `/<token>/step` gain
+  per-IP `@limiter.limit` decorators (mirroring `/<token>/email`), closing a storage-exhaustion
+  DoS on the unauthenticated survey routes.
+
 ## [v0.3.0] — 2026-08-04
 
 - Change: reword and move the "why" question, surface it on results (backlog #0015) —
