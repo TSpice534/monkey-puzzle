@@ -21,9 +21,9 @@ organisation respondents see different wording), Natural Allies, Friends, Necess
 ## Status
 
 Phases 1–5 of the build plan are done: a data-driven survey flow, persona classifier,
-result page (with a radar "fingerprint" chart), and sharing/output all work end-to-end
-against a placeholder question set — OpenGraph/Twitter share tags, a generated PNG share
-image, a LinkedIn share link, a downloadable PDF report, and an opt-in "email me a copy".
+result page, and sharing/output all work end-to-end against a placeholder question set —
+OpenGraph/Twitter share tags, a generated PNG share image, a LinkedIn share link, a
+downloadable PDF report, and an opt-in "email me a copy".
 Only deploy (Phase 6) is left. Forked from the Donut Toolkit as a starting framework,
 then diverging: no accounts, public/viral, single categorical persona output. See
 [docs/PRODUCTION-PLAN.md](docs/PRODUCTION-PLAN.md) for the full plan and phasing.
@@ -60,8 +60,8 @@ flask run
 Visit `/`, click "Begin", and work through the survey — each step is one question, except
 one combined step partway through that asks two profile questions together (a live-
 updating sentence + a 2x3 button grid). Finishing the last step classifies your answers
-into one of the nine personas and shows the result page with your fingerprint radar
-chart, a downloadable PDF, and a share image.
+into one of the nine personas and shows the result page, a downloadable PDF, and a share
+image.
 
 PDF generation needs libpango installed (`brew install pango` on macOS — `.flaskenv`
 already sets `DYLD_LIBRARY_PATH` for it). "Email me a copy" is a no-op with a flash

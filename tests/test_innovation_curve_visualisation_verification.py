@@ -221,7 +221,7 @@ def test_curve_svg_renders_inside_the_real_pdf_template(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas={'accountant': persona},
-            fingerprint_svg='<svg></svg>', innovation=innovation, audience=None,
+            innovation=innovation, audience=None,
         )
     assert 'Innovation curve — you scored 5 of 15 (Late Majority).' in html
 
