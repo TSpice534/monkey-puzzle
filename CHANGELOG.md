@@ -6,6 +6,12 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: cap free-text answer length and rate-limit /start and /step (backlog #0021) — `short_text`
+  answers are truncated to `MAX_SHORT_TEXT_CHARS` (2000) in `_read_answer` and the textarea in
+  `_question_short_text.html` gains a matching `maxlength`; `/start` and `/<token>/step` gain
+  per-IP `@limiter.limit` decorators (mirroring `/<token>/email`), closing a storage-exhaustion
+  DoS on the unauthenticated survey routes.
+
 ## [v0.3.0] — 2026-08-04
 
 - Change: reword and move the "why" question, surface it on results (backlog #0015) —
