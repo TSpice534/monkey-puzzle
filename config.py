@@ -36,6 +36,15 @@ class Config:
     SURVEY_PATH = os.environ.get('SURVEY_PATH') or os.path.join(basedir, 'content', 'survey.yaml')
 
     # ------------------------------------------------------------------
+    # Asset cache (backlog #0022) — on-disk, content-addressed cache for
+    # the rasterised share-card PNG and result PDF, so repeated near-
+    # concurrent fetches (og:image crawlers, PDF re-downloads) don't tie
+    # up the sync Gunicorn workers re-rendering the same asset. Not
+    # committed — `instance/` is gitignored.
+    # ------------------------------------------------------------------
+    ASSET_CACHE_DIR = os.environ.get('ASSET_CACHE_DIR') or os.path.join(basedir, 'instance', 'asset-cache')
+
+    # ------------------------------------------------------------------
     # Mail — optional "email me a copy" (Phase 5). Left unset by default;
     # the email route checks MAIL_SERVER and no-ops with a flash message
     # rather than raising if it isn't configured.

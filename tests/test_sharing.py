@@ -39,6 +39,16 @@ def _complete_survey(client):
     return token
 
 
+def _clear_asset_cache(app):
+    """TestConfig's ASSET_CACHE_DIR is shared class-wide across the whole test
+    run (content-addressed reuse is intended, not a leak — see conftest.py),
+    so a cache-behaviour test must clear it first to guarantee a real miss on
+    its own first request, regardless of what earlier tests already warmed."""
+    cache_dir = app.config['ASSET_CACHE_DIR']
+    for name in os.listdir(cache_dir):
+        os.remove(os.path.join(cache_dir, name))
+
+
 # ---------------------------------------------------------------------------
 # result page — OG tags + share/PDF/email UI
 # ---------------------------------------------------------------------------
@@ -88,6 +98,35 @@ def test_share_image_404_unknown_token(client):
     assert response.status_code == 404
 
 
+def test_share_image_is_cached_second_request_skips_rasterise(client, app, monkeypatch):
+    """backlog #0022 — the on-disk asset cache should skip re-rasterising an
+    already-rendered share card on a second request for the same token."""
+    import cairosvg
+    import app.survey.routes as routes_module
+
+    _clear_asset_cache(app)
+
+    calls = []
+    real_svg2png = cairosvg.svg2png
+
+    def _counting_svg2png(*args, **kwargs):
+        calls.append(1)
+        return real_svg2png(*args, **kwargs)
+
+    monkeypatch.setattr(routes_module.cairosvg, 'svg2png', _counting_svg2png)
+
+    token = _complete_survey(client)
+    first = client.get(f'/survey/{token}/share.png')
+    second = client.get(f'/survey/{token}/share.png')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.mimetype == 'image/png'
+    assert second.mimetype == 'image/png'
+    assert first.data == second.data
+    assert len(calls) == 1
+
+
 # ---------------------------------------------------------------------------
 # pdf
 # ---------------------------------------------------------------------------
@@ -117,6 +156,34 @@ def test_download_pdf_404_before_completion(client):
 def test_download_pdf_404_unknown_token(client):
     response = client.get('/survey/not-a-real-token/pdf')
     assert response.status_code == 404
+
+
+def test_download_pdf_is_cached_second_request_skips_weasyprint(client, app, monkeypatch):
+    """backlog #0022 — the on-disk asset cache should skip re-running
+    WeasyPrint on a second request for the same token."""
+    import app.survey.routes as routes_module
+
+    _clear_asset_cache(app)
+
+    calls = []
+    real_html_to_pdf = routes_module.html_to_pdf
+
+    def _counting_html_to_pdf(*args, **kwargs):
+        calls.append(1)
+        return real_html_to_pdf(*args, **kwargs)
+
+    monkeypatch.setattr(routes_module, 'html_to_pdf', _counting_html_to_pdf)
+
+    token = _complete_survey(client)
+    first = client.get(f'/survey/{token}/pdf')
+    second = client.get(f'/survey/{token}/pdf')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.data.startswith(b'%PDF')
+    assert second.data.startswith(b'%PDF')
+    assert first.data == second.data
+    assert len(calls) == 1
 
 
 # ---------------------------------------------------------------------------

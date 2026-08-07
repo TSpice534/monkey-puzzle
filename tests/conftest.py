@@ -5,6 +5,8 @@ Tests run against `create_app` with an in-memory SQLite database and
 (the guard is exercised directly in test_prod_guard.py with its own
 one-off app instances).
 """
+import tempfile
+
 import pytest
 
 from app import create_app
@@ -17,6 +19,10 @@ class TestConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'  # in-memory, fresh per app instance
     RATELIMIT_ENABLED = False  # survey.email_result is rate-limited; opt in per-test
+    # Isolated from the repo tree, not the real instance/asset-cache dir (backlog
+    # #0022). Class-level, not per-test — the cache is content-addressed, so
+    # cross-test reuse within a run is correct, not a leak.
+    ASSET_CACHE_DIR = tempfile.mkdtemp(prefix='mp-asset-cache-')
 
 
 @pytest.fixture()
