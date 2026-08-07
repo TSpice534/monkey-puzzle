@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.3.1] — 2026-08-07
+
 - Change: add an instruction line and visual separator to the combined profile step (Question
   7) (backlog #0024) — new optional `profile_matrix.instructions` field in `content/survey.yaml`
   ("Select one option from the top AND bottom row"), validated in `loader.py` and rendered in
