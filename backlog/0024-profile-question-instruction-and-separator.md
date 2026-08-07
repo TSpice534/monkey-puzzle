@@ -2,9 +2,9 @@
 id: 0024
 title: Instruction line + visual separator on the combined profile step (Question 7)
 type: change
-status: todo
+status: shipped
 created: 2026-08-04
-branch:
+branch: quickship/profile-instruction-separator
 ---
 
 ## Request

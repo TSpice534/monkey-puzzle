@@ -432,6 +432,12 @@ def _validate_profile_matrix(raw):
         if not isinstance(value, str) or not value:
             raise SurveyConfigError(f"survey.yaml 'profile_matrix.{field}' must be a non-empty string")
 
+    instructions = matrix.get('instructions')
+    if instructions is not None and (not isinstance(instructions, str) or not instructions):
+        raise SurveyConfigError(
+            "survey.yaml 'profile_matrix.instructions', if present, must be a non-empty string"
+        )
+
     sentence_stem_organisation = matrix.get('sentence_stem_organisation')
     if sentence_stem_organisation is not None and (
         not isinstance(sentence_stem_organisation, str) or not sentence_stem_organisation
