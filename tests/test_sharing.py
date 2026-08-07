@@ -39,6 +39,18 @@ def _complete_survey(client):
     return token
 
 
+def _complete_survey_as_accountant(client):
+    """Same shape as `_complete_survey`, but picks the other q_single option
+    so the submission lands on 'accountant' instead — a distinct persona,
+    used to prove the asset cache doesn't collide across submissions."""
+    token = _start_new(client)
+    client.post(f'/survey/{token}/step/1', data={'q_single': '1'})       # accountant: 2
+    client.post(f'/survey/{token}/step/2', data={'q_multi': []})
+    client.post(f'/survey/{token}/step/3', data={'q_spectrum': '0'})
+    client.post(f'/survey/{token}/step/4', data={'q_short_text': ''})
+    return token
+
+
 def _clear_asset_cache(app):
     """TestConfig's ASSET_CACHE_DIR is shared class-wide across the whole test
     run (content-addressed reuse is intended, not a leak — see conftest.py),
@@ -125,6 +137,31 @@ def test_share_image_is_cached_second_request_skips_rasterise(client, app, monke
     assert second.mimetype == 'image/png'
     assert first.data == second.data
     assert len(calls) == 1
+
+
+def test_share_image_cache_key_does_not_collide_across_different_personas(client, app):
+    """backlog #0022 — the cache is keyed by the rendered SVG (persona-
+    specific), not by token, so two submissions landing on different
+    personas must get their own distinct cache entry and their own
+    correct image, never share or clobber one another's."""
+    _clear_asset_cache(app)
+
+    inventor_token = _complete_survey(client)
+    accountant_token = _complete_survey_as_accountant(client)
+
+    inventor_png = client.get(f'/survey/{inventor_token}/share.png').data
+    accountant_png = client.get(f'/survey/{accountant_token}/share.png').data
+
+    assert inventor_png.startswith(PNG_MAGIC)
+    assert accountant_png.startswith(PNG_MAGIC)
+    assert inventor_png != accountant_png
+
+    # Re-fetching each must still return its own image, not the other's.
+    assert client.get(f'/survey/{inventor_token}/share.png').data == inventor_png
+    assert client.get(f'/survey/{accountant_token}/share.png').data == accountant_png
+
+    cache_files = [f for f in os.listdir(app.config['ASSET_CACHE_DIR']) if f.endswith('.png')]
+    assert len(cache_files) == 2
 
 
 # ---------------------------------------------------------------------------
