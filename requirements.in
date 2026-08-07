@@ -12,6 +12,3 @@ Flask-Limiter
 email-validator
 weasyprint
 cairosvg
-
-# Test-only
-pytest

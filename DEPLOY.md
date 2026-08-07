@@ -101,6 +101,10 @@ sudo venv/bin/pip install --upgrade pip
 sudo venv/bin/pip install -r requirements.txt
 ```
 
+`requirements.txt` is the production-only lock — test-only deps (`pytest` and friends) live
+in `requirements-dev.txt` and should never be installed on this server. For local dev, run
+`pip install -r requirements.txt -r requirements-dev.txt` to get both.
+
 ---
 
 ## Part 5 — Logs directory and ownership
