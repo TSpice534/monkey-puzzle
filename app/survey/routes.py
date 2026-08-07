@@ -11,6 +11,12 @@ from app.survey.charts import render_fingerprint_svg, render_innovation_curve_sv
 from app.survey.loader import get_survey, survey_steps
 from app.survey.persona import classify_submission, resolve_innovation_curve, resolve_now_next
 
+# Max stored length for free-text (short_text) answers, in characters. Server-side
+# cap bounding the size of the answers JSON column (DoS guard, #0021). The textarea
+# maxlength in _question_short_text.html mirrors this as a client hint; this value
+# is authoritative.
+MAX_SHORT_TEXT_CHARS = 2000
+
 
 def _get_submission_or_404(token):
     submission = db.session.scalar(db.select(Submission).filter_by(token=token))
@@ -46,7 +52,7 @@ def _read_answer(question, form):
         return indices
 
     if qtype == 'short_text':
-        return (form.get(qid) or '').strip()
+        return (form.get(qid) or '').strip()[:MAX_SHORT_TEXT_CHARS]
 
     if qtype == 'triangle':
         raw = form.get(qid)
@@ -201,6 +207,7 @@ def _why_context(submission, survey):
 
 
 @bp.route('/start')
+@limiter.limit('60 per minute')
 def start():
     submission = Submission()
     db.session.add(submission)
@@ -209,6 +216,7 @@ def start():
 
 
 @bp.route('/<token>/step/<int:step>', methods=['GET', 'POST'])
+@limiter.limit('180 per minute')
 def step(token, step):
     submission = _get_submission_or_404(token)
 
