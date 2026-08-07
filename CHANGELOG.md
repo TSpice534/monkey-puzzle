@@ -6,6 +6,11 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: split test-only deps out of the production requirements lock (backlog #0023) —
+  `pytest` moved from `requirements.in` into a new `requirements-dev.in`/`requirements-dev.txt`
+  (pip-tools layered lock, `-c requirements.txt`), so `pytest`, `iniconfig`, and `pluggy` no
+  longer install on the production server via `DEPLOY.md`'s `pip install -r requirements.txt`.
+  Local dev/CI now installs both files.
 - Change: cache the share-card PNG and result PDF on disk (backlog #0022) — `share_image`
   and `download_pdf` now rasterise each distinct asset once (content-addressed cache under
   `ASSET_CACHE_DIR`) and serve repeats from disk, so social-crawler `og:image` fetches and
