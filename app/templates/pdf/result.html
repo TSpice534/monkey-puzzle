@@ -29,23 +29,6 @@
       margin: 0;
       font-weight: 600;
     }
-    .chart-col {
-      flex: 0 0 220px;
-      text-align: center;
-    }
-    /* render_fingerprint_svg's intrinsic canvas is larger than `size` (it
-       pads for rim labels) — scale it down to the column instead of
-       hardcoding a smaller `size` that would shrink the label text too. */
-    .chart-col svg {
-      width: 100%;
-      height: auto;
-    }
-    .results-row {
-      display: flex;
-      gap: 1.5rem;
-      align-items: flex-start;
-      break-inside: avoid;
-    }
     .persona-icon { display: inline-block; line-height: 0; vertical-align: middle; }
     .persona-icon svg { display: block; width: 100%; height: 100%; }
     .persona-icon--card { width: 1.6rem; height: 1.6rem; color: #2e7d32; }
@@ -56,13 +39,8 @@
     <h1>The Monkey Puzzle — Your Sustainable Who</h1>
   </div>
 
-  <div class="results-row">
-    <div class="chart-col">
-      {{ fingerprint_svg | safe }}
-    </div>
-    <div class="flex-grow-1">
-      {% include "survey/_persona_card.html" %}
-    </div>
+  <div>
+    {% include "survey/_persona_card.html" %}
   </div>
 
   {% include "survey/_result_innovation.html" %}

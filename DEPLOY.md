@@ -254,7 +254,7 @@ domain doesn't require re-issuing anything.
 
 1. Browse to `https://tomspice.co.uk/monkey-puzzle` — the home page should render over
    HTTPS.
-2. Complete the survey start → finish, and confirm a persona + radar chart render on the
+2. Complete the survey start → finish, and confirm the persona result renders on the
    result page.
 3. Download the PDF report.
 4. If `MAIL_*` was set in `.env`, trigger the optional "email me a copy" and confirm it

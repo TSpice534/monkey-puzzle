@@ -204,7 +204,7 @@ def test_explanation_text_does_not_appear_in_the_pdf_result_template(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
-            fingerprint_svg='<svg></svg>', audience=None,
+            audience=None,
         )
     assert 'question-explanation' not in html
 

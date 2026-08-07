@@ -6,6 +6,13 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.3.2] — 2026-08-07
+
+- Change: remove the radar (fingerprint) chart from the remaining result surfaces — PDF
+  download, emailed PDF copy, and the share-card PNG (backlog #0025, closing the gap #0020
+  left). Deletes the now-unused `render_fingerprint_svg` generator from `app/survey/charts.py`;
+  the share card is relaid out to fill the freed space with the persona name/tagline block.
+
 ## [v0.3.1] — 2026-08-07
 
 - Change: add an instruction line and visual separator to the combined profile step (Question

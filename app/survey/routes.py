@@ -8,7 +8,7 @@ from app.email_utils import send_result_email
 from app.models import Submission
 from app.pdf_utils import generate_result_pdf, html_to_pdf, render_result_html
 from app.survey import bp
-from app.survey.charts import render_fingerprint_svg, render_innovation_curve_svg, render_share_card_svg
+from app.survey.charts import render_innovation_curve_svg, render_share_card_svg
 from app.survey.loader import get_survey, survey_steps
 from app.survey.persona import classify_submission, resolve_innovation_curve, resolve_now_next
 
@@ -314,7 +314,7 @@ def result(token):
 @bp.route('/<token>/share.png')
 def share_image(token):
     submission, survey, persona = _require_classified(token)
-    svg = render_share_card_svg(persona, submission.score_vector, survey['personas'])
+    svg = render_share_card_svg(persona)
     png = get_or_render(
         svg, '.png',
         lambda: cairosvg.svg2png(bytestring=svg.encode(), output_width=1200, output_height=630),
@@ -328,12 +328,11 @@ def share_image(token):
 @bp.route('/<token>/pdf')
 def download_pdf(token):
     submission, survey, persona = _require_classified(token)
-    fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
     innovation = _innovation_context(submission, survey)
     now_next = _now_next_context(submission, survey)
     why = _why_context(submission, survey)
     html = render_result_html(
-        persona, survey['personas'], fingerprint_svg,
+        persona, survey['personas'],
         innovation=innovation, now_next=now_next, why=why, audience=submission.audience,
     )
     pdf_bytes = get_or_render(
@@ -362,12 +361,11 @@ def email_result(token):
         flash("That email address doesn't look right — please check it and try again.", 'danger')
         return redirect(url_for('survey.result', token=token))
 
-    fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
     result_url = url_for('survey.result', token=token, _external=True)
     innovation = _innovation_context(submission, survey)
     now_next = _now_next_context(submission, survey)
     send_result_email(
-        validated.normalized, persona, survey['personas'], fingerprint_svg,
+        validated.normalized, persona, survey['personas'],
         result_url, innovation=innovation, now_next=now_next, base_url=request.url_root,
         audience=submission.audience,
     )

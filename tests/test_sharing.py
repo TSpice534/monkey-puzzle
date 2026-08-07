@@ -329,7 +329,7 @@ def test_send_async_attaches_generated_pdf(app):
     msg_kwargs = dict(subject='subj', sender='sender@example.com', recipients=['user@example.com'])
 
     with mail.record_messages() as outbox:
-        _send_async(app, msg_kwargs, persona, survey_personas, '<svg></svg>', 'https://example.com/r', None)
+        _send_async(app, msg_kwargs, persona, survey_personas, 'https://example.com/r', None)
 
     assert len(outbox) == 1
     msg = outbox[0]
@@ -352,7 +352,7 @@ def test_send_async_falls_back_without_attachment_if_pdf_generation_fails(app, m
     msg_kwargs = dict(subject='subj', sender='sender@example.com', recipients=['user@example.com'])
 
     with mail.record_messages() as outbox:
-        _send_async(app, msg_kwargs, persona, survey_personas, '<svg></svg>', 'https://example.com/r', None)
+        _send_async(app, msg_kwargs, persona, survey_personas, 'https://example.com/r', None)
 
     assert len(outbox) == 1
     assert outbox[0].attachments == []
@@ -364,10 +364,8 @@ def test_send_async_falls_back_without_attachment_if_pdf_generation_fails(app, m
 
 def test_render_share_card_svg_contains_persona_name_and_tagline():
     persona = {'name': 'The Accountant', 'tagline': 'You make the numbers tell the truth.'}
-    personas = {'accountant': persona, 'developer': {'name': 'The Developer'}}
-    scores = {'accountant': 5, 'developer': 1}
 
-    svg = render_share_card_svg(persona, scores, personas)
+    svg = render_share_card_svg(persona)
     assert 'The Accountant' in svg
     assert 'You make the numbers tell the truth.' in svg
     assert svg.startswith('<svg')
@@ -375,32 +373,10 @@ def test_render_share_card_svg_contains_persona_name_and_tagline():
 
 def test_render_share_card_svg_escapes_persona_fields():
     persona = {'name': '<script>alert(1)</script>', 'tagline': 'a & b'}
-    personas = {'x': persona}
-    svg = render_share_card_svg(persona, {'x': 1}, personas)
+    svg = render_share_card_svg(persona)
     assert '<script>' not in svg
     assert '&lt;script&gt;' in svg
     assert 'a &amp; b' in svg
-
-
-def test_render_fingerprint_svg_rim_labels_stay_within_canvas_bounds():
-    """Regression test: the longest persona name's rim label must not be
-    positioned (or extend, accounting for text width) outside the SVG's own
-    canvas — nested/rasterised <svg> clips silently at its viewBox edge."""
-    from app.survey.charts import render_fingerprint_svg
-
-    personas = {
-        'entrepreneur': {'name': 'The Entrepreneur'},  # longest short name
-        'accountant': {'name': 'The Accountant'},
-        'developer': {'name': 'The Developer'},
-    }
-    scores = {pid: 1 for pid in personas}
-    svg = render_fingerprint_svg(scores, personas, size=320)
-
-    # Canvas is padded beyond `size` precisely so labels have margin;
-    # assert the returned canvas really is larger than the logical size.
-    import re
-    width = float(re.search(r'width="([\d.]+)"', svg).group(1))
-    assert width > 320
 
 
 # ---------------------------------------------------------------------------

@@ -1014,7 +1014,7 @@ def test_pdf_result_template_renders_the_why_answer(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
-            fingerprint_svg='<svg></svg>', why='Because our venue must cut emissions.', audience=None,
+            why='Because our venue must cut emissions.', audience=None,
         )
     assert 'Why this matters to you' in html
     assert 'Because our venue must cut emissions.' in html
@@ -1031,7 +1031,7 @@ def test_pdf_result_template_renders_nothing_when_why_is_none(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
-            fingerprint_svg='<svg></svg>', why=None, audience=None,
+            why=None, audience=None,
         )
     assert 'Why this matters to you' not in html
 
@@ -1047,7 +1047,7 @@ def test_pdf_result_template_autoescapes_ampersand_in_why_answer(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
-            fingerprint_svg='<svg></svg>', why='Fish & chips', audience=None,
+            why='Fish & chips', audience=None,
         )
     assert 'Fish &amp; chips' in html
     assert 'Fish & chips' not in html
@@ -1127,7 +1127,7 @@ def test_pdf_result_template_renders_the_innovation_band_name(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
-            fingerprint_svg='<svg></svg>', innovation=innovation, audience=None,
+            innovation=innovation, audience=None,
         )
     assert 'Where you sit on the innovation curve' in html
     assert 'Late Majority' in html
@@ -1150,7 +1150,7 @@ def test_pdf_result_template_renders_the_now_next_statements(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
-            fingerprint_svg='<svg></svg>', now_next=now_next, audience=None,
+            now_next=now_next, audience=None,
         )
     assert 'Now and next' in html
     assert 'Now sentence.' in html
@@ -1173,7 +1173,7 @@ def test_pdf_result_template_autoescapes_ampersand_in_now_next_statement(app):
     with app.app_context():
         html = render_template(
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
-            fingerprint_svg='<svg></svg>', now_next=now_next, audience=None,
+            now_next=now_next, audience=None,
         )
     assert 'Water, Food &amp; Drinks, and Energy' in html
     assert 'Food & Drinks' not in html

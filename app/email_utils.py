@@ -17,7 +17,7 @@ from app import mail
 from app.pdf_utils import generate_result_pdf
 
 
-def _send_async(app, msg_kwargs, persona, personas, fingerprint_svg, result_url, innovation=None,
+def _send_async(app, msg_kwargs, persona, personas, result_url, innovation=None,
                  now_next=None, base_url=None, audience=None) -> None:
     with app.app_context():
         msg = Message(**msg_kwargs)
@@ -27,7 +27,7 @@ def _send_async(app, msg_kwargs, persona, personas, fingerprint_svg, result_url,
                                     innovation=innovation, now_next=now_next, audience=audience)
 
         try:
-            pdf_bytes = generate_result_pdf(persona, personas, fingerprint_svg, innovation=innovation,
+            pdf_bytes = generate_result_pdf(persona, personas, innovation=innovation,
                                              now_next=now_next, base_url=base_url, audience=audience)
             filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle.pdf"
             msg.attach(filename, 'application/pdf', pdf_bytes)
@@ -40,7 +40,7 @@ def _send_async(app, msg_kwargs, persona, personas, fingerprint_svg, result_url,
             app.logger.exception('Failed to send result email to %s', msg.recipients)
 
 
-def send_result_email(recipient_email: str, persona: dict, personas: dict, fingerprint_svg: str,
+def send_result_email(recipient_email: str, persona: dict, personas: dict,
                        result_url: str, innovation: dict = None, now_next: dict = None,
                        base_url: str = None, audience: str = None) -> threading.Thread:
     """Fire-and-forget: email `recipient_email` a copy of their result + PDF.
@@ -67,7 +67,7 @@ def send_result_email(recipient_email: str, persona: dict, personas: dict, finge
     )
     thread = threading.Thread(
         target=_send_async,
-        args=(app, msg_kwargs, persona, personas, fingerprint_svg, result_url, innovation, now_next,
+        args=(app, msg_kwargs, persona, personas, result_url, innovation, now_next,
               base_url, audience),
         daemon=True,
     )

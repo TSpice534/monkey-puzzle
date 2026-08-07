@@ -1,9 +1,8 @@
 """PDF generation for The Monkey Puzzle (Phase 5).
 
 Renders `templates/pdf/result.html` via WeasyPrint to produce a
-downloadable results report — the persona card + fingerprint radar,
-reusing the same `render_fingerprint_svg` output shown on the result
-page and embedded in the share image/email.
+downloadable results report — the persona card, matching what's shown on
+the result page.
 
 Split into `render_result_html` (cheap) + `html_to_pdf` (expensive,
 WeasyPrint) so `survey.download_pdf` (backlog #0022) can hash the rendered
@@ -20,7 +19,7 @@ from flask import render_template
 from weasyprint import HTML
 
 
-def render_result_html(persona: dict, personas: dict, fingerprint_svg: str, innovation: dict = None,
+def render_result_html(persona: dict, personas: dict, innovation: dict = None,
                         now_next: dict = None, why: str = None, audience: str = None) -> str:
     """Render `templates/pdf/result.html` to an HTML string (the cheap half
     of PDF generation — cheap enough to run on every request so callers can
@@ -41,7 +40,6 @@ def render_result_html(persona: dict, personas: dict, fingerprint_svg: str, inno
         'pdf/result.html',
         persona=persona,
         personas=personas,
-        fingerprint_svg=fingerprint_svg,
         innovation=innovation,
         now_next=now_next,
         why=why,
@@ -59,7 +57,7 @@ def html_to_pdf(html: str, base_url: str = None) -> bytes:
     return HTML(string=html, base_url=base_url).write_pdf()
 
 
-def generate_result_pdf(persona: dict, personas: dict, fingerprint_svg: str, innovation: dict = None,
+def generate_result_pdf(persona: dict, personas: dict, innovation: dict = None,
                          now_next: dict = None, why: str = None, base_url: str = None, audience: str = None) -> bytes:
     """Render the result PDF for a classified submission.
 
@@ -67,6 +65,6 @@ def generate_result_pdf(persona: dict, personas: dict, fingerprint_svg: str, inn
     email path (`app/email_utils.py`) which renders (and does not cache) the
     PDF fresh on every send — see those two functions for parameter docs.
     """
-    html = render_result_html(persona, personas, fingerprint_svg,
+    html = render_result_html(persona, personas,
                                innovation=innovation, now_next=now_next, why=why, audience=audience)
     return html_to_pdf(html, base_url=base_url)
