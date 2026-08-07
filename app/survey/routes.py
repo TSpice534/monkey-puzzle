@@ -292,7 +292,6 @@ def result(token):
         return redirect(url_for('survey.step', token=token, step=next_step))
 
     persona = survey['personas'][submission.persona_id]
-    fingerprint_svg = render_fingerprint_svg(submission.score_vector, survey['personas'])
 
     grid_question, grid_selected = _profile_grid_context(submission, survey)
 
@@ -302,7 +301,6 @@ def result(token):
         submission=submission,
         persona=persona,
         personas=survey['personas'],
-        fingerprint_svg=fingerprint_svg,
         grid_question=grid_question,
         grid_selected=grid_selected,
         innovation=_innovation_context(submission, survey),

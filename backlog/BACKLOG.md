@@ -21,7 +21,7 @@
 | 0017 | Sync survey.yaml to updated docs/SURVEY-TEMPLATE.md (Parts A+B) | feature | shipped | 2026-08-04 |
 | 0018 | Rename Developer→Inventor and Advocate→Architect personas (id + copy) | change | shipped | 2026-08-04 |
 | 0019 | Add prompt_organisation schema field for org-register question prompts | feature | shipped | 2026-08-04 |
-| 0020 | Remove radial graph from results page | change | todo | 2026-08-04 |
+| 0020 | Remove radial graph from results page | change | shipped | 2026-08-04 |
 | 0021 | Cap free-text answer length and rate-limit /start and /step | bug | shipped | 2026-08-04 |
 | 0022 | Cache/offload og:image and PDF rendering so they stop blocking sync Gunicorn workers | change | shipped | 2026-08-04 |
 | 0023 | Split pytest and other test-only deps out of the production requirements lock | change | todo | 2026-08-04 |

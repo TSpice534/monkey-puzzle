@@ -2,9 +2,9 @@
 id: 0020
 title: Remove radial graph from results page
 type: change
-status: todo
+status: shipped
 created: 2026-08-04
-branch:
+branch: quickship/remove-radial-graph-results-page
 ---
 
 ## Request

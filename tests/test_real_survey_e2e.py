@@ -803,15 +803,16 @@ def test_edge_picks_on_all_three_affected_questions_read_correctly_in_result_pag
 # shape (11 real questions, grid-direct one-hot score vector)
 # ---------------------------------------------------------------------------
 
-def test_result_page_renders_persona_and_radar_chart(client):
+def test_result_page_renders_persona_without_radar_chart(client):
+    """backlog #0020: the radial/fingerprint chart was removed from the web
+    results page (PDF and email copies still include it separately)."""
     token, _ = _complete_survey(client)
     response = client.get(f'/survey/{token}/result')
     body = response.get_data(as_text=True)
 
     assert response.status_code == 200
     assert 'The Entrepreneur' in body
-    assert '<svg' in body
-    assert 'Persona fingerprint radar chart' in body
+    assert 'Persona fingerprint radar chart' not in body
 
 
 def test_result_page_shows_organisation_wording_persona_description_on_the_org_track(client):
