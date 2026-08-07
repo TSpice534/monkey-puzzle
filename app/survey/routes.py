@@ -3,9 +3,10 @@ from email_validator import EmailNotValidError, validate_email
 from flask import Response, abort, current_app, flash, redirect, render_template, request, url_for
 
 from app import db, limiter
+from app.asset_cache import get_or_render
 from app.email_utils import send_result_email
 from app.models import Submission
-from app.pdf_utils import generate_result_pdf
+from app.pdf_utils import generate_result_pdf, html_to_pdf, render_result_html
 from app.survey import bp
 from app.survey.charts import render_fingerprint_svg, render_innovation_curve_svg, render_share_card_svg
 from app.survey.loader import get_survey, survey_steps
@@ -315,7 +316,10 @@ def result(token):
 def share_image(token):
     submission, survey, persona = _require_classified(token)
     svg = render_share_card_svg(persona, submission.score_vector, survey['personas'])
-    png = cairosvg.svg2png(bytestring=svg.encode(), output_width=1200, output_height=630)
+    png = get_or_render(
+        svg, '.png',
+        lambda: cairosvg.svg2png(bytestring=svg.encode(), output_width=1200, output_height=630),
+    )
     response = Response(png, mimetype='image/png')
     # Deterministic per submission once classified — safe to cache.
     response.headers['Cache-Control'] = 'public, max-age=86400, immutable'
@@ -329,9 +333,13 @@ def download_pdf(token):
     innovation = _innovation_context(submission, survey)
     now_next = _now_next_context(submission, survey)
     why = _why_context(submission, survey)
-    pdf_bytes = generate_result_pdf(
+    html = render_result_html(
         persona, survey['personas'], fingerprint_svg,
-        innovation=innovation, now_next=now_next, why=why, base_url=request.url_root, audience=submission.audience,
+        innovation=innovation, now_next=now_next, why=why, audience=submission.audience,
+    )
+    pdf_bytes = get_or_render(
+        html + '\x00' + (request.url_root or ''), '.pdf',
+        lambda: html_to_pdf(html, base_url=request.url_root),
     )
     filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle.pdf"
     response = Response(pdf_bytes, mimetype='application/pdf')

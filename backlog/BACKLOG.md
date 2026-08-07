@@ -23,6 +23,6 @@
 | 0019 | Add prompt_organisation schema field for org-register question prompts | feature | shipped | 2026-08-04 |
 | 0020 | Remove radial graph from results page | change | todo | 2026-08-04 |
 | 0021 | Cap free-text answer length and rate-limit /start and /step | bug | shipped | 2026-08-04 |
-| 0022 | Cache/offload og:image and PDF rendering so they stop blocking sync Gunicorn workers | change | todo | 2026-08-04 |
+| 0022 | Cache/offload og:image and PDF rendering so they stop blocking sync Gunicorn workers | change | shipped | 2026-08-04 |
 | 0023 | Split pytest and other test-only deps out of the production requirements lock | change | todo | 2026-08-04 |
 | 0024 | Instruction line + visual separator on the combined profile step (Question 7) | change | todo | 2026-08-04 |

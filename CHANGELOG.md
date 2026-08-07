@@ -6,6 +6,11 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: cache the share-card PNG and result PDF on disk (backlog #0022) — `share_image`
+  and `download_pdf` now rasterise each distinct asset once (content-addressed cache under
+  `ASSET_CACHE_DIR`) and serve repeats from disk, so social-crawler `og:image` fetches and
+  PDF re-downloads no longer tie up the 3 sync Gunicorn workers. Self-invalidates when
+  `content/survey.yaml` is retuned.
 - Fix: cap free-text answer length and rate-limit /start and /step (backlog #0021) — `short_text`
   answers are truncated to `MAX_SHORT_TEXT_CHARS` (2000) in `_read_answer` and the textarea in
   `_question_short_text.html` gains a matching `maxlength`; `/start` and `/<token>/step` gain
