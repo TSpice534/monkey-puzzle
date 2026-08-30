@@ -30,3 +30,4 @@
 | 0026 | Rename "Where you sit on the innovation curve" heading | change | todo | 2026-08-30 |
 | 0027 | Update persona Natural Ally / Friends / Necessity relationship table | change | todo | 2026-08-30 |
 | 0028 | Turn role-relationship lines into full sentences (Andrew's copy review) | change | todo | 2026-08-30 |
+| 0029 | Innovation-curve label overlap + spectrum question options not visible on mobile | bug | todo | 2026-08-30 |
