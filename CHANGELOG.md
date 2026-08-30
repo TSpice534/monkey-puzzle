@@ -6,6 +6,18 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Feature: hover/tap persona summary popup on the result-page grid (backlog #0032) — each
+  of the 9 grid cells (including the selected one) now gets a Bootstrap Popover, keyboard-
+  reachable via a new `tabindex="0"`, showing the persona name as the header and the
+  tagline + audience-aware description (via `persona_description()`) as a plain-text,
+  two-block body (`data-bs-content`, tagline/description joined by `&#10;&#10;`, no
+  `html: true`). A new nonce'd inline `<script>` in `result.html`'s `{% block scripts %}`
+  (guarded on `grid_question`, the codebase's third since Phase 1) initialises the
+  popovers with `container: 'body'` (so `.table-responsive`'s `overflow-x: auto` doesn't
+  clip them), `placement: 'auto'`, and a coarse-pointer trigger switch (`focus` on touch,
+  `hover focus` on desktop) so two popovers can never be open at once. New `theme.css`
+  rules: a `:focus-visible` outline on `.grid-cell--result` and a `.persona-popover`
+  max-width cap plus `white-space: pre-line` on its body.
 - Feature: colour-code Natural Allies / Friends / Necessities on the result-page persona
   grid (backlog #0031) — each of the 8 non-selected cells whose persona is one of the
   classified persona's `natural_allies`/`friends`/`necessity` now gets a `grid-cell--ally`/

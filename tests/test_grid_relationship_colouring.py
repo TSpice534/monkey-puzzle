@@ -94,7 +94,7 @@ def _render_grid(app, persona_id='p11', grid_selected=(1, 1), personas=None, per
         )
 
 
-CELL_RE = re.compile(r'<div class="(grid-cell grid-cell--result[^"]*)">(.*?)</div>', re.DOTALL)
+CELL_RE = re.compile(r'<div class="(grid-cell grid-cell--result[^"]*)"[^>]*>(.*?)</div>', re.DOTALL)
 
 
 def _cells(html):

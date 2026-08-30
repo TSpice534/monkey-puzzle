@@ -241,6 +241,22 @@
   background-color: var(--rel-necessity-tint);
 }
 
+/* Persona hover/tap summary popover (backlog #0032) — Bootstrap Popover
+   triggered on the result-grid cells, initialised in result.html's
+   {% block scripts %}. */
+.grid-cell--result:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.persona-popover {
+  --bs-popover-max-width: min(320px, calc(100vw - 2rem));
+}
+
+.persona-popover .popover-body {
+  white-space: pre-line;
+}
+
 /* Persona icons (backlog #0005) — inline SVG marks on the persona card
    heading and each labelled result-grid cell. SVG files carry no intrinsic
    size; sized here. Colour inherits via currentColor except on the card. */
