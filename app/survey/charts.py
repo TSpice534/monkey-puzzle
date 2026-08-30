@@ -16,6 +16,13 @@ from xml.sax.saxutils import escape
 SHARE_CARD_WIDTH = 1200
 SHARE_CARD_HEIGHT = 630
 
+# Certificate download image (backlog #0030) — square, not the og:image
+# aspect ratio, since this is posted to LinkedIn as a native image, not
+# consumed as a link-preview thumbnail. LinkedIn renders square images at
+# full feed width, so square reads bigger/more visible in-feed than 1200x630.
+CERTIFICATE_WIDTH = 1200
+CERTIFICATE_HEIGHT = 1200
+
 
 def render_share_card_svg(persona: dict) -> str:
     """Return a self-contained 1200x630 <svg> share card: eyebrow, "Your
@@ -39,6 +46,65 @@ def render_share_card_svg(persona: dict) -> str:
         f'font-weight="700" fill="#212529">{name}</text>'
         f'<text x="70" y="470" font-family="Arial,sans-serif" font-size="34" '
         f'fill="#495057">{tagline}</text>'
+        + '</svg>'
+    )
+
+
+def render_certificate_svg(persona: dict, band: str = None, band_colour: str = None) -> str:
+    """Return a self-contained 1200x1200 <svg> "certificate": eyebrow, "Your
+    sustainable who:" lead-in, persona name and tagline, and (when a band is
+    given) the innovation-curve band named as text plus a small colour
+    swatch — all centred inside an inset frame stroked in the accent colour
+    (`band_colour` when given, else `--brand-primary`), with a site/URL
+    footer line near the bottom of the frame so a downloaded/reshared PNG
+    still carries a CTA once it's separated from the caption. Rasterised to
+    PNG by the caller (`app/survey/routes.py::download_certificate`), same
+    as `render_share_card_svg`. Backlog #0030 — the certificate is square
+    (unlike the 1200x630 share card) because it's posted to LinkedIn as a
+    native image, not consumed as a link-preview thumbnail.
+
+    Vertical rhythm is deliberately different between the with-band and
+    without-band cases: the frame runs 48->1152, and simply reusing the
+    with-band y-coordinates when `band` is omitted would leave an even
+    bigger dead zone where the band line/swatch would have sat. Instead
+    each case spaces its own content across the full frame so both read as
+    a balanced, designed certificate rather than "content that ran out"."""
+    w, h = CERTIFICATE_WIDTH, CERTIFICATE_HEIGHT
+    name = escape(persona.get('name', ''))
+    tagline = escape(persona.get('tagline', ''))
+    accent = band_colour if band_colour else '#2e7d32'
+
+    aria_label = f'{name} — The Monkey Puzzle certificate'
+    band_line = ''
+    if band:
+        band_text = escape(band)
+        aria_label += f', Innovation curve: {band_text}'
+        eyebrow_y, leadin_y, name_y, tagline_y, footer_y = 200, 340, 520, 610, 980
+        band_line = (
+            f'<text x="600" y="740" text-anchor="middle" font-family="Arial,sans-serif" '
+            f'font-size="28" fill="#495057">Innovation curve: {band_text}</text>'
+            f'<rect x="560" y="765" width="80" height="22" rx="4" fill="{accent}" />'
+        )
+    else:
+        eyebrow_y, leadin_y, name_y, tagline_y, footer_y = 220, 400, 620, 760, 990
+
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
+        f'viewBox="0 0 {w} {h}" role="img" aria-label="{aria_label}">'
+        f'<rect width="{w}" height="{h}" fill="#f8f9fa" />'
+        f'<rect x="48" y="48" width="{w - 96}" height="{h - 96}" rx="24" '
+        f'fill="none" stroke="{accent}" stroke-width="6" />'
+        f'<text x="600" y="{eyebrow_y}" text-anchor="middle" font-family="Arial,sans-serif" '
+        f'font-size="30" fill="#6c757d" letter-spacing="3">THE MONKEY PUZZLE</text>'
+        f'<text x="600" y="{leadin_y}" text-anchor="middle" font-family="Arial,sans-serif" '
+        f'font-size="36" fill="#6c757d">Your sustainable who:</text>'
+        f'<text x="600" y="{name_y}" text-anchor="middle" font-family="Arial,sans-serif" '
+        f'font-size="84" font-weight="700" fill="#212529">{name}</text>'
+        f'<text x="600" y="{tagline_y}" text-anchor="middle" font-family="Arial,sans-serif" '
+        f'font-size="34" fill="#495057">{tagline}</text>'
+        + band_line
+        + f'<text x="600" y="{footer_y}" text-anchor="middle" font-family="Arial,sans-serif" '
+        f'font-size="22" fill="#6c757d" letter-spacing="1">tomspice.co.uk/monkey-puzzle</text>'
         + '</svg>'
     )
 

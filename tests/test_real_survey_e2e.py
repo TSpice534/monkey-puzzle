@@ -1296,3 +1296,35 @@ def test_profile_step_with_malformed_approach_value_is_treated_as_no_selection(c
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert 'profile_approach' not in submission.answers
     assert 'profile_scope' not in submission.answers
+
+
+# ---------------------------------------------------------------------------
+# Certificate image + personalised LinkedIn caption (backlog #0030)
+# ---------------------------------------------------------------------------
+
+def test_result_page_renders_the_personalised_linkedin_caption(client):
+    token, _ = _complete_survey(client, approach='1', scope='1')  # -> entrepreneur
+    body = client.get(f'/survey/{token}/result').get_data(as_text=True)
+
+    assert 'The Entrepreneur' in body
+    assert 'Click this link to take the survey and discover your own sustainability profile!' in body
+    assert 'id="share-caption"' in body
+
+
+def test_caption_is_personalised_per_persona(client):
+    entrepreneur_token, _ = _complete_survey(client, approach='1', scope='1')  # -> entrepreneur
+    accountant_token, _ = _complete_survey(client, approach='0', scope='0')    # -> accountant
+
+    entrepreneur_body = client.get(f'/survey/{entrepreneur_token}/result').get_data(as_text=True)
+    accountant_body = client.get(f'/survey/{accountant_token}/result').get_data(as_text=True)
+
+    assert 'My sustainability persona from The Monkey Puzzle is The Entrepreneur' in entrepreneur_body
+    assert 'My sustainability persona from The Monkey Puzzle is The Accountant' in accountant_body
+
+
+def test_certificate_downloads_for_the_real_survey(client):
+    token, _ = _complete_survey(client)
+    response = client.get(f'/survey/{token}/certificate.png')
+    assert response.status_code == 200
+    assert response.mimetype == 'image/png'
+    assert response.data.startswith(PNG_MAGIC)

@@ -39,6 +39,7 @@ def load_survey(path: str) -> dict:
         _validate_scoring(raw)
         _validate_innovation_curve(raw)
         _validate_now_next(raw)
+        _validate_share_caption(raw)
         _validate_profile_matrix(raw)
         return _normalise(raw)
     except SurveyConfigError:
@@ -410,6 +411,24 @@ def _validate_now_next(raw):
             raise SurveyConfigError(
                 f"survey.yaml 'now_next' field '{field}', if present, must be a non-empty string"
             )
+
+
+def _validate_share_caption(raw):
+    """Optional top-level `share_caption` construct (backlog #0030) — the
+    default, personalised LinkedIn caption template for the downloadable
+    certificate image. Absent is valid (the small test fixtures have none);
+    placeholder names aren't cross-checked here — resolution is defensive
+    (`routes._caption_context` returns None on an unknown placeholder), same
+    spirit as `now_next`."""
+    sc = raw.get('share_caption')
+    if sc is None:
+        return
+
+    if not isinstance(sc, dict):
+        raise SurveyConfigError("survey.yaml 'share_caption' must be a mapping")
+
+    if not sc.get('template') or not isinstance(sc['template'], str):
+        raise SurveyConfigError("survey.yaml 'share_caption' must have a non-empty string 'template'")
 
 
 def _validate_profile_matrix(raw):

@@ -9,8 +9,9 @@ import pytest
 from app import mail
 from app.email_utils import _send_async
 from app.models import Submission
-from app.survey.charts import render_share_card_svg
+from app.survey.charts import render_certificate_svg, render_share_card_svg
 from app.survey.loader import clear_survey_cache
+from app.survey.routes import _caption_context
 
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), 'fixtures', 'survey_min.yaml')
 
@@ -163,6 +164,125 @@ def test_share_image_cache_key_does_not_collide_across_different_personas(client
 
     cache_files = [f for f in os.listdir(app.config['ASSET_CACHE_DIR']) if f.endswith('.png')]
     assert len(cache_files) == 2
+
+
+# ---------------------------------------------------------------------------
+# certificate.png (backlog #0030)
+# ---------------------------------------------------------------------------
+
+def test_certificate_returns_png_for_completed_submission(client):
+    token = _complete_survey(client)
+    response = client.get(f'/survey/{token}/certificate.png')
+    assert response.status_code == 200
+    assert response.mimetype == 'image/png'
+    assert response.data.startswith(PNG_MAGIC)
+
+
+def test_certificate_content_disposition_names_the_persona(client):
+    token = _complete_survey(client)
+    response = client.get(f'/survey/{token}/certificate.png')
+    disposition = response.headers['Content-Disposition']
+    assert 'attachment' in disposition
+    assert 'Inventor' in disposition
+    assert '.png' in disposition
+
+
+def test_certificate_has_long_lived_cache_header(client):
+    token = _complete_survey(client)
+    response = client.get(f'/survey/{token}/certificate.png')
+    assert 'max-age' in response.headers['Cache-Control']
+
+
+def test_certificate_404_before_completion(client):
+    token = _start_new(client)
+    response = client.get(f'/survey/{token}/certificate.png')
+    assert response.status_code == 404
+
+
+def test_certificate_404_unknown_token(client):
+    response = client.get('/survey/not-a-real-token/certificate.png')
+    assert response.status_code == 404
+
+
+def test_certificate_is_cached_second_request_skips_rasterise(client, app, monkeypatch):
+    """backlog #0022 — the on-disk asset cache should skip re-rasterising an
+    already-rendered certificate on a second request for the same token."""
+    import cairosvg
+    import app.survey.routes as routes_module
+
+    _clear_asset_cache(app)
+
+    calls = []
+    real_svg2png = cairosvg.svg2png
+
+    def _counting_svg2png(*args, **kwargs):
+        calls.append(1)
+        return real_svg2png(*args, **kwargs)
+
+    monkeypatch.setattr(routes_module.cairosvg, 'svg2png', _counting_svg2png)
+
+    token = _complete_survey(client)
+    first = client.get(f'/survey/{token}/certificate.png')
+    second = client.get(f'/survey/{token}/certificate.png')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.mimetype == 'image/png'
+    assert second.mimetype == 'image/png'
+    assert first.data == second.data
+    assert len(calls) == 1
+
+
+def test_certificate_and_share_image_are_distinct_cache_entries(client, app):
+    """backlog #0030 — the certificate and share-card PNGs are different
+    renders of the same submission, so they must not collide in the
+    content-addressed asset cache."""
+    _clear_asset_cache(app)
+
+    token = _complete_survey(client)
+    share_png = client.get(f'/survey/{token}/share.png').data
+    certificate_png = client.get(f'/survey/{token}/certificate.png').data
+
+    assert share_png != certificate_png
+
+    cache_files = [f for f in os.listdir(app.config['ASSET_CACHE_DIR']) if f.endswith('.png')]
+    assert len(cache_files) == 2
+
+
+def test_result_page_offers_a_certificate_download_link(client):
+    token = _complete_survey(client)
+    body = client.get(f'/survey/{token}/result').get_data(as_text=True)
+    assert '/certificate.png' in body
+
+
+def test_result_page_omits_the_caption_block_when_survey_has_no_share_caption(client):
+    """The fixture survey (survey_min.yaml) has no `share_caption` config, so
+    `_caption_context` returns None and the caption block must not render."""
+    token = _complete_survey(client)
+    body = client.get(f'/survey/{token}/result').get_data(as_text=True)
+    assert 'id="share-caption"' not in body
+
+
+# ---------------------------------------------------------------------------
+# _caption_context (backlog #0030) — direct calls, defensive .format() path
+# ---------------------------------------------------------------------------
+
+_CAPTION_PERSONA = {'name': 'The Inventor'}
+
+
+def test_caption_context_returns_none_on_unknown_placeholder():
+    survey = {'share_caption': {'template': 'Hi {foo}, take the survey! {url}'}}
+    assert _caption_context(_CAPTION_PERSONA, survey, 'https://example.com/') is None
+
+
+def test_caption_context_returns_none_on_bare_braces_placeholder():
+    survey = {'share_caption': {'template': 'Hi {}, take the survey! {url}'}}
+    assert _caption_context(_CAPTION_PERSONA, survey, 'https://example.com/') is None
+
+
+def test_caption_context_returns_none_on_unbalanced_brace():
+    survey = {'share_caption': {'template': 'Hi {persona, take the survey! {url}'}}
+    assert _caption_context(_CAPTION_PERSONA, survey, 'https://example.com/') is None
 
 
 # ---------------------------------------------------------------------------
@@ -378,6 +498,63 @@ def test_render_share_card_svg_escapes_persona_fields():
     assert '<script>' not in svg
     assert '&lt;script&gt;' in svg
     assert 'a &amp; b' in svg
+
+
+# ---------------------------------------------------------------------------
+# render_certificate_svg (backlog #0030)
+# ---------------------------------------------------------------------------
+
+def test_render_certificate_svg_contains_persona_name_and_tagline():
+    persona = {'name': 'The Accountant', 'tagline': 'You make the numbers tell the truth.'}
+
+    svg = render_certificate_svg(persona)
+    assert 'The Accountant' in svg
+    assert 'You make the numbers tell the truth.' in svg
+    assert svg.startswith('<svg')
+
+
+def test_render_certificate_svg_escapes_persona_fields():
+    persona = {'name': '<script>alert(1)</script>', 'tagline': 'a & b'}
+    svg = render_certificate_svg(persona)
+    assert '<script>' not in svg
+    assert '&lt;script&gt;' in svg
+    assert 'a &amp; b' in svg
+
+
+def test_render_certificate_svg_names_the_band_as_text_when_given():
+    # '#2e7d32' is also the hardcoded fallback accent colour in charts.py,
+    # so asserting on it here would pass even if `band_colour` were ignored
+    # entirely — use a colour that only appears if the parameter is honoured.
+    persona = {'name': 'The Inventor', 'tagline': 'Tagline'}
+    svg = render_certificate_svg(persona, band='Innovators', band_colour='#123456')
+    assert 'Innovators' in svg
+    assert 'fill="#123456"' in svg
+
+
+def test_render_certificate_svg_without_a_band_does_not_raise_and_omits_the_band_line():
+    persona = {'name': 'The Inventor', 'tagline': 'Tagline'}
+    svg = render_certificate_svg(persona, band=None)
+    assert svg.startswith('<svg')
+    assert 'Innovation curve' not in svg
+
+
+def test_render_certificate_svg_band_given_without_band_colour_falls_back_to_default_accent():
+    """spec edge case: `band` truthy but `band_colour` falsy must not raise,
+    and the swatch/frame fall back to the default accent (#2e7d32)."""
+    persona = {'name': 'The Inventor', 'tagline': 'Tagline'}
+    svg = render_certificate_svg(persona, band='Innovators', band_colour=None)
+    assert svg.startswith('<svg')
+    assert 'Innovators' in svg
+    assert 'fill="#2e7d32"' in svg
+
+
+def test_render_certificate_svg_band_colour_given_without_band_omits_band_line():
+    """spec edge case: `band_colour` truthy but `band` falsy must not raise,
+    and the band line must be omitted entirely (never conveyed by colour alone)."""
+    persona = {'name': 'The Inventor', 'tagline': 'Tagline'}
+    svg = render_certificate_svg(persona, band=None, band_colour='#123456')
+    assert svg.startswith('<svg')
+    assert 'Innovation curve' not in svg
 
 
 # ---------------------------------------------------------------------------

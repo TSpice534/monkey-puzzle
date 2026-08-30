@@ -2,9 +2,9 @@
 id: 0030
 title: Certificate-style share image + personalized LinkedIn caption
 type: feature
-status: todo
+status: shipped
 created: 2026-08-30
-branch:
+branch: feature/certificate-share-image-linkedin-caption
 ---
 
 ## Request
