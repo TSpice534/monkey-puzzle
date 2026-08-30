@@ -2,7 +2,7 @@
 id: 0031
 title: Colour-code Natural Allies / Friends / Necessities on result-page persona grid
 type: feature
-status: in-progress
+status: shipped
 created: 2026-08-30
 branch: feature/colour-code-persona-grid-relationships
 ---
