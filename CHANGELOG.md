@@ -15,6 +15,19 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   plus a new `.innovation-curve svg { max-width: 100%; height: auto; }` rule so the chart
   scales inside a narrow card; `_result_grid.html`'s table gained a `.table-responsive`
   wrapper as a backstop.
+- Fix: post-#0029 manual mobile QA turned up two real follow-up bugs the pipeline's review
+  missed. (1) `theme.css`'s mobile breakpoint comment read "...matching the col-sm-*/col-md-*
+  classes..." — the literal `*/` mid-sentence closed the comment early, so every real CSS
+  parser (WebKit, Gecko) silently discarded the entire `@media` block from that point on,
+  even though the raw file text looked completely intact; fixed the comment wording and added
+  `test_theme_css_has_no_premature_comment_close` (`tests/test_mobile_responsive_layout.py`)
+  to catch this class of bug going forward. (2) `.triangle-node` had a `min-width` but no
+  `max-width`, so a long option label rendered unwrapped and its corner-anchored overhang
+  (half the node's width always sits outside the triangle by design) pushed well past the
+  viewport at 320-375px; capped the node's width and shrank the widget/font size to keep the
+  overhang inside the page margin. Also added an mtime-based cache-busting query string to
+  `theme.css`'s `<link>` tag (`app/__init__.py`, `base.html`) as a general hardening measure
+  encountered while debugging this.
 
 ## [v0.3.2] — 2026-08-07
 

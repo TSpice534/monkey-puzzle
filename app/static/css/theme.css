@@ -292,7 +292,7 @@
 }
 
 /* Mobile layout (backlog #0029) — the app's first and only breakpoint.
-   767.98px is Bootstrap 5's `md` boundary, matching the col-sm-*/col-md-*
+   767.98px is Bootstrap 5's `md` boundary, matching the col-sm- and col-md-
    classes already used elsewhere in the templates. */
 @media (max-width: 767.98px) {
   /* Spectrum row stacks vertically: five sentence-length labels cannot share
@@ -306,10 +306,20 @@
   .spectrum-node--mix { width: 0.85rem; height: 0.85rem; padding: 0; }
 
   /* Triangle widget: corner nodes are translate(-50%,-50%) at left:0/left:100%,
-     so a 6rem node hangs 48px outside a 320px widget — 416px of content in a
-     351px viewport box. Narrower widget + smaller nodes brings it back inside. */
-  .triangle-widget { max-width: 240px; }
-  .triangle-node { min-width: 5rem; font-size: 0.8rem; padding: 0.4rem 0.5rem; }
+     so half of every corner node's own width always hangs outside the widget's
+     box by design. Without a max-width, .triangle-node's shrink-to-fit sizing
+     lets a long option (e.g. "Some commitments, some capacity") render as one
+     unwrapped ~220px line instead of wrapping — pushing ~110px off each side,
+     well past the page margin and off the viewport at 320-375px. Capping the
+     width forces wrapping and keeps the overhang inside the margin. */
+  .triangle-widget { max-width: 200px; }
+  .triangle-node {
+    min-width: 4.5rem;
+    max-width: 6rem;
+    font-size: 0.72rem;
+    line-height: 1.15;
+    padding: 0.35rem 0.4rem;
+  }
   /* Same later-rule-wins reset as the spectrum mix dot. */
   .triangle-node--edge { min-width: 0; width: 0.85rem; height: 0.85rem; padding: 0; }
 

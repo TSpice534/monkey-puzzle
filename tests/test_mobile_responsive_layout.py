@@ -15,6 +15,14 @@ Focus areas independently verified here:
      classes (`innovation-curve`, `table-responsive`) that this CSS targets
      — a passing CSS-file assertion alone would not catch a hook class that
      never made it into the template.
+  3. `theme.css` has no comment that closes early. This reproduces a real
+     incident from this backlog: a comment reading "...col-sm-*/col-md-*..."
+     contains a literal `*/` mid-sentence, which every real CSS parser
+     treats as the comment's actual end — everything after it (here, the
+     entire mobile breakpoint) silently collapses into one invalid rule and
+     gets discarded, while the raw file text looks completely untouched.
+     Substring-presence assertions like the ones below do not catch this;
+     only a parser (or an equivalent comment-stripping pass) does.
 """
 import os
 import re
@@ -84,6 +92,28 @@ def _complete_survey(client, motivation='0', ambition='0', space_to_progress='0'
     client.post(f'/survey/{token}/step/{STEP_TARGET_GROUPS}', data={'target_groups': '0'})
     client.post(f'/survey/{token}/step/{STEP_WHY_REASON}', data={'why_reason': 'Because it matters.'})
     return token
+
+
+# ---------------------------------------------------------------------------
+# 0. theme.css has no comment that closes early (see module docstring #3)
+# ---------------------------------------------------------------------------
+
+def test_theme_css_has_no_premature_comment_close():
+    with open(THEME_CSS_PATH, encoding='utf-8') as f:
+        raw = f.read()
+
+    # Non-greedy: matches each /* up to the FIRST following */, same as a
+    # real CSS tokenizer. Any '*/' left over after stripping every such
+    # pair means an earlier comment closed before its intended end.
+    stripped = re.sub(r'/\*.*?\*/', '', raw, flags=re.DOTALL)
+    assert '*/' not in stripped, (
+        "a '*/' remains outside any /* */ pair — a comment earlier in the "
+        "file is closing early (e.g. a wildcard pattern like 'col-sm-*/"
+        "col-md-*' contains a literal */ mid-sentence). Every real CSS "
+        "parser silently discards everything after the true end of that "
+        "comment's actual scope, even though the raw file text looks "
+        "completely intact — this exact bug has happened once already."
+    )
 
 
 # ---------------------------------------------------------------------------

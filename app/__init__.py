@@ -1,3 +1,4 @@
+import os
 import secrets
 
 from flask import Flask, g
@@ -75,6 +76,22 @@ def create_app(config_class=Config):
     @app.context_processor
     def _inject_csp_nonce():
         return {'csp_nonce': g.get('csp_nonce', '')}
+
+    # Cache-busting query string for theme.css, based on its mtime — Safari
+    # in particular has been seen serving a stale cached copy of this file
+    # (backlog #0029) even after "Empty Caches" + reload, because the
+    # existing `Cache-Control: no-cache` header only asks the browser to
+    # revalidate, it doesn't force a fetch. A version query string forces a
+    # genuinely new URL whenever the file changes, sidestepping that class
+    # of bug entirely.
+    @app.context_processor
+    def _inject_theme_css_version():
+        theme_css_path = os.path.join(app.static_folder, 'css', 'theme.css')
+        try:
+            version = int(os.path.getmtime(theme_css_path))
+        except OSError:
+            version = 0
+        return {'theme_css_version': version}
 
     @app.after_request
     def set_security_headers(response):
