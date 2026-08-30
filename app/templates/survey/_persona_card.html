@@ -14,6 +14,10 @@
 
     {% include "survey/_result_now_next.html" %}
 
+    {% if now_next and (now_next.now or now_next.next) and (persona.natural_allies or persona.friends or persona.necessity) %}
+    <hr class="my-4" aria-hidden="true">
+    {% endif %}
+
     {% if persona.natural_allies %}
     <h2 class="h6 mb-1">Natural Allies</h2>
     <p class="mb-3">
