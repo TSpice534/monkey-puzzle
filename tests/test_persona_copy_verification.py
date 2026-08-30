@@ -100,12 +100,12 @@ def test_communicator_two_value_relationships_render_both_names_on_web_result(cl
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
     assert 'The Communicator' in body
     assert 'You are the voice!' in body
-    # natural_allies: [architect, accountant] -> both must render, "and"-joined sentence
-    assert 'You probably work closely with The Architect and The Accountant.' in body
-    # friends: [connector, cooperator] -> both must render, "and"-joined sentence
-    assert 'You might find support from The Connector and The Cooperator.' in body
-    # necessity: [entrepreneur] -> singular branch, article rule exercised end-to-end
-    assert 'Collaborating with an Entrepreneur would be a good way to improve impact.' in body
+    # natural_allies: [architect, accountant] -> both must render, "and"-joined sentence, bolded
+    assert 'You probably work closely with <strong>The Architect</strong> and <strong>The Accountant</strong>.' in body
+    # friends: [connector, cooperator] -> both must render, "and"-joined sentence, bolded
+    assert 'You might find support from <strong>The Connector</strong> and <strong>The Cooperator</strong>.' in body
+    # necessity: [entrepreneur] -> singular branch, article rule exercised end-to-end, bolded
+    assert 'Collaborating with an <strong>Entrepreneur</strong> would be a good way to improve impact.' in body
 
 
 def test_communicator_two_value_relationships_render_both_names_in_pdf(app):
@@ -124,9 +124,9 @@ def test_communicator_two_value_relationships_render_both_names_in_pdf(app):
             'pdf/result.html', persona=communicator, personas=survey['personas'],
             innovation=None, audience=None,
         )
-    assert 'You probably work closely with The Architect and The Accountant.' in html
-    assert 'You might find support from The Connector and The Cooperator.' in html
-    assert 'Collaborating with an Entrepreneur would be a good way to improve impact.' in html
+    assert 'You probably work closely with <strong>The Architect</strong> and <strong>The Accountant</strong>.' in html
+    assert 'You might find support from <strong>The Connector</strong> and <strong>The Cooperator</strong>.' in html
+    assert 'Collaborating with an <strong>Entrepreneur</strong> would be a good way to improve impact.' in html
 
 
 # ---------------------------------------------------------------------------

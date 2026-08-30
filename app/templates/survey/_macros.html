@@ -26,10 +26,16 @@
    into a sentence. Never called with an empty list (call sites are already
    guarded by `{% if persona.<rel> %}`).
 
-   Singular: strip a leading "The " from the name and prepend the computed
-   article ("an Accountant"). Pair/multi: use the names verbatim, "The"
-   included, Oxford-comma joined, no article ("The Implementer and The
-   Cooperator") — mirrors app/survey/persona.py::_join_phrases's shape. #}
+   Each role name is wrapped in <strong> so it stands out mid-sentence. The
+   tags are static template markup, not part of any variable, so per-name
+   auto-escaping still applies — no | safe involved.
+
+   Singular: strip a leading "The " from the name, bold what's left, and
+   prepend the computed article ("an <strong>Accountant</strong>").
+   Pair/multi: bold each name verbatim, "The" included, Oxford-comma joined,
+   no article ("<strong>The Implementer</strong> and <strong>The
+   Cooperator</strong>") — mirrors app/survey/persona.py::_join_phrases's
+   shape. #}
 {% macro role_phrase(persona_ids, personas) -%}
 {%- if persona_ids|length == 1 -%}
   {%- set name = personas[persona_ids[0]].name -%}
@@ -37,13 +43,13 @@
     {%- set name = name[4:] -%}
   {%- endif -%}
   {%- set article = 'an' if name[0]|lower in ['a', 'e', 'i', 'o', 'u'] else 'a' -%}
-  {{- article }} {{ name -}}
+  {{- article }} <strong>{{ name }}</strong>
 {%- elif persona_ids|length == 2 -%}
-  {{- personas[persona_ids[0]].name }} and {{ personas[persona_ids[1]].name -}}
+  <strong>{{ personas[persona_ids[0]].name }}</strong> and <strong>{{ personas[persona_ids[1]].name }}</strong>
 {%- else -%}
   {%- for pid in persona_ids[:-1] -%}
-    {{- personas[pid].name }}{{ ', ' if not loop.last -}}
+    <strong>{{ personas[pid].name }}</strong>{{ ', ' if not loop.last -}}
   {%- endfor -%}
-  {{- ', and ' }}{{ personas[persona_ids[-1]].name -}}
+  {{- ', and ' }}<strong>{{ personas[persona_ids[-1]].name }}</strong>
 {%- endif -%}
 {%- endmacro %}

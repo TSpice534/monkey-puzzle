@@ -10,7 +10,9 @@ survey.yaml` currently exercises (every `natural_allies`/`friends`/
 article rule are already covered end-to-end against real content in
 `tests/test_persona_copy_verification.py`; this file exists to close that
 one real gap and to pin down the macro's escaping/whitespace contract
-in isolation.
+in isolation. Each role name is expected wrapped in `<strong>...</strong>`
+(the article, "and"/comma joiners, and the "The " prefix inside pairs/multi
+stay outside the tag).
 """
 import pytest
 
@@ -39,12 +41,12 @@ PERSONAS = {
 
 def test_two_ids_join_with_and_verbatim_names_no_article(app):
     result = _role_phrase(app, ['implementer', 'cooperator'], PERSONAS)
-    assert result == 'The Implementer and The Cooperator'
+    assert result == '<strong>The Implementer</strong> and <strong>The Cooperator</strong>'
 
 
 def test_single_id_strips_the_prefix_and_prepends_article(app):
     result = _role_phrase(app, ['accountant'], PERSONAS)
-    assert result == 'an Accountant'
+    assert result == 'an <strong>Accountant</strong>'
 
 
 # ---------------------------------------------------------------------------
@@ -53,14 +55,20 @@ def test_single_id_strips_the_prefix_and_prepends_article(app):
 
 def test_three_ids_oxford_comma_join_verbatim_names(app):
     result = _role_phrase(app, ['accountant', 'implementer', 'cooperator'], PERSONAS)
-    assert result == 'The Accountant, The Implementer, and The Cooperator'
+    assert result == (
+        '<strong>The Accountant</strong>, <strong>The Implementer</strong>, '
+        'and <strong>The Cooperator</strong>'
+    )
 
 
 def test_four_ids_oxford_comma_join_no_dangling_and_no_double_comma(app):
     result = _role_phrase(
         app, ['accountant', 'implementer', 'cooperator', 'inventor'], PERSONAS,
     )
-    assert result == 'The Accountant, The Implementer, The Cooperator, and The Inventor'
+    assert result == (
+        '<strong>The Accountant</strong>, <strong>The Implementer</strong>, '
+        '<strong>The Cooperator</strong>, and <strong>The Inventor</strong>'
+    )
     # No dangling "and" mid-list, no double comma from the loop/tail join meeting.
     assert ', and and ' not in result
     assert ',,' not in result
@@ -73,12 +81,12 @@ def test_four_ids_oxford_comma_join_no_dangling_and_no_double_comma(app):
 
 def test_name_without_the_prefix_passes_through_unchanged_consonant_initial(app):
     result = _role_phrase(app, ['no_prefix_consonant'], PERSONAS)
-    assert result == 'a Xylophonist'
+    assert result == 'a <strong>Xylophonist</strong>'
 
 
 def test_name_without_the_prefix_passes_through_unchanged_vowel_initial(app):
     result = _role_phrase(app, ['no_prefix_vowel'], PERSONAS)
-    assert result == 'an Egret'
+    assert result == 'an <strong>Egret</strong>'
 
 
 def test_vowel_and_consonant_article_computed_dynamically_across_real_nine(app):
@@ -125,7 +133,7 @@ def test_output_has_no_leading_or_trailing_whitespace(app, persona_ids):
 def test_full_stop_sits_tight_against_output_when_concatenated_like_the_template(app):
     result = _role_phrase(app, ['accountant'], PERSONAS)
     sentence = f'Collaborating with {result} would be a good way to improve impact.'
-    assert 'Accountant would' in sentence
+    assert 'Accountant</strong> would' in sentence
     assert ' .' not in sentence
 
 
