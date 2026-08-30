@@ -10,7 +10,9 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   a new `GET /survey/<token>/certificate.png` route rasterises a square 1200x1200 "Download
   certificate" PNG (`app/survey/charts.py::render_certificate_svg`, framed in the
   innovation-curve band's accent colour when the submission has one, else `--brand-primary`,
-  band named as text never colour alone), reusing the existing on-disk asset cache
+  band named as text never colour alone, with a `tomspice.co.uk/monkey-puzzle` footer line
+  near the bottom of the frame so a downloaded/reshared certificate keeps its CTA even once
+  it's separated from the caption), reusing the existing on-disk asset cache
   (`get_or_render`) so it self-invalidates on a `content/survey.yaml` retune exactly like
   `share.png`/the PDF. The result page's "Share or save your result" card gains a "Download
   certificate" link plus, when the survey defines a new optional top-level `share_caption`

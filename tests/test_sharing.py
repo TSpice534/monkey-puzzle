@@ -11,6 +11,7 @@ from app.email_utils import _send_async
 from app.models import Submission
 from app.survey.charts import render_certificate_svg, render_share_card_svg
 from app.survey.loader import clear_survey_cache
+from app.survey.routes import _caption_context
 
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), 'fixtures', 'survey_min.yaml')
 
@@ -263,6 +264,28 @@ def test_result_page_omits_the_caption_block_when_survey_has_no_share_caption(cl
 
 
 # ---------------------------------------------------------------------------
+# _caption_context (backlog #0030) — direct calls, defensive .format() path
+# ---------------------------------------------------------------------------
+
+_CAPTION_PERSONA = {'name': 'The Inventor'}
+
+
+def test_caption_context_returns_none_on_unknown_placeholder():
+    survey = {'share_caption': {'template': 'Hi {foo}, take the survey! {url}'}}
+    assert _caption_context(_CAPTION_PERSONA, survey, 'https://example.com/') is None
+
+
+def test_caption_context_returns_none_on_bare_braces_placeholder():
+    survey = {'share_caption': {'template': 'Hi {}, take the survey! {url}'}}
+    assert _caption_context(_CAPTION_PERSONA, survey, 'https://example.com/') is None
+
+
+def test_caption_context_returns_none_on_unbalanced_brace():
+    survey = {'share_caption': {'template': 'Hi {persona, take the survey! {url}'}}
+    assert _caption_context(_CAPTION_PERSONA, survey, 'https://example.com/') is None
+
+
+# ---------------------------------------------------------------------------
 # pdf
 # ---------------------------------------------------------------------------
 
@@ -499,15 +522,37 @@ def test_render_certificate_svg_escapes_persona_fields():
 
 
 def test_render_certificate_svg_names_the_band_as_text_when_given():
+    # '#2e7d32' is also the hardcoded fallback accent colour in charts.py,
+    # so asserting on it here would pass even if `band_colour` were ignored
+    # entirely — use a colour that only appears if the parameter is honoured.
     persona = {'name': 'The Inventor', 'tagline': 'Tagline'}
-    svg = render_certificate_svg(persona, band='Innovators', band_colour='#2e7d32')
+    svg = render_certificate_svg(persona, band='Innovators', band_colour='#123456')
     assert 'Innovators' in svg
-    assert 'fill="#2e7d32"' in svg
+    assert 'fill="#123456"' in svg
 
 
 def test_render_certificate_svg_without_a_band_does_not_raise_and_omits_the_band_line():
     persona = {'name': 'The Inventor', 'tagline': 'Tagline'}
     svg = render_certificate_svg(persona, band=None)
+    assert svg.startswith('<svg')
+    assert 'Innovation curve' not in svg
+
+
+def test_render_certificate_svg_band_given_without_band_colour_falls_back_to_default_accent():
+    """spec edge case: `band` truthy but `band_colour` falsy must not raise,
+    and the swatch/frame fall back to the default accent (#2e7d32)."""
+    persona = {'name': 'The Inventor', 'tagline': 'Tagline'}
+    svg = render_certificate_svg(persona, band='Innovators', band_colour=None)
+    assert svg.startswith('<svg')
+    assert 'Innovators' in svg
+    assert 'fill="#2e7d32"' in svg
+
+
+def test_render_certificate_svg_band_colour_given_without_band_omits_band_line():
+    """spec edge case: `band_colour` truthy but `band` falsy must not raise,
+    and the band line must be omitted entirely (never conveyed by colour alone)."""
+    persona = {'name': 'The Inventor', 'tagline': 'Tagline'}
+    svg = render_certificate_svg(persona, band=None, band_colour='#123456')
     assert svg.startswith('<svg')
     assert 'Innovation curve' not in svg
 
