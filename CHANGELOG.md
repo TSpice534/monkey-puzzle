@@ -6,6 +6,9 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: renamed the "Where you sit on the innovation curve" heading to "Your focus
+  group on the innovation curve" on the result page and in the result email (HTML +
+  plain text) for consistency (backlog #0026).
 - Fix: innovation-curve band labels no longer overlap, and add the app's first responsive
   breakpoint (backlog #0029) — `app/survey/charts.py::render_innovation_curve_svg` now runs
   a collision-aware label layout pass (`_layout_band_labels`/`_estimate_text_width`, with a

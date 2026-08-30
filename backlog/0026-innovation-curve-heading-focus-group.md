@@ -2,9 +2,9 @@
 id: 0026
 title: Rename "Where you sit on the innovation curve" heading
 type: change
-status: todo
+status: shipped
 created: 2026-08-30
-branch:
+branch: quickship/innovation-curve-heading-focus-group
 ---
 
 ## Request
