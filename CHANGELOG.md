@@ -6,6 +6,21 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Feature: certificate-style share image + personalised LinkedIn caption (backlog #0030) —
+  a new `GET /survey/<token>/certificate.png` route rasterises a square 1200x1200 "Download
+  certificate" PNG (`app/survey/charts.py::render_certificate_svg`, framed in the
+  innovation-curve band's accent colour when the submission has one, else `--brand-primary`,
+  band named as text never colour alone), reusing the existing on-disk asset cache
+  (`get_or_render`) so it self-invalidates on a `content/survey.yaml` retune exactly like
+  `share.png`/the PDF. The result page's "Share or save your result" card gains a "Download
+  certificate" link plus, when the survey defines a new optional top-level `share_caption`
+  yaml key (`template`, `{persona}`/`{url}` placeholders — resolved by a new
+  `_caption_context` helper, home-page URL not the token result URL), a read-only textarea
+  with the personalised caption text and a progressive-enhancement "Copy caption" button
+  (rendered `hidden`, unhidden by a small nonce'd vanilla script — the copy-to-clipboard
+  falls back to a "Press Ctrl/Cmd+C" hint when `navigator.clipboard` is unavailable). No new
+  `Submission` column/migration — the caption is derived at render time, same as
+  `_why_context`/`_now_next_context`.
 - Change: corrected 4 persona necessity relationships (Inventor, Communicator, Connector,
   Cooperator) in `content/survey.yaml` and `docs/PROFILES-TEMPLATE.md` to match Tom's
   resolved relationship table (backlog #0027).

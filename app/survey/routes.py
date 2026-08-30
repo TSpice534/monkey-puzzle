@@ -8,7 +8,10 @@ from app.email_utils import send_result_email
 from app.models import Submission
 from app.pdf_utils import generate_result_pdf, html_to_pdf, render_result_html
 from app.survey import bp
-from app.survey.charts import render_innovation_curve_svg, render_share_card_svg
+from app.survey.charts import (
+    CERTIFICATE_HEIGHT, CERTIFICATE_WIDTH, render_certificate_svg,
+    render_innovation_curve_svg, render_share_card_svg,
+)
 from app.survey.loader import get_survey, survey_steps
 from app.survey.persona import classify_submission, resolve_innovation_curve, resolve_now_next
 
@@ -208,6 +211,20 @@ def _why_context(submission, survey):
     return raw.strip() or None
 
 
+def _caption_context(persona, survey, url):
+    """The default, personalised LinkedIn caption for the certificate image,
+    or None when the survey has no `share_caption` config or its template
+    references a placeholder we don't supply (defensive, same spirit as
+    resolve_now_next)."""
+    cfg = survey.get('share_caption')
+    if not cfg:
+        return None
+    try:
+        return cfg['template'].format(persona=persona['name'], url=url)
+    except (KeyError, IndexError, ValueError):
+        return None
+
+
 @bp.route('/start')
 @limiter.limit('60 per minute')
 def start():
@@ -307,6 +324,7 @@ def result(token):
         innovation=_innovation_context(submission, survey),
         now_next=_now_next_context(submission, survey),
         why=_why_context(submission, survey),
+        caption=_caption_context(persona, survey, url_for('main.index', _external=True)),
         audience=submission.audience,
     )
 
@@ -321,6 +339,29 @@ def share_image(token):
     )
     response = Response(png, mimetype='image/png')
     # Deterministic per submission once classified — safe to cache.
+    response.headers['Cache-Control'] = 'public, max-age=86400, immutable'
+    return response
+
+
+@bp.route('/<token>/certificate.png')
+def download_certificate(token):
+    submission, survey, persona = _require_classified(token)
+    innovation = _innovation_context(submission, survey)
+    svg = render_certificate_svg(
+        persona,
+        band=innovation['band'] if innovation else None,
+        band_colour=innovation['colour'] if innovation else None,
+    )
+    png = get_or_render(
+        svg, '.png',
+        lambda: cairosvg.svg2png(bytestring=svg.encode(),
+                                  output_width=CERTIFICATE_WIDTH,
+                                  output_height=CERTIFICATE_HEIGHT),
+    )
+    filename = f"{persona['name'].replace(' ', '_')}_MonkeyPuzzle_Certificate.png"
+    response = Response(png, mimetype='image/png')
+    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+    # Deterministic per classified submission — safe to cache, same as share_image.
     response.headers['Cache-Control'] = 'public, max-age=86400, immutable'
     return response
 

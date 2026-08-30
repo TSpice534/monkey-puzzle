@@ -471,6 +471,16 @@ now_next:
     challenge. In terms of collaboration ambitions, you are keen to engage more
     {target_groups}.
 
+# Share caption (backlog #0030) — the default, personalised LinkedIn caption
+# offered alongside the downloadable certificate image. Copy lives here, not
+# in code, so Rob/Andrew can retune without a deploy. Placeholders are
+# `{persona}` (the classified persona's name) and `{url}` (the survey's home
+# page, not the respondent's own result URL).
+share_caption:
+  template: >-
+    My sustainability persona from The Monkey Puzzle is {persona}. Click this link to take
+    the survey and discover your own sustainability profile! {url}
+
 # Profile matrix (backlog #0017 Part B) — two single-select questions whose
 # combined answers directly resolve the winning persona, replacing the old
 # 3x3 grid input. `approach` = profile_approach option index (Y axis),

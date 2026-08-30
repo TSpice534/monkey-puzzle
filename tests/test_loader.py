@@ -1480,3 +1480,53 @@ def test_real_survey_loads_the_now_next_construct():
         'challenge. In terms of collaboration ambitions, you are keen to engage more '
         '{target_groups}.'
     )
+
+
+# ---------------------------------------------------------------------------
+# top-level 'share_caption' construct (backlog #0030 — the default,
+# personalised LinkedIn caption offered alongside the downloadable
+# certificate image). Mirrors the now_next checks above.
+# ---------------------------------------------------------------------------
+
+def _share_caption_construct():
+    return {'template': 'My persona is {persona}. {url}'}
+
+
+def test_absent_share_caption_is_valid(tmp_path):
+    config = load_survey(_write_yaml(tmp_path, _base_config()))
+    assert config.get('share_caption') is None
+
+
+def test_valid_share_caption_loads(tmp_path):
+    data = _base_config()
+    data['share_caption'] = _share_caption_construct()
+    config = load_survey(_write_yaml(tmp_path, data))
+    assert config['share_caption']['template'] == 'My persona is {persona}. {url}'
+
+
+def test_share_caption_not_a_mapping_raises(tmp_path):
+    data = _base_config()
+    data['share_caption'] = 'not a mapping'
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_share_caption_missing_template_raises(tmp_path):
+    data = _base_config()
+    data['share_caption'] = {}
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_share_caption_empty_template_raises(tmp_path):
+    data = _base_config()
+    data['share_caption'] = {'template': ''}
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))
+
+
+def test_share_caption_non_string_template_raises(tmp_path):
+    data = _base_config()
+    data['share_caption'] = {'template': 123}
+    with pytest.raises(SurveyConfigError):
+        load_survey(_write_yaml(tmp_path, data))

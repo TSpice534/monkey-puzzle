@@ -41,7 +41,21 @@
         <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('survey.download_pdf', token=submission.token) }}">
           Download PDF
         </a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('survey.download_certificate', token=submission.token) }}">
+          Download certificate
+        </a>
       </div>
+
+      {% if caption %}
+      <div class="mb-3">
+        <label class="form-label small text-muted mb-1" for="share-caption">
+          Post the certificate to LinkedIn with this caption:
+        </label>
+        <textarea class="form-control form-control-sm" id="share-caption" rows="3" readonly>{{ caption }}</textarea>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="copy-caption" hidden
+                data-default-label="Copy caption" data-copied-label="Copied!">Copy caption</button>
+      </div>
+      {% endif %}
 
       <form method="post" action="{{ url_for('survey.email_result', token=submission.token) }}"
             class="row row-cols-auto g-2 align-items-center">
@@ -61,4 +75,44 @@
     <a class="btn btn-outline-secondary" href="{{ url_for('survey.start') }}">Start again</a>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if caption %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var textarea = document.getElementById('share-caption');
+  var btn = document.getElementById('copy-caption');
+  if (!textarea || !btn) return;
+
+  btn.hidden = false;
+
+  var resetTimer = null;
+
+  function showLabel(label) {
+    btn.textContent = label;
+    if (resetTimer) clearTimeout(resetTimer);
+    resetTimer = setTimeout(function () {
+      btn.textContent = btn.getAttribute('data-default-label');
+    }, 2000);
+  }
+
+  btn.addEventListener('click', function () {
+    textarea.focus();
+    textarea.select();
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textarea.value).then(function () {
+        showLabel(btn.getAttribute('data-copied-label'));
+      }, function () {
+        showLabel('Press Ctrl/Cmd+C');
+      });
+    } else {
+      showLabel('Press Ctrl/Cmd+C');
+    }
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}
