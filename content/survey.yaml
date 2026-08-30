@@ -89,7 +89,7 @@ personas:
       steps to improve on existing options.
     natural_allies: [architect]
     friends: [connector]
-    necessity: [implementer]
+    necessity: [architect]
     case_studies:
       - { title: "Placeholder case study — Inventor", url: "https://example.com/case-studies/inventor" }
     resources:
@@ -130,7 +130,7 @@ personas:
       hidden.
     natural_allies: [architect, accountant]
     friends: [connector, cooperator]
-    necessity: [implementer]
+    necessity: [entrepreneur]
     case_studies:
       - { title: "Placeholder case study — Communicator", url: "https://example.com/case-studies/communicator" }
     resources:
@@ -174,7 +174,7 @@ personas:
       within the community.
     natural_allies: [entrepreneur]
     friends: [cooperator]
-    necessity: [communicator]
+    necessity: [inventor]
     case_studies:
       - { title: "Placeholder case study — Connector", url: "https://example.com/case-studies/connector" }
     resources:
@@ -196,7 +196,7 @@ personas:
       create impact that benefits progress in a wider view.
     natural_allies: [connector]
     friends: [communicator]
-    necessity: [inventor]
+    necessity: [connector]
     case_studies:
       - { title: "Placeholder case study — Cooperator", url: "https://example.com/case-studies/cooperator" }
     resources:
