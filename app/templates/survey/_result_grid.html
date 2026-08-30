@@ -1,8 +1,12 @@
 {# Result-page labelled 3x3 persona grid — additive alongside the radar
    fingerprint chart. Static (no form inputs); the chosen cell is
-   highlighted, the other 8 are muted. Guarded on `grid_question` so surveys
-   without a `profile_question` render nothing here. #}
+   highlighted, the other 8 are muted, and any cell whose persona is one of
+   the classified persona's natural_allies/friends/necessity is colour-coded
+   (backlog #0031) — split two-tone when a persona falls into more than one
+   category. Guarded on `grid_question` so surveys without a
+   `profile_question` render nothing here. #}
 {% if grid_question %}
+{% set rel_labels = {'ally': 'Natural ally', 'friend': 'Friend', 'necessity': 'Necessity'} %}
 <div class="card shadow-sm mt-3">
   <div class="card-body">
     <h2 class="h6">Your position on the grid</h2>
@@ -27,10 +31,20 @@
                 {% set cell = grid_question.cells | selectattr('x', 'equalto', x) | selectattr('y', 'equalto', y) | first %}
                 {% set cell_persona = personas[cell.persona] %}
                 {% set is_selected = grid_selected == [x, y] %}
+                {% set rel = [] if is_selected else (
+                     (['ally'] if cell.persona in (persona.natural_allies or []) else [])
+                   + (['friend'] if cell.persona in (persona.friends or []) else [])
+                   + (['necessity'] if cell.persona in (persona.necessity or []) else [])
+                   ) %}
                 <td class="persona-grid-cell-wrap">
-                  <div class="grid-cell grid-cell--result {{ 'grid-cell--selected' if is_selected else 'grid-cell--muted' }}">
+                  <div class="grid-cell grid-cell--result {% if is_selected %}grid-cell--selected{% elif rel %}grid-cell--related{% for r in rel %} grid-cell--{{ r }}{% endfor %}{% else %}grid-cell--muted{% endif %}">
                     {% if cell_persona.icon %}<span class="persona-icon persona-icon--grid">{{ persona_icon(cell_persona) }}</span>{% endif %}
                     {{ cell_persona.name }}
+                    {% if rel %}
+                      {% set ns = namespace(labels=[]) %}
+                      {% for r in rel %}{% set ns.labels = ns.labels + [rel_labels[r]] %}{% endfor %}
+                      <span class="visually-hidden">{{ ns.labels | join(', ') }}</span>
+                    {% endif %}
                   </div>
                 </td>
               {% endfor %}
@@ -39,6 +53,34 @@
         </tbody>
       </table>
     </div>
+    {% if persona.natural_allies or persona.friends or persona.necessity %}
+    <ul class="grid-legend list-unstyled d-flex flex-wrap gap-3 mt-3 mb-0 small">
+      {% if persona.natural_allies %}
+      <li class="d-flex align-items-center gap-2">
+        <span class="grid-legend-swatch grid-legend-swatch--ally" aria-hidden="true"></span>
+        Natural Allies
+      </li>
+      {% endif %}
+      {% if persona.friends %}
+      <li class="d-flex align-items-center gap-2">
+        <span class="grid-legend-swatch grid-legend-swatch--friend" aria-hidden="true"></span>
+        Friends
+      </li>
+      {% endif %}
+      {% if persona.necessity %}
+      <li class="d-flex align-items-center gap-2">
+        <span class="grid-legend-swatch grid-legend-swatch--necessity" aria-hidden="true"></span>
+        Necessities
+      </li>
+      {% endif %}
+    </ul>
+    {% set rel_category_count = ((persona.natural_allies or []) | length > 0)
+         + ((persona.friends or []) | length > 0)
+         + ((persona.necessity or []) | length > 0) %}
+    {% if rel_category_count > 1 %}
+    <p class="small text-muted mt-2 mb-0">A cell showing two colours is both.</p>
+    {% endif %}
+    {% endif %}
   </div>
 </div>
 {% endif %}

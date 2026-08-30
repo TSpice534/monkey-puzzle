@@ -6,6 +6,18 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Feature: colour-code Natural Allies / Friends / Necessities on the result-page persona
+  grid (backlog #0031) — each of the 8 non-selected cells whose persona is one of the
+  classified persona's `natural_allies`/`friends`/`necessity` now gets a `grid-cell--ally`/
+  `--friend`/`--necessity` modifier (blue/teal/purple, new `--rel-*`/`--rel-*-tint` vars in
+  `theme.css`), with a hard-stop diagonal-gradient split when one persona falls into more
+  than one category (e.g. Inventor's Architect cell, which is both ally and necessity). A
+  new `<ul class="grid-legend">` key renders below the grid, one entry per non-empty
+  category, plus a "A cell showing two colours is both." note when two or more categories
+  are populated. Each coloured cell also gets a screen-reader-only label (`Natural ally`,
+  `Friend`, `Necessity`) so the relationship isn't colour-only. The selected cell keeps
+  `grid-cell--selected` and never also gets a relationship class. No Python/route changes —
+  `_result_grid.html` already had `persona` in its render context.
 - Feature: certificate-style share image + personalised LinkedIn caption (backlog #0030) —
   a new `GET /survey/<token>/certificate.png` route rasterises a square 1200x1200 "Download
   certificate" PNG (`app/survey/charts.py::render_certificate_svg`, framed in the

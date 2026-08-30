@@ -1,6 +1,12 @@
 :root {
   --brand-primary: #2e7d32;
   --brand-primary-dark: #1b5e20;
+  --rel-ally: #1565c0;
+  --rel-ally-tint: #e3eefb;
+  --rel-friend: #00838f;
+  --rel-friend-tint: #ddf0f1;
+  --rel-necessity: #7b1fa2;
+  --rel-necessity-tint: #f3e6f8;
 }
 
 /* Survey option "cards" — native radio/checkbox inputs styled via the
@@ -155,6 +161,84 @@
   border-color: #eee;
   color: #ced4da;
   opacity: 0.7;
+}
+
+/* Relationship colour-coding (backlog #0031) — cells whose persona is one of
+   the classified persona's natural_allies/friends/necessity, colour-keyed
+   against the legend below the grid. `--related` resets muted-wash styling
+   explicitly (a cell never carries `--muted` and `--related` together, but
+   this documents intent rather than relying on rule ordering). Colours
+   deliberately avoid `--brand-primary` (the selected cell), the muted grey,
+   and the innovation-curve band ramp in content/survey.yaml. */
+.grid-cell--related {
+  border-width: 2px;
+  font-weight: 600;
+  color: #212529;
+  opacity: 1;
+}
+
+.grid-cell--ally {
+  border-color: var(--rel-ally);
+  background-color: var(--rel-ally-tint);
+}
+
+.grid-cell--friend {
+  border-color: var(--rel-friend);
+  background-color: var(--rel-friend-tint);
+}
+
+.grid-cell--necessity {
+  border-color: var(--rel-necessity);
+  background-color: var(--rel-necessity-tint);
+}
+
+/* A persona can fall into more than one relationship category for the same
+   cell (e.g. Inventor/Architect is both ally + necessity) — a hard-stop
+   135deg gradient keeps both tints visible at once instead of picking one.
+   Border colour on a combination cell uses the first category present in
+   ally > friend > necessity order. */
+.grid-cell--ally.grid-cell--friend {
+  border-color: var(--rel-ally);
+  background: linear-gradient(135deg, var(--rel-ally-tint) 0 50%, var(--rel-friend-tint) 50% 100%);
+}
+
+.grid-cell--ally.grid-cell--necessity {
+  border-color: var(--rel-ally);
+  background: linear-gradient(135deg, var(--rel-ally-tint) 0 50%, var(--rel-necessity-tint) 50% 100%);
+}
+
+.grid-cell--friend.grid-cell--necessity {
+  border-color: var(--rel-friend);
+  background: linear-gradient(135deg, var(--rel-friend-tint) 0 50%, var(--rel-necessity-tint) 50% 100%);
+}
+
+.grid-cell--ally.grid-cell--friend.grid-cell--necessity {
+  border-color: var(--rel-ally);
+  background: linear-gradient(135deg, var(--rel-ally-tint) 0 33.33%, var(--rel-friend-tint) 33.33% 66.66%, var(--rel-necessity-tint) 66.66% 100%);
+}
+
+.grid-legend-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 0.2rem;
+  border: 2px solid;
+  flex: 0 0 auto;
+}
+
+.grid-legend-swatch--ally {
+  border-color: var(--rel-ally);
+  background-color: var(--rel-ally-tint);
+}
+
+.grid-legend-swatch--friend {
+  border-color: var(--rel-friend);
+  background-color: var(--rel-friend-tint);
+}
+
+.grid-legend-swatch--necessity {
+  border-color: var(--rel-necessity);
+  background-color: var(--rel-necessity-tint);
 }
 
 /* Persona icons (backlog #0005) — inline SVG marks on the persona card
@@ -332,4 +416,8 @@
   .grid-cell { min-height: 3.5rem; }
   .grid-cell--result { font-size: 0.75rem; overflow-wrap: break-word; }
   .persona-icon--grid { width: 1rem; height: 1rem; }
+  /* Relationship legend (backlog #0031): shrink so the key stays on one or
+     two lines rather than wrapping onto four+ at 320-375px. */
+  .grid-legend { font-size: 0.7rem; }
+  .grid-legend-swatch { width: 0.75rem; height: 0.75rem; }
 }
