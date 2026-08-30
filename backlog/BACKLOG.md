@@ -32,3 +32,4 @@
 | 0028 | Turn role-relationship lines into full sentences (Andrew's copy review) | change | shipped | 2026-08-30 |
 | 0029 | Innovation-curve label overlap + spectrum question options not visible on mobile | bug | shipped | 2026-08-30 |
 | 0030 | Certificate-style share image + personalized LinkedIn caption | feature | shipped | 2026-08-30 |
+| 0031 | Colour-code Natural Allies / Friends / Necessities on result-page persona grid | feature | todo | 2026-08-30 |
