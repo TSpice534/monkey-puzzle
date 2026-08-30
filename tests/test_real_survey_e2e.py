@@ -857,11 +857,11 @@ def test_result_page_renders_the_innovation_band_card_after_the_grid(client):
     body = response.get_data(as_text=True)
 
     assert response.status_code == 200
-    assert 'Where you sit on the innovation curve' in body
+    assert 'Your focus group on the innovation curve' in body
     assert 'Late Majority' in body
 
     grid_pos = body.index('Your position on the grid')
-    innovation_pos = body.index('Where you sit on the innovation curve')
+    innovation_pos = body.index('Your focus group on the innovation curve')
     share_pos = body.index('Share or save your result')
     assert grid_pos < innovation_pos < share_pos
 
@@ -1129,7 +1129,7 @@ def test_pdf_result_template_renders_the_innovation_band_name(app):
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
             innovation=innovation, audience=None,
         )
-    assert 'Where you sit on the innovation curve' in html
+    assert 'Your focus group on the innovation curve' in html
     assert 'Late Majority' in html
 
 
