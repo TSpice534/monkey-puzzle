@@ -2,9 +2,9 @@
 id: 0028
 title: Turn role-relationship lines into full sentences (Andrew's copy review)
 type: change
-status: todo
+status: shipped
 created: 2026-08-30
-branch:
+branch: feature/role-relationship-sentence-copy
 ---
 
 ## Request
