@@ -2,7 +2,7 @@
 id: 0028
 title: Turn role-relationship lines into full sentences (Andrew's copy review)
 type: change
-status: in-progress
+status: shipped
 created: 2026-08-30
 branch: feature/role-relationship-sentence-copy
 ---
