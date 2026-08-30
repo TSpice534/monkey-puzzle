@@ -15,18 +15,21 @@
     {% include "survey/_result_now_next.html" %}
 
     {% if persona.natural_allies %}
-    <p class="mb-1">
+    <h2 class="h6 mb-1">Natural Allies</h2>
+    <p class="mb-3">
       You probably work closely with {{ role_phrase(persona.natural_allies, personas) }}.
     </p>
     {% endif %}
 
     {% if persona.friends %}
-    <p class="mb-1">
+    <h2 class="h6 mb-1">Friends</h2>
+    <p class="mb-3">
       You might find support from {{ role_phrase(persona.friends, personas) }}.
     </p>
     {% endif %}
 
     {% if persona.necessity %}
+    <h2 class="h6 mb-1">Necessities</h2>
     <p class="mb-3">
       Collaborating with {{ role_phrase(persona.necessity, personas) }} would be a good way to improve impact.
     </p>

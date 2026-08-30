@@ -36,11 +36,12 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   encountered while debugging this.
 - Change: replaced the persona card's bare `Natural allies:`/`Friends:`/`Necessities:` label
   lines with full sentence copy ("You probably work closely with an **Accountant**.", etc.,
-  role names bolded) on the web result page and PDF (backlog #0028). New `role_phrase()`
-  macro in `_macros.html` handles the singular article rule ("an Accountant") and the
-  pair/multi Oxford-comma join (persona names verbatim, "The" prefix included — e.g. "The
-  Implementer and The Cooperator"), bolding each name via static `<strong>` markup around
-  the per-name `{{ }}` output (auto-escaping stays intact, no `| safe`).
+  role names bolded) under "Natural Allies"/"Friends"/"Necessities" subheadings on the web
+  result page and PDF (backlog #0028). New `role_phrase()` macro in `_macros.html` handles
+  the singular article rule ("an Accountant") and the pair/multi Oxford-comma join (persona
+  names verbatim, "The" prefix included — e.g. "The Implementer and The Cooperator"),
+  bolding each name via static `<strong>` markup around the per-name `{{ }}` output
+  (auto-escaping stays intact, no `| safe`).
 
 ## [v0.3.2] — 2026-08-07
 
