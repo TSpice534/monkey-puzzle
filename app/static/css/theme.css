@@ -54,6 +54,8 @@
   cursor: pointer;
   font-size: 0.85rem;
   transition: border-color .15s ease, background-color .15s ease;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 /* Small "mix" box — a blend of the two options either side. Rendered as a small dot
@@ -279,3 +281,45 @@
    survey.yaml as a YAML block scalar with real newlines, not raw HTML, so
    this turns those newlines into visible line breaks. */
 .question-explanation { white-space: pre-line; }
+
+/* Innovation-curve chart (backlog #0011) — the generated <svg> carries fixed
+   width/height attributes alongside its viewBox, so without this it clips or
+   overflows inside a narrow card. Web only: templates/pdf/result.html doesn't
+   load theme.css and its A4 content box is wider than the 640px chart. */
+.innovation-curve svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mobile layout (backlog #0029) — the app's first and only breakpoint.
+   767.98px is Bootstrap 5's `md` boundary, matching the col-sm-*/col-md-*
+   classes already used elsewhere in the templates. */
+@media (max-width: 767.98px) {
+  /* Spectrum row stacks vertically: five sentence-length labels cannot share
+     a ~350px row, and flex items' default min-width:auto made the row overflow
+     the viewport entirely — which is why Q2/Q3/Q4's options read as "not
+     visible at all" on a phone. */
+  .spectrum-widget { flex-direction: column; align-items: stretch; }
+  .spectrum-node { flex: 0 0 auto; min-height: 0; padding: 0.75rem; font-size: 0.9rem; }
+  /* Re-assert the mix dot AFTER .spectrum-node above — same specificity, later
+     rule wins, so without this the dot would inherit the padding/min-height. */
+  .spectrum-node--mix { width: 0.85rem; height: 0.85rem; padding: 0; }
+
+  /* Triangle widget: corner nodes are translate(-50%,-50%) at left:0/left:100%,
+     so a 6rem node hangs 48px outside a 320px widget — 416px of content in a
+     351px viewport box. Narrower widget + smaller nodes brings it back inside. */
+  .triangle-widget { max-width: 240px; }
+  .triangle-node { min-width: 5rem; font-size: 0.8rem; padding: 0.4rem 0.5rem; }
+  /* Same later-rule-wins reset as the spectrum mix dot. */
+  .triangle-node--edge { min-width: 0; width: 0.85rem; height: 0.85rem; padding: 0; }
+
+  /* Result-page 3x3 grid: three persona names (min-content ~95px each) plus a
+     row-header column exceed a phone's content width, so the table stretched
+     past its card. Smaller type plus the .table-responsive wrapper in
+     _result_grid.html as a backstop. */
+  .persona-grid { border-spacing: 0.25rem; font-size: 0.75rem; }
+  .persona-grid th { font-size: 0.75rem; }
+  .grid-cell { min-height: 3.5rem; }
+  .grid-cell--result { font-size: 0.75rem; overflow-wrap: break-word; }
+  .persona-icon--grid { width: 1rem; height: 1rem; }
+}

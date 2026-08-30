@@ -2,9 +2,9 @@
 id: 0029
 title: Innovation-curve label overlap + spectrum question options not visible on mobile
 type: bug
-status: todo
+status: in-progress
 created: 2026-08-30
-branch:
+branch: feature/mobile-formatting-and-spectrum-visibility
 ---
 
 ## Request

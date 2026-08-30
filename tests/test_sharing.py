@@ -2,6 +2,7 @@
 SVG renderer. Uses the small fixture survey (tests/fixtures/survey_min.yaml)
 so driving a submission to completion is a handful of requests."""
 import os
+import re
 
 import pytest
 
@@ -443,3 +444,66 @@ def test_render_innovation_curve_svg_includes_all_five_band_names_as_labels():
     svg = render_innovation_curve_svg(5, _CURVE_BANDS)
     for band in _CURVE_BANDS:
         assert f'>{band["name"]}<' in svg
+
+
+# ---------------------------------------------------------------------------
+# render_innovation_curve_svg label-collision layout (backlog #0029) — the
+# real survey's bands, where the Innovators band is a single bar wide.
+# ---------------------------------------------------------------------------
+
+_CURVE_BANDS_REAL = [
+    {'name': 'Laggards', 'min': 0, 'max': 2, 'colour': '#c0392b'},
+    {'name': 'Late Majority', 'min': 3, 'max': 7, 'colour': '#e67e22'},
+    {'name': 'Early Majority', 'min': 8, 'max': 12, 'colour': '#f1c40f'},
+    {'name': 'Early Adopters', 'min': 13, 'max': 14, 'colour': '#7cb342'},
+    {'name': 'Innovators', 'min': 15, 'max': 15, 'colour': '#2e7d32'},
+]
+
+_LABEL_RE = re.compile(r'<text x="([\d.]+)"[^>]*font-size="([\d.]+)"[^>]*>([^<]+)</text>')
+
+
+def _label_boxes(svg):
+    from app.survey.charts import _estimate_text_width
+
+    boxes = []
+    for x_str, font_size_str, name in _LABEL_RE.findall(svg):
+        x = float(x_str)
+        font_size = float(font_size_str)
+        half_width = _estimate_text_width(name, font_size) / 2
+        boxes.append((x - half_width, x + half_width))
+    boxes.sort(key=lambda box: box[0])
+    return boxes
+
+
+def _assert_label_boxes_do_not_overlap(boxes, width):
+    for left, right in boxes:
+        assert left >= 0
+        assert right <= width
+    for previous, current in zip(boxes, boxes[1:]):
+        assert current[0] >= previous[1]
+
+
+def test_render_innovation_curve_svg_band_labels_do_not_overlap():
+    from app.survey.charts import render_innovation_curve_svg
+
+    svg = render_innovation_curve_svg(15, _CURVE_BANDS_REAL)
+    boxes = _label_boxes(svg)
+    assert len(boxes) == 5
+    _assert_label_boxes_do_not_overlap(boxes, 640)
+
+
+def test_render_innovation_curve_svg_keeps_every_band_name_verbatim_when_a_band_is_one_bar_wide():
+    from app.survey.charts import render_innovation_curve_svg
+
+    svg = render_innovation_curve_svg(15, _CURVE_BANDS_REAL)
+    for band in _CURVE_BANDS_REAL:
+        assert f'>{band["name"]}<' in svg
+
+
+def test_render_innovation_curve_svg_band_labels_do_not_overlap_at_narrow_width():
+    from app.survey.charts import render_innovation_curve_svg
+
+    svg = render_innovation_curve_svg(15, _CURVE_BANDS_REAL, width=320)
+    boxes = _label_boxes(svg)
+    assert len(boxes) == 5
+    _assert_label_boxes_do_not_overlap(boxes, 320)
