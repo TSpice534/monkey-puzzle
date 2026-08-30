@@ -2,9 +2,9 @@
 id: 0032
 title: Hover/tap popup with persona summary on result-page grid cells
 type: feature
-status: todo
+status: in-progress
 created: 2026-08-30
-branch:
+branch: feature/persona-grid-hover-summary-popup
 ---
 
 ## Request
