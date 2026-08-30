@@ -2,9 +2,9 @@
 id: 0027
 title: Update persona Natural Ally / Friends / Necessity relationship table
 type: change
-status: todo
+status: shipped
 created: 2026-08-30
-branch:
+branch: quickship/persona-role-links
 ---
 
 ## Request

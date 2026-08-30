@@ -6,6 +6,9 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: corrected 4 persona necessity relationships (Inventor, Communicator, Connector,
+  Cooperator) in `content/survey.yaml` and `docs/PROFILES-TEMPLATE.md` to match Tom's
+  resolved relationship table (backlog #0027).
 - Change: renamed the "Where you sit on the innovation curve" heading to "Your focus
   group on the innovation curve" on the result page and in the result email (HTML +
   plain text) for consistency (backlog #0026).
