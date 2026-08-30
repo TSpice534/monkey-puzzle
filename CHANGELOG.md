@@ -6,6 +6,16 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: innovation-curve band labels no longer overlap, and add the app's first responsive
+  breakpoint (backlog #0029) — `app/survey/charts.py::render_innovation_curve_svg` now runs
+  a collision-aware label layout pass (`_layout_band_labels`/`_estimate_text_width`, with a
+  font-size shrink-to-fit fallback) instead of blind span-centering; a new
+  `@media (max-width: 767.98px)` block in `theme.css` stacks the spectrum question options
+  (Q2/Q3/Q4) vertically, shrinks the triangle widget, and tightens the result-page 3x3 grid,
+  plus a new `.innovation-curve svg { max-width: 100%; height: auto; }` rule so the chart
+  scales inside a narrow card; `_result_grid.html`'s table gained a `.table-responsive`
+  wrapper as a backstop.
+
 ## [v0.3.2] — 2026-08-07
 
 - Change: remove the radar (fingerprint) chart from the remaining result surfaces — PDF

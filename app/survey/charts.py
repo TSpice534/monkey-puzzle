@@ -45,17 +45,74 @@ def render_share_card_svg(persona: dict) -> str:
 
 UNHIGHLIGHTED_BAR_OPACITY = 0.35
 
+_LABEL_CHAR_WIDTH_RATIO = 0.55   # conservative average Arial advance width, in em
+_LABEL_MIN_FONT_SIZE = 8.0       # floor for the shrink-to-fit pass
+_LABEL_MIN_GAP = 6.0             # minimum px between two adjacent labels
+
+
+def _estimate_text_width(text: str, font_size: float) -> float:
+    """Rough px width of `text` at `font_size` — there is no font-metrics API
+    available in a pure-Python SVG generator, so this deliberately over-estimates."""
+    return len(text) * font_size * _LABEL_CHAR_WIDTH_RATIO
+
+
+def _layout_band_labels(entries, width, base_font_size):
+    """entries: list of (centre_x, name) sorted ascending by centre_x.
+    Returns (font_size, [(x, name), ...]) in the same order — x values are the
+    final `text-anchor="middle"` anchors, nudged so no two label boxes overlap
+    and every box stays inside [0, width] when the labels fit at all."""
+    names = [name for _, name in entries]
+    centres = [centre for centre, _ in entries]
+    n = len(entries)
+
+    font_size = base_font_size
+    widths = [_estimate_text_width(name, font_size) for name in names]
+    while (
+        font_size > _LABEL_MIN_FONT_SIZE
+        and sum(widths) + _LABEL_MIN_GAP * (n - 1) > width
+    ):
+        font_size -= 0.5
+        widths = [_estimate_text_width(name, font_size) for name in names]
+    font_size = max(font_size, _LABEL_MIN_FONT_SIZE)
+    widths = [_estimate_text_width(name, font_size) for name in names]
+
+    x = list(centres)
+
+    for i in range(n):
+        if i == 0:
+            lower = widths[i] / 2
+        else:
+            lower = x[i - 1] + widths[i - 1] / 2 + _LABEL_MIN_GAP + widths[i] / 2
+        x[i] = max(x[i], lower)
+
+    for i in range(n - 1, -1, -1):
+        if i == n - 1:
+            upper = width - widths[i] / 2
+        else:
+            upper = x[i + 1] - widths[i + 1] / 2 - _LABEL_MIN_GAP - widths[i] / 2
+        x[i] = min(x[i], upper)
+
+    return font_size, list(zip(x, names))
+
 
 def render_innovation_curve_svg(score, bands, width: int = 640, height: int = 240) -> str:
     """Return an inline <svg> string: Rogers' diffusion-of-innovation bell
     curve rendered as equal-width bars, one per whole score point across
-    `bands`' full range (21 bars for the real survey's 0–20 range), with
+    `bands`' full range (16 bars for the real survey's 0–15 range), with
     heights following a symmetric Gaussian envelope so the silhouette reads
     as a bell curve/hump, and the respondent's exact score highlighted in
     its band's full colour at full opacity (every other bar keeps its bold
     band colour but is rendered at `UNHIGHLIGHTED_BAR_OPACITY`).
     Bars are drawn Innovators-left, Laggards-right (highest score first) to
     match the reference diffusion diagram.
+
+    Band-name labels are positioned by a collision-aware layout pass
+    (`_layout_band_labels`), left-to-right by band centre, with a font-size
+    shrink-to-fit fallback (floor `_LABEL_MIN_FONT_SIZE`) before nudging
+    overlapping labels apart — never truncated/ellipsised. If the labels
+    still can't all fit inside `[0, width]` even at the font-size floor, the
+    leftmost label may be pushed slightly past `x = 0`; this doesn't happen
+    for the real survey's bands.
 
     Styled on `render_fingerprint_svg`: pure function, self-contained <svg>,
     `role="img"` + `aria-label` (score and band name are always named in
@@ -123,19 +180,22 @@ def render_innovation_curve_svg(score, bands, width: int = 640, height: int = 24
     # ------------------------------------------------------------------
     # Section labels — one per band, centred under its span of bars
     # ------------------------------------------------------------------
-    label_font_size = width * 0.018
     label_y = height - label_area * 0.3
-    labels_svg = []
-    for band in bands:
-        span = band_spans.get(band['name'])
-        if span is None:
-            continue
-        label_x = (span[0] + span[1]) / 2
-        labels_svg.append(
-            f'<text x="{label_x:.2f}" y="{label_y:.2f}" text-anchor="middle" '
-            f'font-family="Arial,sans-serif" font-size="{label_font_size:.1f}" '
-            f'fill="#495057">{escape(band["name"])}</text>'
-        )
+    entries = sorted(
+        (
+            ((band_spans[band['name']][0] + band_spans[band['name']][1]) / 2, band['name'])
+            for band in bands
+            if band['name'] in band_spans
+        ),
+        key=lambda entry: entry[0],
+    )
+    label_font_size, positioned_labels = _layout_band_labels(entries, width, width * 0.018)
+    labels_svg = [
+        f'<text x="{x:.2f}" y="{label_y:.2f}" text-anchor="middle" '
+        f'font-family="Arial,sans-serif" font-size="{label_font_size:.1f}" '
+        f'fill="#495057">{escape(name)}</text>'
+        for x, name in positioned_labels
+    ]
 
     # ------------------------------------------------------------------
     # Root <svg> + accessible label — always names the score and band,
