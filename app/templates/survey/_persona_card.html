@@ -1,6 +1,6 @@
 {# Self-contained persona card — kept as its own partial so a later share/PDF
    phase can reuse it without touching this markup. #}
-{% from "survey/_macros.html" import persona_description %}
+{% from "survey/_macros.html" import persona_description, role_phrase %}
 <div class="card shadow-sm">
   <div class="card-body">
     <p class="text-uppercase small text-muted mb-1">Your sustainable who</p>
@@ -16,22 +16,19 @@
 
     {% if persona.natural_allies %}
     <p class="mb-1">
-      <strong>Natural allies:</strong>
-      {% for pid in persona.natural_allies %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
+      You probably work closely with {{ role_phrase(persona.natural_allies, personas) }}.
     </p>
     {% endif %}
 
     {% if persona.friends %}
     <p class="mb-1">
-      <strong>Friends:</strong>
-      {% for pid in persona.friends %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
+      You might find support from {{ role_phrase(persona.friends, personas) }}.
     </p>
     {% endif %}
 
     {% if persona.necessity %}
     <p class="mb-3">
-      <strong>Necessities:</strong>
-      {% for pid in persona.necessity %}{{ personas[pid].name }}{% if not loop.last %}, {% endif %}{% endfor %}
+      Collaborating with {{ role_phrase(persona.necessity, personas) }} would be a good way to improve impact.
     </p>
     {% endif %}
 

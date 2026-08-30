@@ -18,3 +18,32 @@
 {% macro question_prompt(question, audience) -%}
 {{ question.prompt_organisation if audience == 'organisation' and question.prompt_organisation else question.prompt }}
 {%- endmacro %}
+
+{# Mid-sentence noun phrase for a persona relationship list (natural_allies /
+   friends / necessity). `persona_ids` is the list of persona ids; `personas`
+   is the full survey['personas'] dict. Returns the phrase only — no trailing
+   full stop, no leading/trailing whitespace, so callers can drop it straight
+   into a sentence. Never called with an empty list (call sites are already
+   guarded by `{% if persona.<rel> %}`).
+
+   Singular: strip a leading "The " from the name and prepend the computed
+   article ("an Accountant"). Pair/multi: use the names verbatim, "The"
+   included, Oxford-comma joined, no article ("The Implementer and The
+   Cooperator") — mirrors app/survey/persona.py::_join_phrases's shape. #}
+{% macro role_phrase(persona_ids, personas) -%}
+{%- if persona_ids|length == 1 -%}
+  {%- set name = personas[persona_ids[0]].name -%}
+  {%- if name[:4]|lower == 'the ' and name|length > 4 -%}
+    {%- set name = name[4:] -%}
+  {%- endif -%}
+  {%- set article = 'an' if name[0]|lower in ['a', 'e', 'i', 'o', 'u'] else 'a' -%}
+  {{- article }} {{ name -}}
+{%- elif persona_ids|length == 2 -%}
+  {{- personas[persona_ids[0]].name }} and {{ personas[persona_ids[1]].name -}}
+{%- else -%}
+  {%- for pid in persona_ids[:-1] -%}
+    {{- personas[pid].name }}{{ ', ' if not loop.last -}}
+  {%- endfor -%}
+  {{- ', and ' }}{{ personas[persona_ids[-1]].name -}}
+{%- endif -%}
+{%- endmacro %}

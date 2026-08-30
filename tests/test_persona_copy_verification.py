@@ -5,8 +5,9 @@ exactly as a browser would — complementing (not duplicating) the coder's own
 tests in test_real_survey_e2e.py and test_loader.py.
 
 Focus areas independently verified here:
-  1. Two-value relationship lists (Communicator) render comma-separated, not
-     just the first value — the coder's own tests only exercised Entrepreneur.
+  1. Two-value relationship lists (Communicator) render as full "and"-joined
+     sentence copy, not just the first value — the coder's own tests only
+     exercised Entrepreneur.
   2. The Laggard band's tagline ("You are a Laggard. Wanker.") renders
      byte-for-byte, verbatim, on a real low-scoring submission — reached
      through the actual route flow, not just a hand-built fixture context.
@@ -99,10 +100,12 @@ def test_communicator_two_value_relationships_render_both_names_on_web_result(cl
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
     assert 'The Communicator' in body
     assert 'You are the voice!' in body
-    # natural_allies: [architect, accountant] -> both must render, comma-separated
-    assert 'The Architect, The Accountant' in body
-    # friends: [connector, cooperator] -> both must render, comma-separated
-    assert 'The Connector, The Cooperator' in body
+    # natural_allies: [architect, accountant] -> both must render, "and"-joined sentence
+    assert 'You probably work closely with The Architect and The Accountant.' in body
+    # friends: [connector, cooperator] -> both must render, "and"-joined sentence
+    assert 'You might find support from The Connector and The Cooperator.' in body
+    # necessity: [entrepreneur] -> singular branch, article rule exercised end-to-end
+    assert 'Collaborating with an Entrepreneur would be a good way to improve impact.' in body
 
 
 def test_communicator_two_value_relationships_render_both_names_in_pdf(app):
@@ -121,8 +124,9 @@ def test_communicator_two_value_relationships_render_both_names_in_pdf(app):
             'pdf/result.html', persona=communicator, personas=survey['personas'],
             innovation=None, audience=None,
         )
-    assert 'The Architect, The Accountant' in html
-    assert 'The Connector, The Cooperator' in html
+    assert 'You probably work closely with The Architect and The Accountant.' in html
+    assert 'You might find support from The Connector and The Cooperator.' in html
+    assert 'Collaborating with an Entrepreneur would be a good way to improve impact.' in html
 
 
 # ---------------------------------------------------------------------------
@@ -261,9 +265,9 @@ def test_email_bodies_never_render_persona_relationships(app):
             innovation=None, audience='organisation',
         )
 
-    for label in ('Natural allies', 'Friends:', 'Necessities'):
-        assert label not in text_body
-        assert label not in html_body
+    for stem in ('You probably work closely with', 'You might find support from', 'Collaborating with'):
+        assert stem not in text_body
+        assert stem not in html_body
 
     for related_name in ('The Implementer', 'The Cooperator', 'The Communicator', 'The Architect', 'The Accountant'):
         assert related_name not in text_body
