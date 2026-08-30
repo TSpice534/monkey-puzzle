@@ -28,3 +28,4 @@
 | 0024 | Instruction line + visual separator on the combined profile step (Question 7) | change | shipped | 2026-08-04 |
 | 0025 | Remove radar chart from PDF, email, and share card (finish #0020) | change | shipped | 2026-08-07 |
 | 0026 | Rename "Where you sit on the innovation curve" heading | change | todo | 2026-08-30 |
+| 0027 | Update persona Natural Ally / Friends / Necessity relationship table | change | todo | 2026-08-30 |
