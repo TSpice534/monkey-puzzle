@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.4.0] — 2026-09-03
+
 - Feature: hover/tap persona summary popup on the result-page grid (backlog #0032) — each
   of the 9 grid cells (including the selected one) now gets a Bootstrap Popover, keyboard-
   reachable via a new `tabindex="0"`, showing the persona name as the header and the
