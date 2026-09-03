@@ -1,6 +1,12 @@
 :root {
   --brand-primary: #2e7d32;
   --brand-primary-dark: #1b5e20;
+  --rel-ally: #1565c0;
+  --rel-ally-tint: #e3eefb;
+  --rel-friend: #00838f;
+  --rel-friend-tint: #ddf0f1;
+  --rel-necessity: #7b1fa2;
+  --rel-necessity-tint: #f3e6f8;
 }
 
 /* Survey option "cards" — native radio/checkbox inputs styled via the
@@ -54,6 +60,8 @@
   cursor: pointer;
   font-size: 0.85rem;
   transition: border-color .15s ease, background-color .15s ease;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 /* Small "mix" box — a blend of the two options either side. Rendered as a small dot
@@ -153,6 +161,100 @@
   border-color: #eee;
   color: #ced4da;
   opacity: 0.7;
+}
+
+/* Relationship colour-coding (backlog #0031) — cells whose persona is one of
+   the classified persona's natural_allies/friends/necessity, colour-keyed
+   against the legend below the grid. `--related` resets muted-wash styling
+   explicitly (a cell never carries `--muted` and `--related` together, but
+   this documents intent rather than relying on rule ordering). Colours
+   deliberately avoid `--brand-primary` (the selected cell), the muted grey,
+   and the innovation-curve band ramp in content/survey.yaml. */
+.grid-cell--related {
+  border-width: 2px;
+  font-weight: 600;
+  color: #212529;
+  opacity: 1;
+}
+
+.grid-cell--ally {
+  border-color: var(--rel-ally);
+  background-color: var(--rel-ally-tint);
+}
+
+.grid-cell--friend {
+  border-color: var(--rel-friend);
+  background-color: var(--rel-friend-tint);
+}
+
+.grid-cell--necessity {
+  border-color: var(--rel-necessity);
+  background-color: var(--rel-necessity-tint);
+}
+
+/* A persona can fall into more than one relationship category for the same
+   cell (e.g. Inventor/Architect is both ally + necessity) — a hard-stop
+   135deg gradient keeps both tints visible at once instead of picking one.
+   Border colour on a combination cell uses the first category present in
+   ally > friend > necessity order. */
+.grid-cell--ally.grid-cell--friend {
+  border-color: var(--rel-ally);
+  background: linear-gradient(135deg, var(--rel-ally-tint) 0 50%, var(--rel-friend-tint) 50% 100%);
+}
+
+.grid-cell--ally.grid-cell--necessity {
+  border-color: var(--rel-ally);
+  background: linear-gradient(135deg, var(--rel-ally-tint) 0 50%, var(--rel-necessity-tint) 50% 100%);
+}
+
+.grid-cell--friend.grid-cell--necessity {
+  border-color: var(--rel-friend);
+  background: linear-gradient(135deg, var(--rel-friend-tint) 0 50%, var(--rel-necessity-tint) 50% 100%);
+}
+
+.grid-cell--ally.grid-cell--friend.grid-cell--necessity {
+  border-color: var(--rel-ally);
+  background: linear-gradient(135deg, var(--rel-ally-tint) 0 33.33%, var(--rel-friend-tint) 33.33% 66.66%, var(--rel-necessity-tint) 66.66% 100%);
+}
+
+.grid-legend-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 0.2rem;
+  border: 2px solid;
+  flex: 0 0 auto;
+}
+
+.grid-legend-swatch--ally {
+  border-color: var(--rel-ally);
+  background-color: var(--rel-ally-tint);
+}
+
+.grid-legend-swatch--friend {
+  border-color: var(--rel-friend);
+  background-color: var(--rel-friend-tint);
+}
+
+.grid-legend-swatch--necessity {
+  border-color: var(--rel-necessity);
+  background-color: var(--rel-necessity-tint);
+}
+
+/* Persona hover/tap summary popover (backlog #0032) — Bootstrap Popover
+   triggered on the result-grid cells, initialised in result.html's
+   {% block scripts %}. */
+.grid-cell--result:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.persona-popover {
+  --bs-popover-max-width: min(320px, calc(100vw - 2rem));
+}
+
+.persona-popover .popover-body {
+  white-space: pre-line;
 }
 
 /* Persona icons (backlog #0005) — inline SVG marks on the persona card
@@ -279,3 +381,59 @@
    survey.yaml as a YAML block scalar with real newlines, not raw HTML, so
    this turns those newlines into visible line breaks. */
 .question-explanation { white-space: pre-line; }
+
+/* Innovation-curve chart (backlog #0011) — the generated <svg> carries fixed
+   width/height attributes alongside its viewBox, so without this it clips or
+   overflows inside a narrow card. Web only: templates/pdf/result.html doesn't
+   load theme.css and its A4 content box is wider than the 640px chart. */
+.innovation-curve svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mobile layout (backlog #0029) — the app's first and only breakpoint.
+   767.98px is Bootstrap 5's `md` boundary, matching the col-sm- and col-md-
+   classes already used elsewhere in the templates. */
+@media (max-width: 767.98px) {
+  /* Spectrum row stacks vertically: five sentence-length labels cannot share
+     a ~350px row, and flex items' default min-width:auto made the row overflow
+     the viewport entirely — which is why Q2/Q3/Q4's options read as "not
+     visible at all" on a phone. */
+  .spectrum-widget { flex-direction: column; align-items: stretch; }
+  .spectrum-node { flex: 0 0 auto; min-height: 0; padding: 0.75rem; font-size: 0.9rem; }
+  /* Re-assert the mix dot AFTER .spectrum-node above — same specificity, later
+     rule wins, so without this the dot would inherit the padding/min-height. */
+  .spectrum-node--mix { width: 0.85rem; height: 0.85rem; padding: 0; }
+
+  /* Triangle widget: corner nodes are translate(-50%,-50%) at left:0/left:100%,
+     so half of every corner node's own width always hangs outside the widget's
+     box by design. Without a max-width, .triangle-node's shrink-to-fit sizing
+     lets a long option (e.g. "Some commitments, some capacity") render as one
+     unwrapped ~220px line instead of wrapping — pushing ~110px off each side,
+     well past the page margin and off the viewport at 320-375px. Capping the
+     width forces wrapping and keeps the overhang inside the margin. */
+  .triangle-widget { max-width: 200px; }
+  .triangle-node {
+    min-width: 4.5rem;
+    max-width: 6rem;
+    font-size: 0.72rem;
+    line-height: 1.15;
+    padding: 0.35rem 0.4rem;
+  }
+  /* Same later-rule-wins reset as the spectrum mix dot. */
+  .triangle-node--edge { min-width: 0; width: 0.85rem; height: 0.85rem; padding: 0; }
+
+  /* Result-page 3x3 grid: three persona names (min-content ~95px each) plus a
+     row-header column exceed a phone's content width, so the table stretched
+     past its card. Smaller type plus the .table-responsive wrapper in
+     _result_grid.html as a backstop. */
+  .persona-grid { border-spacing: 0.25rem; font-size: 0.75rem; }
+  .persona-grid th { font-size: 0.75rem; }
+  .grid-cell { min-height: 3.5rem; }
+  .grid-cell--result { font-size: 0.75rem; overflow-wrap: break-word; }
+  .persona-icon--grid { width: 1rem; height: 1rem; }
+  /* Relationship legend (backlog #0031): shrink so the key stays on one or
+     two lines rather than wrapping onto four+ at 320-375px. */
+  .grid-legend { font-size: 0.7rem; }
+  .grid-legend-swatch { width: 0.75rem; height: 0.75rem; }
+}

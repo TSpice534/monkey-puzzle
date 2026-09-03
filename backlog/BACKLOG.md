@@ -27,3 +27,10 @@
 | 0023 | Split pytest and other test-only deps out of the production requirements lock | change | todo | 2026-08-04 |
 | 0024 | Instruction line + visual separator on the combined profile step (Question 7) | change | shipped | 2026-08-04 |
 | 0025 | Remove radar chart from PDF, email, and share card (finish #0020) | change | shipped | 2026-08-07 |
+| 0026 | Rename "Where you sit on the innovation curve" heading | change | shipped | 2026-08-30 |
+| 0027 | Update persona Natural Ally / Friends / Necessity relationship table | change | shipped | 2026-08-30 |
+| 0028 | Turn role-relationship lines into full sentences (Andrew's copy review) | change | shipped | 2026-08-30 |
+| 0029 | Innovation-curve label overlap + spectrum question options not visible on mobile | bug | shipped | 2026-08-30 |
+| 0030 | Certificate-style share image + personalized LinkedIn caption | feature | shipped | 2026-08-30 |
+| 0031 | Colour-code Natural Allies / Friends / Necessities on result-page persona grid | feature | shipped | 2026-08-30 |
+| 0032 | Hover/tap popup with persona summary on result-page grid cells | feature | shipped | 2026-08-30 |

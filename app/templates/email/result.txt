@@ -9,7 +9,7 @@ Your sustainable who: {{ persona.name }}
 {% endif %}{% if now_next.next %}{{ now_next.next }}
 {% endif %}{% endif %}
 {% if innovation %}
-Where you sit on the innovation curve: {{ innovation.band }}
+Your focus group on the innovation curve: {{ innovation.band }}
 {% if innovation.tagline %}{{ innovation.tagline }}{% endif %}
 {% if innovation.description %}{{ innovation.description }}{% endif %}
 {% endif %}

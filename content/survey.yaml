@@ -89,7 +89,7 @@ personas:
       steps to improve on existing options.
     natural_allies: [architect]
     friends: [connector]
-    necessity: [implementer]
+    necessity: [architect]
     case_studies:
       - { title: "Placeholder case study — Inventor", url: "https://example.com/case-studies/inventor" }
     resources:
@@ -130,7 +130,7 @@ personas:
       hidden.
     natural_allies: [architect, accountant]
     friends: [connector, cooperator]
-    necessity: [implementer]
+    necessity: [entrepreneur]
     case_studies:
       - { title: "Placeholder case study — Communicator", url: "https://example.com/case-studies/communicator" }
     resources:
@@ -174,7 +174,7 @@ personas:
       within the community.
     natural_allies: [entrepreneur]
     friends: [cooperator]
-    necessity: [communicator]
+    necessity: [inventor]
     case_studies:
       - { title: "Placeholder case study — Connector", url: "https://example.com/case-studies/connector" }
     resources:
@@ -196,7 +196,7 @@ personas:
       create impact that benefits progress in a wider view.
     natural_allies: [connector]
     friends: [communicator]
-    necessity: [inventor]
+    necessity: [connector]
     case_studies:
       - { title: "Placeholder case study — Cooperator", url: "https://example.com/case-studies/cooperator" }
     resources:
@@ -470,6 +470,16 @@ now_next:
     This could be achieved by accessing more {support_type} to address this
     challenge. In terms of collaboration ambitions, you are keen to engage more
     {target_groups}.
+
+# Share caption (backlog #0030) — the default, personalised LinkedIn caption
+# offered alongside the downloadable certificate image. Copy lives here, not
+# in code, so Rob/Andrew can retune without a deploy. Placeholders are
+# `{persona}` (the classified persona's name) and `{url}` (the survey's home
+# page, not the respondent's own result URL).
+share_caption:
+  template: >-
+    My sustainability persona from The Monkey Puzzle is {persona}. Click this link to take
+    the survey and discover your own sustainability profile! {url}
 
 # Profile matrix (backlog #0017 Part B) — two single-select questions whose
 # combined answers directly resolve the winning persona, replacing the old

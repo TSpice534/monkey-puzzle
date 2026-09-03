@@ -6,6 +6,87 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.4.0] — 2026-09-03
+
+- Feature: hover/tap persona summary popup on the result-page grid (backlog #0032) — each
+  of the 9 grid cells (including the selected one) now gets a Bootstrap Popover, keyboard-
+  reachable via a new `tabindex="0"`, showing the persona name as the header and the
+  tagline + audience-aware description (via `persona_description()`) as a plain-text,
+  two-block body (`data-bs-content`, tagline/description joined by `&#10;&#10;`, no
+  `html: true`). A new nonce'd inline `<script>` in `result.html`'s `{% block scripts %}`
+  (guarded on `grid_question`, the codebase's third since Phase 1) initialises the
+  popovers with `container: 'body'` (so `.table-responsive`'s `overflow-x: auto` doesn't
+  clip them), `placement: 'auto'`, and a coarse-pointer trigger switch (`focus` on touch,
+  `hover focus` on desktop) so two popovers can never be open at once. New `theme.css`
+  rules: a `:focus-visible` outline on `.grid-cell--result` and a `.persona-popover`
+  max-width cap plus `white-space: pre-line` on its body.
+- Feature: colour-code Natural Allies / Friends / Necessities on the result-page persona
+  grid (backlog #0031) — each of the 8 non-selected cells whose persona is one of the
+  classified persona's `natural_allies`/`friends`/`necessity` now gets a `grid-cell--ally`/
+  `--friend`/`--necessity` modifier (blue/teal/purple, new `--rel-*`/`--rel-*-tint` vars in
+  `theme.css`), with a hard-stop diagonal-gradient split when one persona falls into more
+  than one category (e.g. Inventor's Architect cell, which is both ally and necessity). A
+  new `<ul class="grid-legend">` key renders below the grid, one entry per non-empty
+  category, plus a "A cell showing two colours is both." note when two or more categories
+  are populated. Each coloured cell also gets a screen-reader-only label (`Natural ally`,
+  `Friend`, `Necessity`) so the relationship isn't colour-only. The selected cell keeps
+  `grid-cell--selected` and never also gets a relationship class. No Python/route changes —
+  `_result_grid.html` already had `persona` in its render context.
+- Feature: certificate-style share image + personalised LinkedIn caption (backlog #0030) —
+  a new `GET /survey/<token>/certificate.png` route rasterises a square 1200x1200 "Download
+  certificate" PNG (`app/survey/charts.py::render_certificate_svg`, framed in the
+  innovation-curve band's accent colour when the submission has one, else `--brand-primary`,
+  band named as text never colour alone, with a `tomspice.co.uk/monkey-puzzle` footer line
+  near the bottom of the frame so a downloaded/reshared certificate keeps its CTA even once
+  it's separated from the caption), reusing the existing on-disk asset cache
+  (`get_or_render`) so it self-invalidates on a `content/survey.yaml` retune exactly like
+  `share.png`/the PDF. The result page's "Share or save your result" card gains a "Download
+  certificate" link plus, when the survey defines a new optional top-level `share_caption`
+  yaml key (`template`, `{persona}`/`{url}` placeholders — resolved by a new
+  `_caption_context` helper, home-page URL not the token result URL), a read-only textarea
+  with the personalised caption text and a progressive-enhancement "Copy caption" button
+  (rendered `hidden`, unhidden by a small nonce'd vanilla script — the copy-to-clipboard
+  falls back to a "Press Ctrl/Cmd+C" hint when `navigator.clipboard` is unavailable). No new
+  `Submission` column/migration — the caption is derived at render time, same as
+  `_why_context`/`_now_next_context`.
+- Change: corrected 4 persona necessity relationships (Inventor, Communicator, Connector,
+  Cooperator) in `content/survey.yaml` and `docs/PROFILES-TEMPLATE.md` to match Tom's
+  resolved relationship table (backlog #0027).
+- Change: renamed the "Where you sit on the innovation curve" heading to "Your focus
+  group on the innovation curve" on the result page and in the result email (HTML +
+  plain text) for consistency (backlog #0026).
+- Fix: innovation-curve band labels no longer overlap, and add the app's first responsive
+  breakpoint (backlog #0029) — `app/survey/charts.py::render_innovation_curve_svg` now runs
+  a collision-aware label layout pass (`_layout_band_labels`/`_estimate_text_width`, with a
+  font-size shrink-to-fit fallback) instead of blind span-centering; a new
+  `@media (max-width: 767.98px)` block in `theme.css` stacks the spectrum question options
+  (Q2/Q3/Q4) vertically, shrinks the triangle widget, and tightens the result-page 3x3 grid,
+  plus a new `.innovation-curve svg { max-width: 100%; height: auto; }` rule so the chart
+  scales inside a narrow card; `_result_grid.html`'s table gained a `.table-responsive`
+  wrapper as a backstop.
+- Fix: post-#0029 manual mobile QA turned up two real follow-up bugs the pipeline's review
+  missed. (1) `theme.css`'s mobile breakpoint comment read "...matching the col-sm-*/col-md-*
+  classes..." — the literal `*/` mid-sentence closed the comment early, so every real CSS
+  parser (WebKit, Gecko) silently discarded the entire `@media` block from that point on,
+  even though the raw file text looked completely intact; fixed the comment wording and added
+  `test_theme_css_has_no_premature_comment_close` (`tests/test_mobile_responsive_layout.py`)
+  to catch this class of bug going forward. (2) `.triangle-node` had a `min-width` but no
+  `max-width`, so a long option label rendered unwrapped and its corner-anchored overhang
+  (half the node's width always sits outside the triangle by design) pushed well past the
+  viewport at 320-375px; capped the node's width and shrank the widget/font size to keep the
+  overhang inside the page margin. Also added an mtime-based cache-busting query string to
+  `theme.css`'s `<link>` tag (`app/__init__.py`, `base.html`) as a general hardening measure
+  encountered while debugging this.
+- Change: replaced the persona card's bare `Natural allies:`/`Friends:`/`Necessities:` label
+  lines with full sentence copy ("You probably work closely with an **Accountant**.", etc.,
+  role names bolded) under "Natural Allies"/"Friends"/"Necessities" subheadings on the web
+  result page and PDF (backlog #0028). New `role_phrase()` macro in `_macros.html` handles
+  the singular article rule ("an Accountant") and the pair/multi Oxford-comma join (persona
+  names verbatim, "The" prefix included — e.g. "The Implementer and The Cooperator"),
+  bolding each name via static `<strong>` markup around the per-name `{{ }}` output
+  (auto-escaping stays intact, no `| safe`). Added a divider (`<hr>`) between "Now and
+  next" and this section for visual separation, shown only when both sides have content.
+
 ## [v0.3.2] — 2026-08-07
 
 - Change: remove the radar (fingerprint) chart from the remaining result surfaces — PDF

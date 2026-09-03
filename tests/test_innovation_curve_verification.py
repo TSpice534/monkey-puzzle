@@ -112,11 +112,11 @@ def test_happy_path_innovation_band_persisted_and_card_positioned_between_grid_a
     assert submission.innovation_band == 'Late Majority'
 
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
-    assert 'Where you sit on the innovation curve' in body
+    assert 'Your focus group on the innovation curve' in body
     assert 'Late Majority' in body
 
     grid_pos = body.index('Your position on the grid')
-    innovation_pos = body.index('Where you sit on the innovation curve')
+    innovation_pos = body.index('Your focus group on the innovation curve')
     share_pos = body.index('Share or save your result')
     assert grid_pos < innovation_pos < share_pos, (
         'innovation card must render strictly between the grid card and the share card'

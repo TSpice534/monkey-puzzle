@@ -15,8 +15,9 @@ Accountant · Implementer · Inventor · Architect · Communicator · Activist �
 Cooperator · Entrepreneur
 
 Each result comes with a persona card: description (audience-aware — individual and
-organisation respondents see different wording), Natural Allies, Friends, Necessities
-(who this persona most needs), and 2–3 curated case studies and resources.
+organisation respondents see different wording), sentences on who to work closely with,
+find support from, and collaborate with as a necessity (who this persona most needs), and
+2–3 curated case studies and resources.
 
 ## Status
 

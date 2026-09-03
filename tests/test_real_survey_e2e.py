@@ -857,11 +857,11 @@ def test_result_page_renders_the_innovation_band_card_after_the_grid(client):
     body = response.get_data(as_text=True)
 
     assert response.status_code == 200
-    assert 'Where you sit on the innovation curve' in body
+    assert 'Your focus group on the innovation curve' in body
     assert 'Late Majority' in body
 
     grid_pos = body.index('Your position on the grid')
-    innovation_pos = body.index('Where you sit on the innovation curve')
+    innovation_pos = body.index('Your focus group on the innovation curve')
     share_pos = body.index('Share or save your result')
     assert grid_pos < innovation_pos < share_pos
 
@@ -869,8 +869,9 @@ def test_result_page_renders_the_innovation_band_card_after_the_grid(client):
 def test_result_page_renders_the_now_next_card_in_the_persona_card(client):
     """backlog #0007 (moved per Tom's follow-up feedback): the Now/Next
     block sits inside the persona card ('Your sustainable who'), directly
-    below the persona description and above 'Natural allies' — not as its
-    own card after the innovation-curve block."""
+    below the persona description and above the relationship sentences
+    ('You probably work closely with...') — not as its own card after the
+    innovation-curve block."""
     # _complete_survey defaults: topics=[0,1,2] (Water/Food & Drinks/Energy),
     # have_enough=need_most=support_type=target_groups=0.
     token, _ = _complete_survey(client)
@@ -885,7 +886,7 @@ def test_result_page_renders_the_now_next_card_in_the_persona_card(client):
 
     description_pos = body.index('Your sustainable who')
     now_next_pos = body.index('Now and next')
-    allies_pos = body.index('Natural allies')
+    allies_pos = body.index('You probably work closely with')
     grid_pos = body.index('Your position on the grid')
     assert description_pos < now_next_pos < allies_pos < grid_pos
 
@@ -1129,7 +1130,7 @@ def test_pdf_result_template_renders_the_innovation_band_name(app):
             'pdf/result.html', persona=persona, personas={'entrepreneur': persona},
             innovation=innovation, audience=None,
         )
-    assert 'Where you sit on the innovation curve' in html
+    assert 'Your focus group on the innovation curve' in html
     assert 'Late Majority' in html
 
 
@@ -1295,3 +1296,35 @@ def test_profile_step_with_malformed_approach_value_is_treated_as_no_selection(c
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert 'profile_approach' not in submission.answers
     assert 'profile_scope' not in submission.answers
+
+
+# ---------------------------------------------------------------------------
+# Certificate image + personalised LinkedIn caption (backlog #0030)
+# ---------------------------------------------------------------------------
+
+def test_result_page_renders_the_personalised_linkedin_caption(client):
+    token, _ = _complete_survey(client, approach='1', scope='1')  # -> entrepreneur
+    body = client.get(f'/survey/{token}/result').get_data(as_text=True)
+
+    assert 'The Entrepreneur' in body
+    assert 'Click this link to take the survey and discover your own sustainability profile!' in body
+    assert 'id="share-caption"' in body
+
+
+def test_caption_is_personalised_per_persona(client):
+    entrepreneur_token, _ = _complete_survey(client, approach='1', scope='1')  # -> entrepreneur
+    accountant_token, _ = _complete_survey(client, approach='0', scope='0')    # -> accountant
+
+    entrepreneur_body = client.get(f'/survey/{entrepreneur_token}/result').get_data(as_text=True)
+    accountant_body = client.get(f'/survey/{accountant_token}/result').get_data(as_text=True)
+
+    assert 'My sustainability persona from The Monkey Puzzle is The Entrepreneur' in entrepreneur_body
+    assert 'My sustainability persona from The Monkey Puzzle is The Accountant' in accountant_body
+
+
+def test_certificate_downloads_for_the_real_survey(client):
+    token, _ = _complete_survey(client)
+    response = client.get(f'/survey/{token}/certificate.png')
+    assert response.status_code == 200
+    assert response.mimetype == 'image/png'
+    assert response.data.startswith(PNG_MAGIC)
