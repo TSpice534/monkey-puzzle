@@ -33,4 +33,4 @@
 | 0029 | Innovation-curve label overlap + spectrum question options not visible on mobile | bug | shipped | 2026-08-30 |
 | 0030 | Certificate-style share image + personalized LinkedIn caption | feature | shipped | 2026-08-30 |
 | 0031 | Colour-code Natural Allies / Friends / Necessities on result-page persona grid | feature | shipped | 2026-08-30 |
-| 0032 | Hover/tap popup with persona summary on result-page grid cells | feature | todo | 2026-08-30 |
+| 0032 | Hover/tap popup with persona summary on result-page grid cells | feature | shipped | 2026-08-30 |

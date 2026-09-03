@@ -115,4 +115,22 @@
 })();
 </script>
 {% endif %}
+{% if grid_question %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  if (!window.bootstrap || !window.bootstrap.Popover) return;
+  var cells = document.querySelectorAll('.grid-cell--result[data-bs-toggle="popover"]');
+  if (!cells.length) return;
+  var coarse = !!(window.matchMedia && window.matchMedia('(hover: none)').matches);
+  Array.prototype.forEach.call(cells, function (el) {
+    new bootstrap.Popover(el, {
+      trigger: coarse ? 'focus' : 'hover focus',
+      placement: 'auto',
+      container: 'body',
+      customClass: 'persona-popover'
+    });
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

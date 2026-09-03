@@ -5,6 +5,7 @@
    (backlog #0031) — split two-tone when a persona falls into more than one
    category. Guarded on `grid_question` so surveys without a
    `profile_question` render nothing here. #}
+{% from "survey/_macros.html" import persona_description %}
 {% if grid_question %}
 {% set rel_labels = {'ally': 'Natural ally', 'friend': 'Friend', 'necessity': 'Necessity'} %}
 <div class="card shadow-sm mt-3">
@@ -36,8 +37,9 @@
                    + (['friend'] if cell.persona in (persona.friends or []) else [])
                    + (['necessity'] if cell.persona in (persona.necessity or []) else [])
                    ) %}
+                {% set has_popover = cell_persona.tagline or cell_persona.description %}
                 <td class="persona-grid-cell-wrap">
-                  <div class="grid-cell grid-cell--result {% if is_selected %}grid-cell--selected{% elif rel %}grid-cell--related{% for r in rel %} grid-cell--{{ r }}{% endfor %}{% else %}grid-cell--muted{% endif %}">
+                  <div class="grid-cell grid-cell--result {% if is_selected %}grid-cell--selected{% elif rel %}grid-cell--related{% for r in rel %} grid-cell--{{ r }}{% endfor %}{% else %}grid-cell--muted{% endif %}"{% if has_popover %} tabindex="0" data-bs-toggle="popover" data-bs-title="{{ cell_persona.name }}" data-bs-content="{{ cell_persona.tagline | trim }}{% if cell_persona.tagline and cell_persona.description %}&#10;&#10;{% endif %}{{ persona_description(cell_persona, audience) | trim }}"{% endif %}>
                     {% if cell_persona.icon %}<span class="persona-icon persona-icon--grid">{{ persona_icon(cell_persona) }}</span>{% endif %}
                     {{ cell_persona.name }}
                     {% if rel %}
