@@ -14,7 +14,7 @@
 
   {% block head %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
   <!-- Skip to main content (WCAG 2.4.1) -->
   <a class="visually-hidden-focusable" href="#main-content">Skip to main content</a>
@@ -41,7 +41,7 @@
   </div>
 
   <!-- Main content -->
-  <main id="main-content" class="container my-4">
+  <main id="main-content" class="container my-4 flex-grow-1">
     {% block content %}{% endblock %}
   </main>
 

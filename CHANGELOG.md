@@ -6,6 +6,11 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: make the sticky footer actually pin to the bottom of the viewport on short
+  pages (backlog #0041) — `<body>` (`app/templates/base.html`) now has
+  `d-flex flex-column min-vh-100` and `<main>` has `flex-grow-1`, so the footer's
+  existing `mt-auto` (already present, previously a no-op with no flex parent) now
+  works as intended instead of leaving dead whitespace below it.
 - Fix: move the innovation-curve chart's band-name labels out of the SVG into an
   HTML legend below the chart (backlog #0040) — the labels were hardcoded SVG
   `<text>` that shrank along with `theme.css`'s responsive downscale of the
