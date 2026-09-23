@@ -2,7 +2,7 @@
 id: 0036
 title: Fix motivation question scoring direction (currently backwards)
 type: bug
-status: in-progress
+status: shipped
 created: 2026-09-23
 branch: feature/fix-motivation-scoring-direction
 ---
