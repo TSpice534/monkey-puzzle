@@ -976,15 +976,16 @@ def test_explanation_valid_loads_on_short_text_question(tmp_path):
 # backlog #0017 Part A — real content/survey.yaml: reworded copy + explanation
 # ---------------------------------------------------------------------------
 
-def test_real_survey_space_to_progress_scores_unchanged_and_label_organisation_dropped():
-    """The relabel (backlog #0017 Part A) must not have touched the
-    underlying innovation-curve scores, and `label_organisation` must be
-    genuinely absent from every option on this question (not merely unused
-    elsewhere) — the question is audience-neutral now."""
+def test_real_survey_space_to_progress_scores_are_monotonic_and_label_organisation_dropped():
+    """`label_organisation` must be genuinely absent from every option on
+    this question (not merely unused elsewhere) — the question is
+    audience-neutral now. Scores are monotonic (backlog #0037): most
+    spare capacity scores highest, `5,4,3,2,1` by list position, replacing
+    the U-shaped `1,3,5,3,1` curve #0002 shipped."""
     config = load_survey(REAL_SURVEY_PATH)
     question = next(q for q in config['questions'] if q['id'] == 'space_to_progress')
 
-    assert [opt['score'] for opt in question['options']] == [1, 3, 5, 3, 1]
+    assert [opt['score'] for opt in question['options']] == [5, 4, 3, 2, 1]
     assert all('label_organisation' not in opt for opt in question['options'])
     assert [opt['label'] for opt in question['options']] == [
         'Few commitments, lots of capacity',
