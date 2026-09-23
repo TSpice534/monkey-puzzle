@@ -2,9 +2,9 @@
 id: 0035
 title: Remove Case Studies / Resources sections from result page
 type: change
-status: todo
+status: shipped
 created: 2026-09-23
-branch:
+branch: quickship/remove-case-studies-resources-sections
 ---
 
 ## Request
