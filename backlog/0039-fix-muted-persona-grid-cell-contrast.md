@@ -2,9 +2,9 @@
 id: 0039
 title: Fix low-contrast text on muted result-page persona grid cells
 type: bug
-status: todo
+status: shipped
 created: 2026-09-23
-branch:
+branch: quickship/fix-muted-grid-cell-contrast
 ---
 
 ## Request

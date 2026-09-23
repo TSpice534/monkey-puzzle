@@ -6,6 +6,11 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: raise contrast on the result page's 3x3 persona grid's muted (non-selected)
+  cells (backlog #0039) — `.grid-cell--muted` in `app/static/css/theme.css` now uses
+  `color: #6c757d` (was `#ced4da` at `opacity: 0.7`, ~1.49:1 on white), reaching
+  ~4.69:1 to meet the WCAG 4.5:1 minimum for body text. Applies to both desktop and
+  the mobile grid variant, which shares the same rule.
 - Fix: rebalance the `innovation_curve.bands` cutoffs in `content/survey.yaml`
   (backlog #0038) — Late Majority `3-10` (was `3-7`), Early Majority `11-13`
   (was `8-12`), Early Adopters `14` (was `13-14`), to better fit the

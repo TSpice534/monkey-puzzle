@@ -40,7 +40,7 @@
 | 0036 | Fix motivation question scoring direction (currently backwards) | bug | shipped | 2026-09-23 |
 | 0037 | Make ambition/space_to_progress scoring monotonic to match Innovators tagline | change | shipped | 2026-09-23 |
 | 0038 | Rebalance innovation-curve band cutoffs to match documented target shares | change | shipped | 2026-09-23 |
-| 0039 | Fix low-contrast text on muted result-page persona grid cells | bug | todo | 2026-09-23 |
+| 0039 | Fix low-contrast text on muted result-page persona grid cells | bug | shipped | 2026-09-23 |
 | 0040 | Innovation-curve chart band labels can shrink below legible size | bug | todo | 2026-09-23 |
 | 0041 | Footer's mt-auto doesn't do anything (no flex parent on body) | bug | todo | 2026-09-23 |
 | 0042 | Carry some of the result page's visual identity into the survey flow | change | todo | 2026-09-23 |

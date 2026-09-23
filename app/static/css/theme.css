@@ -159,8 +159,7 @@
 
 .grid-cell--muted {
   border-color: #eee;
-  color: #ced4da;
-  opacity: 0.7;
+  color: #6c757d;
 }
 
 /* Relationship colour-coding (backlog #0031) — cells whose persona is one of
