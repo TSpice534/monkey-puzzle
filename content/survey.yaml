@@ -248,10 +248,10 @@ questions:
     output: innovation_curve
     prompt: "How ambitious are you?"
     options:
-      - { label: "I want my work to be sector leading",                          label_organisation: "We want our work to be sector leading",                                    score: 1 }
-      - { label: "I want to be progressive and innovative",                      label_organisation: "We want to be progressive and innovative",                                 score: 3 }
-      - { label: "I want to adopt and implement the latest innovative practice", label_organisation: "We want to be adopting and implementing the latest innovative practice",    score: 5 }
-      - { label: "I want to make sure I'm keeping pace with those around me",     label_organisation: "We want to make sure we're keeping pace with those around us",              score: 3 }
+      - { label: "I want my work to be sector leading",                          label_organisation: "We want our work to be sector leading",                                    score: 5 }
+      - { label: "I want to be progressive and innovative",                      label_organisation: "We want to be progressive and innovative",                                 score: 4 }
+      - { label: "I want to adopt and implement the latest innovative practice", label_organisation: "We want to be adopting and implementing the latest innovative practice",    score: 3 }
+      - { label: "I want to make sure I'm keeping pace with those around me",     label_organisation: "We want to make sure we're keeping pace with those around us",              score: 2 }
       - { label: "I want to get my work done",                                   label_organisation: "We want to meet our legal obligations",                                    score: 1 }
 
   - id: space_to_progress
@@ -261,10 +261,10 @@ questions:
     explanation: |-
       This question is asking you to consider how much you are currently committed, and whether you feel there is enough capacity for you / your organisation to meet those commitments.
     options:
-      - { label: "Few commitments, lots of capacity",             score: 1 }
-      - { label: "Some commitments, some capacity",               score: 3 }
-      - { label: "Balanced between our commitments and capacity", score: 5 }
-      - { label: "Little capacity, high level of commitment",     score: 3 }
+      - { label: "Few commitments, lots of capacity",             score: 5 }
+      - { label: "Some commitments, some capacity",               score: 4 }
+      - { label: "Balanced between our commitments and capacity", score: 3 }
+      - { label: "Little capacity, high level of commitment",     score: 2 }
       - { label: "No capacity, fully commited",                   score: 1 }
 
   - id: need_most

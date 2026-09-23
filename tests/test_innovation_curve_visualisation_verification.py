@@ -98,7 +98,7 @@ def _start_new(client):
     return response.headers['Location'].split('/survey/')[1].split('/step/')[0]
 
 
-def _complete_survey(client, motivation='4', ambition='0', space_to_progress='0', approach='0', scope='0'):
+def _complete_survey(client, motivation='4', ambition='4', space_to_progress='4', approach='0', scope='0'):
     """Walk all 12 real-survey steps to completion. approach='0', scope='0'
     -> accountant (persona modifier +0), so the innovation score is directly
     attributable to the three answered questions. `None` for a question
@@ -127,7 +127,7 @@ def _complete_survey(client, motivation='4', ambition='0', space_to_progress='0'
 # ---------------------------------------------------------------------------
 
 def test_happy_path_curve_svg_renders_on_real_result_page_with_matching_score_and_band(client, db):
-    # motivation idx4 (score1) + ambition idx0 (score1) + space idx0 (score1)
+    # motivation idx4 (score1) + ambition idx4 (score1) + space idx4 (score1)
     # = 3, accountant modifier +0 -> 3 -> Late Majority (band 3-7).
     token = _complete_survey(client)
     submission = db.session.query(Submission).filter_by(token=token).one()
@@ -148,10 +148,10 @@ def test_happy_path_curve_svg_renders_on_real_result_page_with_matching_score_an
 # ---------------------------------------------------------------------------
 
 def test_boundary_score_2_laggards_late_majority_highlights_correct_band(client, db):
-    # motivation idx4 (1) + ambition idx0 (1) + space skipped (0) = 2,
+    # motivation idx4 (1) + ambition idx4 (1) + space skipped (0) = 2,
     # accountant modifier +0 -> 2 -> Laggards (band 0-2), one below the
     # Late Majority boundary.
-    token = _complete_survey(client, motivation='4', ambition='0', space_to_progress=None)
+    token = _complete_survey(client, motivation='4', ambition='4', space_to_progress=None)
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == 2
     assert submission.innovation_band == 'Laggards'
@@ -163,10 +163,10 @@ def test_boundary_score_2_laggards_late_majority_highlights_correct_band(client,
 
 
 def test_boundary_score_15_early_adopters_innovators_highlights_correct_band(client, db):
-    # motivation idx0 (5) + ambition idx2 (5) + space idx2 (5) = 15,
+    # motivation idx0 (5) + ambition idx0 (5) + space idx0 (5) = 15,
     # accountant modifier +0 -> 15 -> Innovators (band 15), one above the
     # Early Adopters boundary.
-    token = _complete_survey(client, motivation='0', ambition='2', space_to_progress='2')
+    token = _complete_survey(client, motivation='0', ambition='0', space_to_progress='0')
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == 15
     assert submission.innovation_band == 'Innovators'

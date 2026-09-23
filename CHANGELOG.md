@@ -6,6 +6,13 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: make the `ambition` and `space_to_progress` questions' scoring monotonic
+  (backlog #0037) — `content/survey.yaml`'s five options on each question now
+  score 5→1 by list position (most ambitious / highest-capacity answer first),
+  replacing the U-shaped `1,3,5,3,1` curve that let the middle option
+  outscore the extremes and contradicted the Innovators band copy. The
+  `innovation_curve.bands` cutoffs (backlog #0038) are still untouched, and
+  max raw total is still 15.
 - Fix: flip the `motivation` question's scoring direction (backlog #0036) —
   `content/survey.yaml`'s five `motivation` options now score 5→1 (most proactive
   first, was 1→5), so the most proactive answer contributes the most to the

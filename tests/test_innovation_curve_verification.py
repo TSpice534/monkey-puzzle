@@ -61,7 +61,7 @@ def _start_new(client):
     return response.headers['Location'].split('/survey/')[1].split('/step/')[0]
 
 
-def _complete_survey(client, motivation='4', ambition='0', space_to_progress='0', approach='1', scope='1'):
+def _complete_survey(client, motivation='4', ambition='4', space_to_progress='4', approach='1', scope='1'):
     """Walk all 12 real-survey steps to completion. approach='1', scope='1'
     -> entrepreneur (persona modifier +2)."""
     token = _start_new(client)
@@ -106,7 +106,7 @@ def _decompressed_pdf_streams(pdf_bytes):
 # ---------------------------------------------------------------------------
 
 def test_happy_path_innovation_band_persisted_and_card_positioned_between_grid_and_share(client, db):
-    token = _complete_survey(client)  # motivation=4,ambition=0,space=0 (sum 3) + entrepreneur (+2) = 5
+    token = _complete_survey(client)  # motivation=4,ambition=4,space=4 (sum 3) + entrepreneur (+2) = 5
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == 5
     assert submission.innovation_band == 'Late Majority'
@@ -140,7 +140,7 @@ def test_motivation_unlabelled_stop_renders_blank_but_scores_correctly(client, d
     # Submit the unlabelled stop as the actual answer and drive to completion
     # with ambition/space_to_progress pinned to their lowest (score 1) option,
     # so the total is directly attributable to the unlabelled motivation score.
-    token = _complete_survey(client, motivation=str(index), ambition='0', space_to_progress='0', approach='0', scope='0')
+    token = _complete_survey(client, motivation=str(index), ambition='4', space_to_progress='4', approach='0', scope='0')
     # profile pair (approach=0, scope=0) -> accountant, modifier +0 (content/survey.yaml)
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == expected_contribution + 1 + 1 + 0
@@ -179,7 +179,7 @@ def test_email_route_actual_dispatched_message_contains_band_name_in_both_bodies
     app.config['MAIL_DEFAULT_SENDER'] = 'noreply@example.com'
 
     # High-scoring path -> Innovators (inventor profile pair, +4 modifier).
-    token = _complete_survey(client, motivation='0', ambition='2', space_to_progress='2', approach='2', scope='0')
+    token = _complete_survey(client, motivation='0', ambition='0', space_to_progress='0', approach='2', scope='0')
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_band == 'Innovators'
 
@@ -217,8 +217,8 @@ def test_resolve_innovation_curve_malformed_answer_never_raises_and_contributes_
 
     answers = {
         'motivation': malformed_answer,
-        'ambition': 0,          # score 1
-        'space_to_progress': 0,  # score 1
+        'ambition': 4,          # score 1
+        'space_to_progress': 4,  # score 1
     }
     result = resolve_innovation_curve(answers, config, 'accountant')  # +0 modifier
     assert result is not None
