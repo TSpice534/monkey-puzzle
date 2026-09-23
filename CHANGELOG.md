@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.4.2] — 2026-09-23
+
 - Feature: carry persona visual identity into the survey flow (backlog #0042) — the home page
   (`app/templates/index.html`, `app/main/routes.py`) now shows a static "One of these is you"
   grid of all 9 persona icons + names (undifferentiated, no highlighting), defensively hidden
