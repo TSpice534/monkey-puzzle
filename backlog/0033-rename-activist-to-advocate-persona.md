@@ -2,7 +2,7 @@
 id: 0033
 title: Rename Activist persona to Advocate (id + copy)
 type: change
-status: in-progress
+status: shipped
 created: 2026-09-23
 branch: feature/rename-activist-to-advocate-persona
 ---
