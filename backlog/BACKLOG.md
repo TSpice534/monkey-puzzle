@@ -39,4 +39,4 @@
 | 0035 | Remove Case Studies / Resources sections from result page | change | shipped | 2026-09-23 |
 | 0036 | Fix motivation question scoring direction (currently backwards) | bug | shipped | 2026-09-23 |
 | 0037 | Make ambition/space_to_progress scoring monotonic to match Innovators tagline | change | shipped | 2026-09-23 |
-| 0038 | Rebalance innovation-curve band cutoffs to match documented target shares | change | todo | 2026-09-23 |
+| 0038 | Rebalance innovation-curve band cutoffs to match documented target shares | change | in-progress | 2026-09-23 |

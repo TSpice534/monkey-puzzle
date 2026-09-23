@@ -2,9 +2,9 @@
 id: 0038
 title: Rebalance innovation-curve band cutoffs to match documented target shares
 type: change
-status: todo
+status: in-progress
 created: 2026-09-23
-branch:
+branch: feature/rebalance-innovation-curve-band-cutoffs
 ---
 
 ## Request
