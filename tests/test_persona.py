@@ -310,9 +310,12 @@ def test_resolve_innovation_curve_unknown_persona_id_contributes_zero_modifier(c
     assert result.score == 3
 
 
-def test_innovation_curve_bands_are_contiguous_and_cover_every_reachable_total(config):
+def test_innovation_curve_bands_are_contiguous_with_no_gaps_or_overlaps(config):
     """backlog #0038: locks the rebalanced band shape and guards against
-    future retunes introducing gaps or overlaps."""
+    future retunes introducing gaps or overlaps. Totals 16-19 are reachable
+    but deliberately outside every band's explicit max — they fold into
+    Innovators via the bands[-1] overflow fallback in resolve_innovation_curve,
+    not covered here."""
     bands = config['innovation_curve']['bands']
     assert [(b['name'], b['min'], b['max']) for b in bands] == [
         ('Laggards', 0, 2),
