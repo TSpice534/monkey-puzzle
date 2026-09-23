@@ -2,7 +2,7 @@
 id: 0037
 title: Make ambition/space_to_progress scoring monotonic to match Innovators tagline
 type: change
-status: in-progress
+status: shipped
 created: 2026-09-23
 branch: feature/ambition-space-to-progress-monotonic-scoring
 ---
