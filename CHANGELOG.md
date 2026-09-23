@@ -6,6 +6,12 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: remove the Case studies and Resources sections (with their placeholder links)
+  from the persona result card (backlog #0035) — deleted the two `{% if %}` blocks in
+  `app/templates/survey/_persona_card.html`, which is shared by the web result page and
+  the PDF, removing both in one edit. The underlying `case_studies`/`resources` yaml
+  fields in `content/survey.yaml` are untouched (still Phase-2 placeholders per
+  `CLAUDE.md`) — only the rendered section was in scope.
 - Fix: add footer credit line ("Developed by The Very Good Solutions Company") and an
   "Email Us" contact link (backlog #0034), with the address obfuscated in the raw HTML via
   a nonce'd inline script that builds the `mailto:` href at render time — no new CSP
