@@ -7,7 +7,7 @@
 ## Weighted Profile Modifiers
 Adjust/offset innovation score depending on the profile outcome:
 
-| Profile | Cooperator | Connector | Activist | Architect | Entrepreneur | Communicator | Inventor | Implementer | Accountant |
+| Profile | Cooperator | Connector | Advocate | Architect | Entrepreneur | Communicator | Inventor | Implementer | Accountant |
 | ------- | ---------- | --------- | -------- | -------- | ------------ | ------------ | --------- | ----------- | ---------- |
 | Score   | +3         | +3        | +4       | +3       | +2           | +1           | +4        | +1          | 0          |
 

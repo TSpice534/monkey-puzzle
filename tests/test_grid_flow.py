@@ -387,13 +387,13 @@ def test_combined_profile_step_live_sentence_data_uses_audience_aware_wording(cl
 def test_result_page_renders_the_labelled_grid_with_chosen_persona(client, db):
     token = _start_new(client)
     _answer_up_to_grid(client, token)
-    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '2'})  # -> activist
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '2'})  # -> advocate
     client.post(f'/survey/{token}/step/6', data={'q_multi_range': ['0']})
 
     response = client.get(f'/survey/{token}/result')
     assert response.status_code == 200
     assert b'Your position on the grid' in response.data
-    assert b'The Activist' in response.data
+    assert b'The Advocate' in response.data
     assert b'grid-cell--selected' in response.data
 
 

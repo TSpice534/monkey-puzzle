@@ -5,7 +5,7 @@
 Tom is building a new platform, **The Monkey Puzzle** — a quick, graphical, no-login
 self-assessment that outputs a personalised sustainability *persona* ("your sustainable
 who"): one of nine profiles (Accountant, Implementer, Inventor, Architect, Communicator,
-Activist, Connector, Cooperator, Entrepreneur). Framing is "know yourself," not
+Advocate, Connector, Cooperator, Entrepreneur). Framing is "know yourself," not
 "measure what you're doing wrong." Primary pilot: the Federation of Music Conferences
 (32 conferences), later extending to European cultural/business events.
 
@@ -75,7 +75,7 @@ personas:                      # the nine outcomes
     description_organisation: "..."        # optional; organisation-track wording
     natural_allies: [implementer, developer]
     friends:        [communicator]
-    necessity:      [activist]              # who this persona most needs
+    necessity:      [advocate]              # who this persona most needs
     case_studies: [{title, url}]           # 2-3 curated
     resources:    [{title, url}]
 questions:                     # 10-15, ordered

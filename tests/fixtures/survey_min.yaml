@@ -27,8 +27,8 @@ personas:
     name: "The Communicator"
     tagline: "Tagline"
     description: "Description"
-  activist:
-    name: "The Activist"
+  advocate:
+    name: "The Advocate"
     tagline: "Tagline"
     description: "Description"
   connector:
@@ -66,7 +66,7 @@ questions:
     prompt: "Where on the scale?"
     dimension: comfort_stretch_stress
     options:
-      - { label: "Low", weights: { activist: 1 } }
+      - { label: "Low", weights: { advocate: 1 } }
       - { label: "High", weights: { entrepreneur: 1 } }
 
   - id: q_short_text
@@ -82,7 +82,7 @@ scoring:
     - inventor
     - architect
     - communicator
-    - activist
+    - advocate
     - connector
     - cooperator
     - entrepreneur
