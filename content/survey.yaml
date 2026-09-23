@@ -382,6 +382,9 @@ scoring:
 # total. See `app/survey/persona.py::resolve_innovation_curve`. Bands +
 # colours live here (not in code) so Rob/Andrew can retune without a
 # deploy; defaults chosen to sit alongside `--brand-primary` (#2e7d32).
+# Band cutoffs rebalanced by backlog #0038 (3-10 / 11-13 / 14 / 15) to fit
+# the achievable raw-total distribution; Laggards (0-2) stays unreachable
+# by design and Innovators' ceiling stays 15 (see CONTEXT.md #0038).
 innovation_curve:
   persona_modifiers:
     cooperator: 3
@@ -408,7 +411,7 @@ innovation_curve:
         adopters, and in contact with only family and close friends.
     - name: "Late Majority"
       min: 3
-      max: 7
+      max: 10
       colour: "#e67e22"   # Amber
       tagline: "You are in the Late Majority"
       description: >
@@ -420,8 +423,8 @@ innovation_curve:
         others in late majority and early majority and little opinion
         leadership.
     - name: "Early Majority"
-      min: 8
-      max: 12
+      min: 11
+      max: 13
       colour: "#f1c40f"   # Yellow
       tagline: "You are in the Early Majority"
       description: >
@@ -430,7 +433,7 @@ innovation_curve:
         Majority have above average social status, contact with early
         adopters and seldom hold positions of opinion leadership in a system.
     - name: "Early Adopters"
-      min: 13
+      min: 14
       max: 14
       colour: "#7cb342"   # Light Green
       tagline: "You are an Early Adopter"

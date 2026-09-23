@@ -270,7 +270,7 @@ def test_classify_lets_a_negative_weight_change_the_winner():
 
 def test_resolve_innovation_curve_low_scores_and_entrepreneur_modifier_gives_late_majority(config):
     # motivation=4 (1), ambition=4 (1), space_to_progress=4 (1) -> sum 3;
-    # entrepreneur modifier +2 -> total 5 -> Late Majority (3-7).
+    # entrepreneur modifier +2 -> total 5 -> Late Majority (3-10).
     answers = {'motivation': 4, 'ambition': 4, 'space_to_progress': 4}
     result = resolve_innovation_curve(answers, config, 'entrepreneur')
     assert isinstance(result, InnovationCurveResult)
@@ -308,6 +308,24 @@ def test_resolve_innovation_curve_unknown_persona_id_contributes_zero_modifier(c
     answers = {'motivation': 4, 'ambition': 4, 'space_to_progress': 4}
     result = resolve_innovation_curve(answers, config, 'not-a-real-persona')
     assert result.score == 3
+
+
+def test_innovation_curve_bands_are_contiguous_with_no_gaps_or_overlaps(config):
+    """backlog #0038: locks the rebalanced band shape and guards against
+    future retunes introducing gaps or overlaps. Totals 16-19 are reachable
+    but deliberately outside every band's explicit max — they fold into
+    Innovators via the bands[-1] overflow fallback in resolve_innovation_curve,
+    not covered here."""
+    bands = config['innovation_curve']['bands']
+    assert [(b['name'], b['min'], b['max']) for b in bands] == [
+        ('Laggards', 0, 2),
+        ('Late Majority', 3, 10),
+        ('Early Majority', 11, 13),
+        ('Early Adopters', 14, 14),
+        ('Innovators', 15, 15),
+    ]
+    for previous, current in zip(bands, bands[1:]):
+        assert current['min'] == previous['max'] + 1
 
 
 def test_motivation_scores_descend_from_most_to_least_proactive(config):

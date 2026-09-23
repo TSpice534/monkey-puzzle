@@ -625,14 +625,15 @@ def test_render_innovation_curve_svg_includes_all_five_band_names_as_labels():
 
 # ---------------------------------------------------------------------------
 # render_innovation_curve_svg label-collision layout (backlog #0029) — the
-# real survey's bands, where the Innovators band is a single bar wide.
+# real survey's bands, where the Early Adopters and Innovators bands are
+# each a single bar wide.
 # ---------------------------------------------------------------------------
 
 _CURVE_BANDS_REAL = [
     {'name': 'Laggards', 'min': 0, 'max': 2, 'colour': '#c0392b'},
-    {'name': 'Late Majority', 'min': 3, 'max': 7, 'colour': '#e67e22'},
-    {'name': 'Early Majority', 'min': 8, 'max': 12, 'colour': '#f1c40f'},
-    {'name': 'Early Adopters', 'min': 13, 'max': 14, 'colour': '#7cb342'},
+    {'name': 'Late Majority', 'min': 3, 'max': 10, 'colour': '#e67e22'},
+    {'name': 'Early Majority', 'min': 11, 'max': 13, 'colour': '#f1c40f'},
+    {'name': 'Early Adopters', 'min': 14, 'max': 14, 'colour': '#7cb342'},
     {'name': 'Innovators', 'min': 15, 'max': 15, 'colour': '#2e7d32'},
 ]
 
