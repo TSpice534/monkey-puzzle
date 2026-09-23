@@ -67,7 +67,7 @@ personas:
       possibilities and options already available.
     natural_allies: [entrepreneur]
     friends: [accountant]
-    necessity: [activist]
+    necessity: [advocate]
     case_studies:
       - { title: "Placeholder case study — Implementer", url: "https://example.com/case-studies/implementer" }
     resources:
@@ -136,17 +136,17 @@ personas:
     resources:
       - { title: "Placeholder resource — a simple storytelling framework", url: "https://example.com/resources/communicator-storytelling" }
 
-  activist:
-    name: "The Activist"
+  advocate:
+    name: "The Advocate"
     tagline: "You are the disruptor!"
-    icon: "icons/activist.svg"
+    icon: "icons/advocate.svg"
     description: >
-      You force people to have the conversations we need and make sure the
+      You compel people to have the conversations we need and make sure the
       message is heard. Your focus is creating as much push as possible for
       the cause at heart — standing firm on your ground and speaking in
       clear, strong language.
     description_organisation: >
-      Your organisation forces people to have the conversations we need and
+      Your organisation compels people to have the conversations we need and
       makes sure the message is heard. The focus is creating as much push as
       possible for the cause at heart — standing firm and speaking in clear,
       strong language.
@@ -154,9 +154,9 @@ personas:
     friends: [connector]
     necessity: [communicator]
     case_studies:
-      - { title: "Placeholder case study — Activist", url: "https://example.com/case-studies/activist" }
+      - { title: "Placeholder case study — Advocate", url: "https://example.com/case-studies/advocate" }
     resources:
-      - { title: "Placeholder resource — running an effective campaign", url: "https://example.com/resources/activist-campaigns" }
+      - { title: "Placeholder resource — running an effective campaign", url: "https://example.com/resources/advocate-campaigns" }
 
   connector:
     name: "The Connector"
@@ -369,7 +369,7 @@ scoring:
     - inventor
     - architect
     - communicator
-    - activist
+    - advocate
     - connector
     - cooperator
     - entrepreneur
@@ -386,7 +386,7 @@ innovation_curve:
   persona_modifiers:
     cooperator: 3
     connector: 3
-    activist: 4
+    advocate: 4
     architect: 3
     entrepreneur: 2
     communicator: 1
@@ -501,7 +501,7 @@ profile_matrix:
   cells:
     - { approach: 0, scope: 0, persona: accountant }
     - { approach: 0, scope: 1, persona: communicator }
-    - { approach: 0, scope: 2, persona: activist }
+    - { approach: 0, scope: 2, persona: advocate }
     - { approach: 1, scope: 0, persona: implementer }
     - { approach: 1, scope: 1, persona: entrepreneur }
     - { approach: 1, scope: 2, persona: connector }

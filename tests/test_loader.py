@@ -14,7 +14,7 @@ REAL_SURVEY_PATH = os.path.join(REPO_ROOT, 'content', 'survey.yaml')
 
 PERSONA_IDS = [
     'accountant', 'implementer', 'inventor', 'architect', 'communicator',
-    'activist', 'connector', 'cooperator', 'entrepreneur',
+    'advocate', 'connector', 'cooperator', 'entrepreneur',
 ]
 
 
@@ -81,15 +81,20 @@ def test_real_placeholder_survey_has_a_respondent_type_router():
     assert values == {'individual', 'organisation'}
 
 
-def test_real_survey_and_fixtures_have_no_stray_developer_or_advocate_tokens():
+def test_real_survey_and_fixtures_have_no_stray_developer_tokens():
     """Regression guard for backlog #0018 (persona id-level rename:
     developer->inventor, advocate->architect). The real survey content, its
     icon assets, and the test fixtures that deliberately mirror the real
-    persona set must never re-introduce the old tokens. Deliberately does
-    NOT scan tests/*.py itself -- test_sharing.py's inline synthetic
-    persona dicts ('developer' / 'The Developer') are arbitrary,
+    persona set must never re-introduce the old 'developer' token.
+    Deliberately does NOT scan tests/*.py itself -- test_sharing.py's inline
+    synthetic persona dicts ('developer' / 'The Developer') are arbitrary,
     self-contained placeholder test data unrelated to the real persona set,
-    and are explicitly out of scope per the spec."""
+    and are explicitly out of scope per the spec.
+
+    Originally also guarded against 'advocate' reappearing (#0018 renamed
+    advocate->architect), but backlog #0033 legitimately reintroduced
+    `advocate` as the id for the new Activist persona, so this guard was
+    narrowed to `developer` only."""
     scan_dirs = [
         os.path.join(REPO_ROOT, 'content'),
         os.path.join(REPO_ROOT, 'tests', 'fixtures'),
@@ -100,7 +105,7 @@ def test_real_survey_and_fixtures_have_no_stray_developer_or_advocate_tokens():
         for root, _dirs, files in os.walk(scan_dir):
             for fname in files:
                 path = os.path.join(root, fname)
-                if 'developer' in fname.lower() or 'advocate' in fname.lower():
+                if 'developer' in fname.lower():
                     offenders.append(path)
                     continue
                 try:
@@ -108,9 +113,9 @@ def test_real_survey_and_fixtures_have_no_stray_developer_or_advocate_tokens():
                         text = fh.read()
                 except (OSError, UnicodeDecodeError):
                     continue
-                if 'developer' in text.lower() or 'advocate' in text.lower():
+                if 'developer' in text.lower():
                     offenders.append(path)
-    assert offenders == [], f'stray developer/advocate token(s) found in: {offenders}'
+    assert offenders == [], f'stray developer token(s) found in: {offenders}'
 
 
 def test_real_placeholder_survey_individual_and_organisation_tracks_are_balanced():
@@ -557,7 +562,7 @@ def _profile_matrix_construct():
         'cells': [
             {'approach': 0, 'scope': 0, 'persona': 'accountant'},
             {'approach': 0, 'scope': 1, 'persona': 'communicator'},
-            {'approach': 0, 'scope': 2, 'persona': 'activist'},
+            {'approach': 0, 'scope': 2, 'persona': 'advocate'},
             {'approach': 1, 'scope': 0, 'persona': 'implementer'},
             {'approach': 1, 'scope': 1, 'persona': 'entrepreneur'},
             {'approach': 1, 'scope': 2, 'persona': 'connector'},
@@ -1197,7 +1202,7 @@ def test_real_survey_inventor_and_architect_icons_resolve_to_actual_files(app):
     returns empty Markup, never an error, so this would not surface as a
     loader/test failure any other way. Assert both renamed persona icons
     actually inline non-empty SVG markup against the real static folder,
-    and that the old file names are gone from disk."""
+    and that the old `developer.svg` file name is gone from disk."""
     from app.survey.icons import persona_icon
 
     config = load_survey(REAL_SURVEY_PATH)
@@ -1209,7 +1214,6 @@ def test_real_survey_inventor_and_architect_icons_resolve_to_actual_files(app):
     assert os.path.isfile(os.path.join(icons_dir, 'inventor.svg'))
     assert os.path.isfile(os.path.join(icons_dir, 'architect.svg'))
     assert not os.path.exists(os.path.join(icons_dir, 'developer.svg'))
-    assert not os.path.exists(os.path.join(icons_dir, 'advocate.svg'))
 
 
 # ---------------------------------------------------------------------------

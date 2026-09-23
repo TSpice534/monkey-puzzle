@@ -409,7 +409,7 @@ def test_cooperator_real_overlap_connector_cell_is_ally_and_necessity(client, db
 def test_entrepreneur_real_data_has_five_related_three_muted_one_selected(client, db):
     """entrepreneur (approach=1, scope=1): natural_allies=[implementer,
     cooperator], friends=[communicator, architect], necessity=[accountant] —
-    5 distinct related cells (no overlaps), 3 muted (inventor, activist,
+    5 distinct related cells (no overlaps), 3 muted (inventor, advocate,
     connector), 1 selected."""
     token = _complete_survey_real(client, approach='1', scope='1')
     submission = db.session.query(Submission).filter_by(token=token).one()
@@ -451,7 +451,7 @@ def test_survey_without_relationship_data_shows_no_legend_and_leaves_cells_muted
     client.post(f'/survey/{token}/step/2', data={'q_worded': '0'})
     client.post(f'/survey/{token}/step/3', data={'q_triangle': '0'})
     client.post(f'/survey/{token}/step/4', data={'q_multi_exact': ['0', '1']})
-    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '2'})  # -> activist
+    client.post(f'/survey/{token}/step/5', data={'profile_approach': '0', 'profile_scope': '2'})  # -> advocate
     client.post(f'/survey/{token}/step/6', data={'q_multi_range': ['0']})
 
     body = client.get(f'/survey/{token}/result').get_data(as_text=True)
@@ -480,7 +480,7 @@ def test_loader_rejects_a_relationship_referencing_an_unknown_persona_id(tmp_pat
     personas = {
         pid: {'name': f'The {pid.title()}', 'tagline': 'Tagline', 'description': 'Description'}
         for pid in ['accountant', 'implementer', 'inventor', 'architect', 'communicator',
-                    'activist', 'connector', 'cooperator', 'entrepreneur']
+                    'advocate', 'connector', 'cooperator', 'entrepreneur']
     }
     # backlog #0031's new colour-coding trusts this field; corrupt it exactly
     # the way a hand-edit to content/survey.yaml could.

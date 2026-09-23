@@ -98,7 +98,7 @@ def test_vowel_and_consonant_article_computed_dynamically_across_real_nine(app):
         'implementer': {'name': 'The Implementer'},
         'inventor': {'name': 'The Inventor'},
         'architect': {'name': 'The Architect'},
-        'activist': {'name': 'The Activist'},
+        'advocate': {'name': 'The Advocate'},
         'entrepreneur': {'name': 'The Entrepreneur'},
     }
     consonant_personas = {

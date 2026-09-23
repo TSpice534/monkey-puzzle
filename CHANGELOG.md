@@ -6,6 +6,29 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.4.1] — 2026-09-23
+
+- Change: remove the Case studies and Resources sections (with their placeholder links)
+  from the persona result card (backlog #0035) — deleted the two `{% if %}` blocks in
+  `app/templates/survey/_persona_card.html`, which is shared by the web result page and
+  the PDF, removing both in one edit. The underlying `case_studies`/`resources` yaml
+  fields in `content/survey.yaml` are untouched (still Phase-2 placeholders per
+  `CLAUDE.md`) — only the rendered section was in scope.
+- Fix: add footer credit line ("Developed by The Very Good Solutions Company") and an
+  "Email Us" contact link (backlog #0034), with the address obfuscated in the raw HTML via
+  a nonce'd inline script that builds the `mailto:` href at render time — no new CSP
+  directive, no backend/config changes.
+- Change: rename the Activist persona to Advocate (backlog #0033) — a full id-level rename
+  (`activist`→`advocate`) across `content/survey.yaml` (persona block, `necessity` cross-
+  reference, `scoring.tie_break`, `innovation_curve.persona_modifiers`,
+  `profile_matrix.cells`), the persona icon SVG under `app/static/icons/` (renamed, no
+  content change), all test fixtures and test files that mirror the real persona set, and
+  the persona-name lists in `README.md` and `docs/PRODUCTION-PLAN.md`. The description copy
+  is reworded ("force"/"forces" → "compel"/"compels"); tagline, grid position, and
+  tie-break/modifier values are unchanged. `docs/PROFILES-TEMPLATE.md` and
+  `docs/INNOVATION-SCORING-TEMPLATE.md` (Rob/Andrew source tables) are updated to match, per
+  the same precedent as backlog #0018.
+
 ## [v0.4.0] — 2026-09-03
 
 - Feature: hover/tap persona summary popup on the result-page grid (backlog #0032) — each

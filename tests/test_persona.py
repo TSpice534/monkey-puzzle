@@ -23,7 +23,7 @@ MIN_FIXTURE_PATH = os.path.join(REPO_ROOT, 'tests', 'fixtures', 'survey_min.yaml
 
 PERSONA_IDS = [
     'accountant', 'implementer', 'inventor', 'architect', 'communicator',
-    'activist', 'connector', 'cooperator', 'entrepreneur',
+    'advocate', 'connector', 'cooperator', 'entrepreneur',
 ]
 
 # The confirmed profile_matrix (approach, scope) -> persona mapping
@@ -33,7 +33,7 @@ PERSONA_IDS = [
 GRID_CELLS = [
     (0, 0, 'accountant'),
     (0, 1, 'communicator'),
-    (0, 2, 'activist'),
+    (0, 2, 'advocate'),
     (1, 0, 'implementer'),
     (1, 1, 'entrepreneur'),
     (1, 2, 'connector'),
@@ -80,13 +80,13 @@ def test_profile_direct_wins_even_when_weighted_questions_were_answered(config):
     weights in the real survey) drives the persona — a profile-direct win
     should hold regardless of what else was answered."""
     answers = {
-        'profile_approach': 0, 'profile_scope': 2,       # -> activist
+        'profile_approach': 0, 'profile_scope': 2,       # -> advocate
         'motivation': 0,
         'ambition': 1,
         'topics': [0, 1, 2],
     }
     result = classify_submission(answers, config)
-    assert result.persona_id == 'activist'
+    assert result.persona_id == 'advocate'
 
 
 # ---------------------------------------------------------------------------

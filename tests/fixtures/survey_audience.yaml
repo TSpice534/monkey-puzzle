@@ -30,8 +30,8 @@ personas:
     name: "The Communicator"
     tagline: "Tagline"
     description: "Description"
-  activist:
-    name: "The Activist"
+  advocate:
+    name: "The Advocate"
     tagline: "Tagline"
     description: "Description"
   connector:
@@ -79,7 +79,7 @@ questions:
     audience: [organisation]
     options:
       - { label: "Option A", weights: { architect: 1 } }
-      - { label: "Option B", weights: { activist: 1 } }
+      - { label: "Option B", weights: { advocate: 1 } }
 
   - id: q_ind_1
     type: single
@@ -103,7 +103,7 @@ scoring:
     - inventor
     - architect
     - communicator
-    - activist
+    - advocate
     - connector
     - cooperator
     - entrepreneur
