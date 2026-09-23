@@ -2,9 +2,9 @@
 id: 0040
 title: Innovation-curve chart band labels can shrink below legible size
 type: bug
-status: todo
+status: shipped
 created: 2026-09-23
-branch:
+branch: feature/innovation-curve-chart-label-legibility
 ---
 
 ## Request
@@ -45,3 +45,13 @@ Worth spot-checking `render_fingerprint_svg` (the radar chart) and `render_share
 `render_certificate_svg` for the same fixed-SVG-font-size pattern while in this code, though only
 the innovation-curve chart's labels were confirmed illegible on the mobile screenshot in this
 review.
+
+**Shipped:** `render_fingerprint_svg` doesn't exist — it was deleted by backlog #0025 before this
+item was filed, so the spot-check above doesn't apply to it. `render_share_card_svg`/
+`render_certificate_svg` were also checked and left alone: both are rasterised to fixed-size PNGs
+by cairosvg and never responsively downscaled as live browser text, so their fixed `font-size`
+pattern is correct as-is. Fix direction chosen: moved the band-name labels out of the SVG into an
+HTML `curve-legend` below the chart (`_result_innovation.html`), not a font-size floor raise or a
+scale cap — see `.pipeline/spec.md` on the `feature/innovation-curve-chart-label-legibility`
+branch for the full rationale (the shrink-to-fit floor is never reached at real render sizes, so
+raising it would have been a no-op).
