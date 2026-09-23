@@ -2,9 +2,9 @@
 id: 0041
 title: Footer's mt-auto doesn't do anything (no flex parent on body)
 type: bug
-status: todo
+status: shipped
 created: 2026-09-23
-branch:
+branch: quickship/fix-nonfunctional-sticky-footer
 ---
 
 ## Request
