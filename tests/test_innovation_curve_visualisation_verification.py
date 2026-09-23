@@ -128,7 +128,7 @@ def _complete_survey(client, motivation='4', ambition='4', space_to_progress='4'
 
 def test_happy_path_curve_svg_renders_on_real_result_page_with_matching_score_and_band(client, db):
     # motivation idx4 (score1) + ambition idx4 (score1) + space idx4 (score1)
-    # = 3, accountant modifier +0 -> 3 -> Late Majority (band 3-7).
+    # = 3, accountant modifier +0 -> 3 -> Late Majority (band 3-10).
     token = _complete_survey(client)
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == 3

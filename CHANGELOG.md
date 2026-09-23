@@ -6,6 +6,15 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: rebalance the `innovation_curve.bands` cutoffs in `content/survey.yaml`
+  (backlog #0038) — Late Majority `3-10` (was `3-7`), Early Majority `11-13`
+  (was `8-12`), Early Adopters `14` (was `13-14`), to better fit the
+  achievable raw-total distribution now that `motivation`/`ambition`/
+  `space_to_progress` score monotonically (backlogs #0036/#0037). Laggards
+  stays `0-2`, permanently unreachable (raw floor is 3), and Innovators stays
+  a single point at `15` by decision — its `max` also doubles as the
+  score-display ceiling from backlog #0012, so it was deliberately left at
+  15 rather than widened to 19.
 - Fix: make the `ambition` and `space_to_progress` questions' scoring monotonic
   (backlog #0037) — `content/survey.yaml`'s five options on each question now
   score 5→1 by list position (most ambitious / highest-capacity answer first),

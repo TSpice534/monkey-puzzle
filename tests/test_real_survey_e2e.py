@@ -135,7 +135,7 @@ def test_full_11_step_flow_individual_completes_and_classifies_via_profile_pair(
     }
     # Innovation-curve result (backlog #0002): motivation answered index 4,
     # ambition/space_to_progress answered index 4 (score 1 each) -> sum 3;
-    # entrepreneur modifier +2 -> 5 -> Late Majority (band 3-7).
+    # entrepreneur modifier +2 -> 5 -> Late Majority (band 3-10).
     assert submission.innovation_score == 5
     assert submission.innovation_band == 'Late Majority'
 
@@ -151,7 +151,7 @@ def test_full_11_step_flow_organisation_completes_and_classifies_via_profile_pai
     assert submission.audience == 'organisation'
     # accountant's persona modifier is 0, so the total is just the raw
     # question-score sum (motivation index 4, score 1 each) (3) -> Late
-    # Majority (band 3-7).
+    # Majority (band 3-10).
     assert submission.innovation_score == 3
     assert submission.innovation_band == 'Late Majority'
 
