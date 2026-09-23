@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.4.1] — 2026-09-23
+
 - Change: remove the Case studies and Resources sections (with their placeholder links)
   from the persona result card (backlog #0035) — deleted the two `{% if %}` blocks in
   `app/templates/survey/_persona_card.html`, which is shared by the web result page and
