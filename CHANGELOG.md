@@ -6,6 +6,10 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: add footer credit line ("Developed by The Very Good Solutions Company") and an
+  "Email Us" contact link (backlog #0034), with the address obfuscated in the raw HTML via
+  a nonce'd inline script that builds the `mailto:` href at render time — no new CSP
+  directive, no backend/config changes.
 - Change: rename the Activist persona to Advocate (backlog #0033) — a full id-level rename
   (`activist`→`advocate`) across `content/survey.yaml` (persona block, `necessity` cross-
   reference, `scoring.tie_break`, `innovation_curve.persona_modifiers`,
