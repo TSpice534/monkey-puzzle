@@ -2,9 +2,9 @@
 id: 0042
 title: Carry some of the result page's visual identity into the survey flow
 type: change
-status: todo
+status: shipped
 created: 2026-09-23
-branch:
+branch: feature/carry-persona-visual-identity-into-survey-flow
 ---
 
 ## Request

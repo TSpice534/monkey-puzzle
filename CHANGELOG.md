@@ -6,6 +6,20 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Feature: carry persona visual identity into the survey flow (backlog #0042) — the home page
+  (`app/templates/index.html`, `app/main/routes.py`) now shows a static "One of these is you"
+  grid of all 9 persona icons + names (undifferentiated, no highlighting), defensively hidden
+  if `survey.yaml` fails to load. From the survey step after the combined profile step onward
+  (steps 8–11 in the real survey), `_progress.html` shows a small icon + name persona badge
+  ("Your sustainable who", copied from `_persona_card.html`), built by a new
+  `_persona_badge_context` helper in `app/survey/routes.py` using `resolve_profile_persona`
+  (not `classify_submission`, which would render a wrong persona before the profile step is
+  answered) — display-only, `persona_id` persistence is unchanged. The badge plays a ~300ms
+  CSS reveal animation once, on the first step it appears on, degrading to an instant snap
+  under `prefers-reduced-motion: reduce`. No per-persona colours exist in `survey.yaml`, so
+  identity is carried by icon + name tinted `--brand-primary`, never colour alone — new CSS in
+  `app/static/css/theme.css` (`.persona-preview-grid`, `.persona-icon--preview`,
+  `.persona-icon--badge`, `.persona-badge--reveal`).
 - Fix: make the sticky footer actually pin to the bottom of the viewport on short
   pages (backlog #0041) — `<body>` (`app/templates/base.html`) now has
   `d-flex flex-column min-vh-100` and `<main>` has `flex-grow-1`, so the footer's
