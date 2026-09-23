@@ -35,3 +35,4 @@
 | 0031 | Colour-code Natural Allies / Friends / Necessities on result-page persona grid | feature | shipped | 2026-08-30 |
 | 0032 | Hover/tap popup with persona summary on result-page grid cells | feature | shipped | 2026-08-30 |
 | 0033 | Rename Activist persona to Advocate (id + copy) | change | todo | 2026-09-23 |
+| 0034 | Footer credit line + obfuscated "Email Us" contact link | feature | todo | 2026-09-23 |
