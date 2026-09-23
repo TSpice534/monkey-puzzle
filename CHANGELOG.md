@@ -6,6 +6,13 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: flip the `motivation` question's scoring direction (backlog #0036) —
+  `content/survey.yaml`'s five `motivation` options now score 5→1 (most proactive
+  first, was 1→5), so the most proactive answer contributes the most to the
+  innovation-curve total instead of the least. `ambition`/`space_to_progress`
+  scoring (backlog #0037) and the `innovation_curve.bands` cutoffs (backlog
+  #0038) are untouched.
+
 ## [v0.4.1] — 2026-09-23
 
 - Change: remove the Case studies and Resources sections (with their placeholder links)

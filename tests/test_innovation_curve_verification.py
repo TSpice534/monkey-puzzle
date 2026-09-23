@@ -61,7 +61,7 @@ def _start_new(client):
     return response.headers['Location'].split('/survey/')[1].split('/step/')[0]
 
 
-def _complete_survey(client, motivation='0', ambition='0', space_to_progress='0', approach='1', scope='1'):
+def _complete_survey(client, motivation='4', ambition='0', space_to_progress='0', approach='1', scope='1'):
     """Walk all 12 real-survey steps to completion. approach='1', scope='1'
     -> entrepreneur (persona modifier +2)."""
     token = _start_new(client)
@@ -106,7 +106,7 @@ def _decompressed_pdf_streams(pdf_bytes):
 # ---------------------------------------------------------------------------
 
 def test_happy_path_innovation_band_persisted_and_card_positioned_between_grid_and_share(client, db):
-    token = _complete_survey(client)  # motivation=0,ambition=0,space=0 (sum 3) + entrepreneur (+2) = 5
+    token = _complete_survey(client)  # motivation=4,ambition=0,space=0 (sum 3) + entrepreneur (+2) = 5
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == 5
     assert submission.innovation_band == 'Late Majority'
@@ -128,7 +128,7 @@ def test_happy_path_innovation_band_persisted_and_card_positioned_between_grid_a
 # in the rendered HTML, still selectable, and contribute their real score.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize('index, expected_contribution', [(1, 2), (3, 4)])
+@pytest.mark.parametrize('index, expected_contribution', [(1, 4), (3, 2)])
 def test_motivation_unlabelled_stop_renders_blank_but_scores_correctly(client, db, index, expected_contribution):
     # Confirm the step renders with no visible placeholder text for either
     # unlabelled stop before submitting.
@@ -179,7 +179,7 @@ def test_email_route_actual_dispatched_message_contains_band_name_in_both_bodies
     app.config['MAIL_DEFAULT_SENDER'] = 'noreply@example.com'
 
     # High-scoring path -> Innovators (inventor profile pair, +4 modifier).
-    token = _complete_survey(client, motivation='4', ambition='2', space_to_progress='2', approach='2', scope='0')
+    token = _complete_survey(client, motivation='0', ambition='2', space_to_progress='2', approach='2', scope='0')
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_band == 'Innovators'
 
