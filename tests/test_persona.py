@@ -269,9 +269,9 @@ def test_classify_lets_a_negative_weight_change_the_winner():
 # ---------------------------------------------------------------------------
 
 def test_resolve_innovation_curve_low_scores_and_entrepreneur_modifier_gives_late_majority(config):
-    # motivation=0 (1), ambition=0 (1), space_to_progress=0 (1) -> sum 3;
+    # motivation=4 (1), ambition=0 (1), space_to_progress=0 (1) -> sum 3;
     # entrepreneur modifier +2 -> total 5 -> Late Majority (3-7).
-    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
+    answers = {'motivation': 4, 'ambition': 0, 'space_to_progress': 0}
     result = resolve_innovation_curve(answers, config, 'entrepreneur')
     assert isinstance(result, InnovationCurveResult)
     assert result.score == 5
@@ -279,17 +279,17 @@ def test_resolve_innovation_curve_low_scores_and_entrepreneur_modifier_gives_lat
 
 
 def test_resolve_innovation_curve_high_scores_and_inventor_modifier_gives_innovators(config):
-    # motivation=4 (5), ambition=2 (5), space_to_progress=2 (5) -> sum 15;
+    # motivation=0 (5), ambition=2 (5), space_to_progress=2 (5) -> sum 15;
     # inventor modifier +4 -> total 19, clamped to the config-driven ceiling
     # of 15 -> Innovators.
-    answers = {'motivation': 4, 'ambition': 2, 'space_to_progress': 2}
+    answers = {'motivation': 0, 'ambition': 2, 'space_to_progress': 2}
     result = resolve_innovation_curve(answers, config, 'inventor')
     assert result.score == 15
     assert result.band == 'Innovators'
 
 
 def test_resolve_innovation_curve_accountant_gives_a_zero_modifier(config):
-    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
+    answers = {'motivation': 4, 'ambition': 0, 'space_to_progress': 0}
     result = resolve_innovation_curve(answers, config, 'accountant')
     assert result.score == 3  # no modifier added
 
@@ -305,9 +305,23 @@ def test_resolve_innovation_curve_missing_answers_contribute_zero(config):
 
 
 def test_resolve_innovation_curve_unknown_persona_id_contributes_zero_modifier(config):
-    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
+    answers = {'motivation': 4, 'ambition': 0, 'space_to_progress': 0}
     result = resolve_innovation_curve(answers, config, 'not-a-real-persona')
     assert result.score == 3
+
+
+def test_motivation_scores_descend_from_most_to_least_proactive(config):
+    """backlog #0036: the most proactive motivation option must score highest.
+    Guards the direction itself, not just a worked total."""
+    motivation = next(q for q in config['questions'] if q['id'] == 'motivation')
+    assert [o['score'] for o in motivation['options']] == [5, 4, 3, 2, 1]
+
+
+def test_most_proactive_motivation_outscores_least_proactive(config):
+    base = {'ambition': 0, 'space_to_progress': 0}
+    proactive = resolve_innovation_curve({**base, 'motivation': 0}, config, 'accountant')
+    compliant = resolve_innovation_curve({**base, 'motivation': 4}, config, 'accountant')
+    assert proactive.score > compliant.score
 
 
 # ---------------------------------------------------------------------------

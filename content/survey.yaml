@@ -237,11 +237,11 @@ questions:
     output: innovation_curve
     prompt: "What is your motivation to work in sustainability?"
     options:
-      - { label: "I feel the need to act on this topic",     label_organisation: "We feel we must act on this topic",         score: 1 }
-      - { label: "Intermediate position",                    unlabelled: true,                                                score: 2 }
-      - { label: "I understand I need to act on this topic", label_organisation: "We understand we need to act on this topic", score: 3 }
+      - { label: "I feel the need to act on this topic",     label_organisation: "We feel we must act on this topic",         score: 5 }
       - { label: "Intermediate position",                    unlabelled: true,                                                score: 4 }
-      - { label: "I do only what is asked/required",         label_organisation: "We do only what is asked/required",    score: 5 }
+      - { label: "I understand I need to act on this topic", label_organisation: "We understand we need to act on this topic", score: 3 }
+      - { label: "Intermediate position",                    unlabelled: true,                                                score: 2 }
+      - { label: "I do only what is asked/required",         label_organisation: "We do only what is asked/required",    score: 1 }
 
   - id: ambition
     type: spectrum

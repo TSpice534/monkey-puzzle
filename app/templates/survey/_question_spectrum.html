@@ -5,7 +5,7 @@
    radios + :checked-sibling CSS, no script — same pattern as _question_single.html /
    _question_triangle.html. The chosen value is the option index (single int), the same
    data shape as `single`; unlabelled between-options carry the same index/score they
-   always did (score 2 and 4 for motivation). #}
+   always did (score 4 and 2 for motivation). #}
 <div class="spectrum-widget" role="radiogroup" aria-label="{{ question.prompt }}">
   {% for option in question.options %}
     <input class="visually-hidden spectrum-node-input" type="radio"
