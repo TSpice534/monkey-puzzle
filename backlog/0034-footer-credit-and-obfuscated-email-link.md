@@ -2,9 +2,9 @@
 id: 0034
 title: Footer credit line + obfuscated "Email Us" contact link
 type: feature
-status: todo
+status: shipped
 created: 2026-09-23
-branch:
+branch: quickship/footer-credit-obfuscated-email-link
 ---
 
 ## Request
