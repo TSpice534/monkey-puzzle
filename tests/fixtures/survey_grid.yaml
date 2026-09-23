@@ -34,8 +34,8 @@ personas:
     name: "The Communicator"
     tagline: "Tagline"
     description: "Description"
-  activist:
-    name: "The Activist"
+  advocate:
+    name: "The Advocate"
     tagline: "Tagline"
     description: "Description"
   connector:
@@ -122,7 +122,7 @@ scoring:
     - inventor
     - architect
     - communicator
-    - activist
+    - advocate
     - connector
     - cooperator
     - entrepreneur
@@ -137,7 +137,7 @@ profile_matrix:
   cells:
     - { approach: 0, scope: 0, persona: accountant }
     - { approach: 0, scope: 1, persona: communicator }
-    - { approach: 0, scope: 2, persona: activist }
+    - { approach: 0, scope: 2, persona: advocate }
     - { approach: 1, scope: 0, persona: implementer }
     - { approach: 1, scope: 1, persona: entrepreneur }
     - { approach: 1, scope: 2, persona: connector }

@@ -131,7 +131,7 @@ def test_full_11_step_flow_individual_completes_and_classifies_via_profile_pair(
     assert all(v == 0.0 for pid, v in submission.score_vector.items() if pid != 'entrepreneur')
     assert set(submission.score_vector.keys()) == {
         'accountant', 'implementer', 'inventor', 'architect', 'communicator',
-        'activist', 'connector', 'cooperator', 'entrepreneur',
+        'advocate', 'connector', 'cooperator', 'entrepreneur',
     }
     # Innovation-curve result (backlog #0002): motivation/ambition/space_to_progress
     # all answered index 0 (score 1 each) -> sum 3; entrepreneur modifier +2 -> 5
@@ -160,7 +160,7 @@ def test_all_nine_profile_pairs_resolve_to_the_documented_persona_end_to_end(cli
     end-to-end through the real route flow (not just the classifier unit
     test)."""
     expected = {
-        (0, 0): 'accountant', (0, 1): 'communicator', (0, 2): 'activist',
+        (0, 0): 'accountant', (0, 1): 'communicator', (0, 2): 'advocate',
         (1, 0): 'implementer', (1, 1): 'entrepreneur', (1, 2): 'connector',
         (2, 0): 'inventor', (2, 1): 'architect', (2, 2): 'cooperator',
     }
@@ -839,13 +839,13 @@ def test_result_page_shows_individual_wording_persona_description_on_the_individ
 
 
 def test_result_page_renders_the_labelled_grid_with_the_chosen_persona(client):
-    token, _ = _complete_survey(client, approach='0', scope='2')  # -> activist
+    token, _ = _complete_survey(client, approach='0', scope='2')  # -> advocate
     response = client.get(f'/survey/{token}/result')
     body = response.get_data(as_text=True)
 
     assert response.status_code == 200
     assert 'Your position on the grid' in body
-    assert 'The Activist' in body
+    assert 'The Advocate' in body
     assert 'grid-cell--selected' in body
 
 
@@ -1083,7 +1083,7 @@ def test_result_grid_table_structure_is_a_real_3x3_not_a_stacked_column(client):
     Guard both ends: the <td> itself must stay a plain, unstyled table cell
     (only `persona-grid-cell-wrap`, which is padding-only in theme.css), and
     the flex-styled `.grid-cell` must live on a nested element instead."""
-    token, _ = _complete_survey(client, approach='0', scope='2')  # -> activist
+    token, _ = _complete_survey(client, approach='0', scope='2')  # -> advocate
     response = client.get(f'/survey/{token}/result')
     body = response.get_data(as_text=True)
 

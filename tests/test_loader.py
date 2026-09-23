@@ -14,7 +14,7 @@ REAL_SURVEY_PATH = os.path.join(REPO_ROOT, 'content', 'survey.yaml')
 
 PERSONA_IDS = [
     'accountant', 'implementer', 'inventor', 'architect', 'communicator',
-    'activist', 'connector', 'cooperator', 'entrepreneur',
+    'advocate', 'connector', 'cooperator', 'entrepreneur',
 ]
 
 
@@ -557,7 +557,7 @@ def _profile_matrix_construct():
         'cells': [
             {'approach': 0, 'scope': 0, 'persona': 'accountant'},
             {'approach': 0, 'scope': 1, 'persona': 'communicator'},
-            {'approach': 0, 'scope': 2, 'persona': 'activist'},
+            {'approach': 0, 'scope': 2, 'persona': 'advocate'},
             {'approach': 1, 'scope': 0, 'persona': 'implementer'},
             {'approach': 1, 'scope': 1, 'persona': 'entrepreneur'},
             {'approach': 1, 'scope': 2, 'persona': 'connector'},

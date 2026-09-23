@@ -11,7 +11,7 @@ FIXTURE_PATH = os.path.join(os.path.dirname(__file__), 'fixtures', 'survey_min.y
 
 PERSONA_IDS = [
     'accountant', 'implementer', 'inventor', 'architect', 'communicator',
-    'activist', 'connector', 'cooperator', 'entrepreneur',
+    'advocate', 'connector', 'cooperator', 'entrepreneur',
 ]
 
 
