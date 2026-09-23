@@ -11,11 +11,11 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
   reference, `scoring.tie_break`, `innovation_curve.persona_modifiers`,
   `profile_matrix.cells`), the persona icon SVG under `app/static/icons/` (renamed, no
   content change), all test fixtures and test files that mirror the real persona set, and
-  the persona-name lists in `README.md`, `docs/PRODUCTION-PLAN.md`, and `CLAUDE.md`. The
-  description copy is reworded ("force"/"forces" → "compel"/"compels"); tagline, grid
-  position, and tie-break/modifier values are unchanged. `docs/PROFILES-TEMPLATE.md` and
-  `docs/INNOVATION-SCORING-TEMPLATE.md` are left untouched as verbatim Rob/Andrew source
-  tables, pending a possible reissue.
+  the persona-name lists in `README.md` and `docs/PRODUCTION-PLAN.md`. The description copy
+  is reworded ("force"/"forces" → "compel"/"compels"); tagline, grid position, and
+  tie-break/modifier values are unchanged. `docs/PROFILES-TEMPLATE.md` and
+  `docs/INNOVATION-SCORING-TEMPLATE.md` (Rob/Andrew source tables) are updated to match, per
+  the same precedent as backlog #0018.
 
 ## [v0.4.0] — 2026-09-03
 
