@@ -269,9 +269,9 @@ def test_classify_lets_a_negative_weight_change_the_winner():
 # ---------------------------------------------------------------------------
 
 def test_resolve_innovation_curve_low_scores_and_entrepreneur_modifier_gives_late_majority(config):
-    # motivation=0 (1), ambition=0 (1), space_to_progress=0 (1) -> sum 3;
-    # entrepreneur modifier +2 -> total 5 -> Late Majority (3-7).
-    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
+    # motivation=4 (1), ambition=4 (1), space_to_progress=4 (1) -> sum 3;
+    # entrepreneur modifier +2 -> total 5 -> Late Majority (3-10).
+    answers = {'motivation': 4, 'ambition': 4, 'space_to_progress': 4}
     result = resolve_innovation_curve(answers, config, 'entrepreneur')
     assert isinstance(result, InnovationCurveResult)
     assert result.score == 5
@@ -279,17 +279,17 @@ def test_resolve_innovation_curve_low_scores_and_entrepreneur_modifier_gives_lat
 
 
 def test_resolve_innovation_curve_high_scores_and_inventor_modifier_gives_innovators(config):
-    # motivation=4 (5), ambition=2 (5), space_to_progress=2 (5) -> sum 15;
+    # motivation=0 (5), ambition=0 (5), space_to_progress=0 (5) -> sum 15;
     # inventor modifier +4 -> total 19, clamped to the config-driven ceiling
     # of 15 -> Innovators.
-    answers = {'motivation': 4, 'ambition': 2, 'space_to_progress': 2}
+    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
     result = resolve_innovation_curve(answers, config, 'inventor')
     assert result.score == 15
     assert result.band == 'Innovators'
 
 
 def test_resolve_innovation_curve_accountant_gives_a_zero_modifier(config):
-    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
+    answers = {'motivation': 4, 'ambition': 4, 'space_to_progress': 4}
     result = resolve_innovation_curve(answers, config, 'accountant')
     assert result.score == 3  # no modifier added
 
@@ -305,9 +305,70 @@ def test_resolve_innovation_curve_missing_answers_contribute_zero(config):
 
 
 def test_resolve_innovation_curve_unknown_persona_id_contributes_zero_modifier(config):
-    answers = {'motivation': 0, 'ambition': 0, 'space_to_progress': 0}
+    answers = {'motivation': 4, 'ambition': 4, 'space_to_progress': 4}
     result = resolve_innovation_curve(answers, config, 'not-a-real-persona')
     assert result.score == 3
+
+
+def test_innovation_curve_bands_are_contiguous_with_no_gaps_or_overlaps(config):
+    """backlog #0038: locks the rebalanced band shape and guards against
+    future retunes introducing gaps or overlaps. Totals 16-19 are reachable
+    but deliberately outside every band's explicit max — they fold into
+    Innovators via the bands[-1] overflow fallback in resolve_innovation_curve,
+    not covered here."""
+    bands = config['innovation_curve']['bands']
+    assert [(b['name'], b['min'], b['max']) for b in bands] == [
+        ('Laggards', 0, 2),
+        ('Late Majority', 3, 10),
+        ('Early Majority', 11, 13),
+        ('Early Adopters', 14, 14),
+        ('Innovators', 15, 15),
+    ]
+    for previous, current in zip(bands, bands[1:]):
+        assert current['min'] == previous['max'] + 1
+
+
+def test_motivation_scores_descend_from_most_to_least_proactive(config):
+    """backlog #0036: the most proactive motivation option must score highest.
+    Guards the direction itself, not just a worked total."""
+    motivation = next(q for q in config['questions'] if q['id'] == 'motivation')
+    assert [o['score'] for o in motivation['options']] == [5, 4, 3, 2, 1]
+
+
+def test_most_proactive_motivation_outscores_least_proactive(config):
+    base = {'ambition': 4, 'space_to_progress': 4}
+    proactive = resolve_innovation_curve({**base, 'motivation': 0}, config, 'accountant')
+    compliant = resolve_innovation_curve({**base, 'motivation': 4}, config, 'accountant')
+    assert proactive.score > compliant.score
+
+
+def test_ambition_scores_descend_from_most_to_least_ambitious(config):
+    """backlog #0037: the most ambitious option must score highest —
+    monotonic, not the U-shape #0002 shipped."""
+    ambition = next(q for q in config['questions'] if q['id'] == 'ambition')
+    assert [o['score'] for o in ambition['options']] == [5, 4, 3, 2, 1]
+
+
+def test_space_to_progress_scores_descend_from_most_to_least_capacity(config):
+    """backlog #0037: most spare capacity scores highest, monotonic."""
+    space_to_progress = next(q for q in config['questions'] if q['id'] == 'space_to_progress')
+    assert [o['score'] for o in space_to_progress['options']] == [5, 4, 3, 2, 1]
+
+
+def test_most_ambitious_answer_outscores_the_practical_middle(config):
+    """backlog #0037: the bug was that the middle option beat the extreme,
+    contradicting the Innovators band copy."""
+    base = {'motivation': 4, 'space_to_progress': 4}
+    most_ambitious = resolve_innovation_curve({**base, 'ambition': 0}, config, 'accountant')
+    practical_middle = resolve_innovation_curve({**base, 'ambition': 2}, config, 'accountant')
+    assert most_ambitious.score > practical_middle.score
+
+
+def test_most_capacity_answer_outscores_the_balanced_middle(config):
+    base = {'motivation': 4, 'ambition': 4}
+    most_capacity = resolve_innovation_curve({**base, 'space_to_progress': 0}, config, 'accountant')
+    balanced_middle = resolve_innovation_curve({**base, 'space_to_progress': 2}, config, 'accountant')
+    assert most_capacity.score > balanced_middle.score
 
 
 # ---------------------------------------------------------------------------

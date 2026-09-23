@@ -237,21 +237,21 @@ questions:
     output: innovation_curve
     prompt: "What is your motivation to work in sustainability?"
     options:
-      - { label: "I feel the need to act on this topic",     label_organisation: "We feel we must act on this topic",         score: 1 }
-      - { label: "Intermediate position",                    unlabelled: true,                                                score: 2 }
-      - { label: "I understand I need to act on this topic", label_organisation: "We understand we need to act on this topic", score: 3 }
+      - { label: "I feel the need to act on this topic",     label_organisation: "We feel we must act on this topic",         score: 5 }
       - { label: "Intermediate position",                    unlabelled: true,                                                score: 4 }
-      - { label: "I do only what is asked/required",         label_organisation: "We do only what is asked/required",    score: 5 }
+      - { label: "I understand I need to act on this topic", label_organisation: "We understand we need to act on this topic", score: 3 }
+      - { label: "Intermediate position",                    unlabelled: true,                                                score: 2 }
+      - { label: "I do only what is asked/required",         label_organisation: "We do only what is asked/required",    score: 1 }
 
   - id: ambition
     type: spectrum
     output: innovation_curve
     prompt: "How ambitious are you?"
     options:
-      - { label: "I want my work to be sector leading",                          label_organisation: "We want our work to be sector leading",                                    score: 1 }
-      - { label: "I want to be progressive and innovative",                      label_organisation: "We want to be progressive and innovative",                                 score: 3 }
-      - { label: "I want to adopt and implement the latest innovative practice", label_organisation: "We want to be adopting and implementing the latest innovative practice",    score: 5 }
-      - { label: "I want to make sure I'm keeping pace with those around me",     label_organisation: "We want to make sure we're keeping pace with those around us",              score: 3 }
+      - { label: "I want my work to be sector leading",                          label_organisation: "We want our work to be sector leading",                                    score: 5 }
+      - { label: "I want to be progressive and innovative",                      label_organisation: "We want to be progressive and innovative",                                 score: 4 }
+      - { label: "I want to adopt and implement the latest innovative practice", label_organisation: "We want to be adopting and implementing the latest innovative practice",    score: 3 }
+      - { label: "I want to make sure I'm keeping pace with those around me",     label_organisation: "We want to make sure we're keeping pace with those around us",              score: 2 }
       - { label: "I want to get my work done",                                   label_organisation: "We want to meet our legal obligations",                                    score: 1 }
 
   - id: space_to_progress
@@ -261,10 +261,10 @@ questions:
     explanation: |-
       This question is asking you to consider how much you are currently committed, and whether you feel there is enough capacity for you / your organisation to meet those commitments.
     options:
-      - { label: "Few commitments, lots of capacity",             score: 1 }
-      - { label: "Some commitments, some capacity",               score: 3 }
-      - { label: "Balanced between our commitments and capacity", score: 5 }
-      - { label: "Little capacity, high level of commitment",     score: 3 }
+      - { label: "Few commitments, lots of capacity",             score: 5 }
+      - { label: "Some commitments, some capacity",               score: 4 }
+      - { label: "Balanced between our commitments and capacity", score: 3 }
+      - { label: "Little capacity, high level of commitment",     score: 2 }
       - { label: "No capacity, fully commited",                   score: 1 }
 
   - id: need_most
@@ -382,6 +382,9 @@ scoring:
 # total. See `app/survey/persona.py::resolve_innovation_curve`. Bands +
 # colours live here (not in code) so Rob/Andrew can retune without a
 # deploy; defaults chosen to sit alongside `--brand-primary` (#2e7d32).
+# Band cutoffs rebalanced by backlog #0038 (3-10 / 11-13 / 14 / 15) to fit
+# the achievable raw-total distribution; Laggards (0-2) stays unreachable
+# by design and Innovators' ceiling stays 15 (see CONTEXT.md #0038).
 innovation_curve:
   persona_modifiers:
     cooperator: 3
@@ -408,7 +411,7 @@ innovation_curve:
         adopters, and in contact with only family and close friends.
     - name: "Late Majority"
       min: 3
-      max: 7
+      max: 10
       colour: "#e67e22"   # Amber
       tagline: "You are in the Late Majority"
       description: >
@@ -420,8 +423,8 @@ innovation_curve:
         others in late majority and early majority and little opinion
         leadership.
     - name: "Early Majority"
-      min: 8
-      max: 12
+      min: 11
+      max: 13
       colour: "#f1c40f"   # Yellow
       tagline: "You are in the Early Majority"
       description: >
@@ -430,7 +433,7 @@ innovation_curve:
         Majority have above average social status, contact with early
         adopters and seldom hold positions of opinion leadership in a system.
     - name: "Early Adopters"
-      min: 13
+      min: 14
       max: 14
       colour: "#7cb342"   # Light Green
       tagline: "You are an Early Adopter"

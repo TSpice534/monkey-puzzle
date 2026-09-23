@@ -13,7 +13,9 @@ from app.survey.charts import (
     render_innovation_curve_svg, render_share_card_svg,
 )
 from app.survey.loader import get_survey, survey_steps
-from app.survey.persona import classify_submission, resolve_innovation_curve, resolve_now_next
+from app.survey.persona import (
+    classify_submission, resolve_innovation_curve, resolve_now_next, resolve_profile_persona,
+)
 
 # Max stored length for free-text (short_text) answers, in characters. Server-side
 # cap bounding the size of the answers JSON column (DoS guard, #0021). The textarea
@@ -81,9 +83,9 @@ def _read_answer(question, form):
 
 
 def _innovation_context(submission, survey):
-    """Return {'band', 'score', 'colour', 'tagline', 'description', 'curve_svg'}
-    for the result surfaces, or None when the survey has no innovation_curve
-    config or this submission has no stored band."""
+    """Return {'band', 'score', 'colour', 'tagline', 'description', 'curve_svg',
+    'bands'} for the result surfaces, or None when the survey has no
+    innovation_curve config or this submission has no stored band."""
     ic_cfg = survey.get('innovation_curve')
     if not ic_cfg or submission.innovation_band is None:
         return None
@@ -97,6 +99,14 @@ def _innovation_context(submission, survey):
         'tagline': band.get('tagline'),
         'description': band.get('description'),
         'curve_svg': render_innovation_curve_svg(submission.innovation_score, ic_cfg['bands']),
+        'bands': [
+            {
+                'name': b['name'],
+                'colour': b['colour'],
+                'is_current': b['name'] == submission.innovation_band,
+            }
+            for b in sorted(ic_cfg['bands'], key=lambda b: b['min'], reverse=True)
+        ],
     }
 
 
@@ -172,12 +182,38 @@ def _guard_message(question, value, survey):
     return None
 
 
+def _persona_badge_context(survey, submission, step):
+    """Display-only persona identity for the survey step page, or None.
+
+    Returns {'persona': <persona dict>, 'reveal': <bool>} for steps AFTER the
+    combined profile step once both profile answers are stored; None otherwise
+    (no profile_matrix, profile step not yet submitted, or this step is at or
+    before the profile step — including back-navigation). `reveal` is True only
+    on the step immediately after the profile step, so the reveal animation
+    plays once rather than on every remaining step.
+
+    Deliberately resolve_profile_persona, not classify_submission: the latter
+    falls back to the weighted argmax and would render a wrong persona before
+    the profile step is answered. Nothing here writes to the submission —
+    persona_id is still only persisted at true completion in `step`.
+    """
+    persona_id = resolve_profile_persona(submission.answers, survey)
+    if not persona_id:
+        return None
+    steps = survey_steps(survey, submission.audience)
+    profile_step = next((i for i, sq in enumerate(steps, start=1) if len(sq) == 2), None)
+    if profile_step is None or step <= profile_step:
+        return None
+    return {'persona': survey['personas'][persona_id], 'reveal': step == profile_step + 1}
+
+
 def _render_step(survey, step_questions, submission, step, total, token, saved):
     """Render survey/step.html for either a single-question step or the
     combined profile step (approach_question immediately followed by
     scope_question — see loader.survey_steps)."""
     common = dict(title='The Monkey Puzzle', step=step, total=total,
-                  token=token, audience=submission.audience)
+                  token=token, audience=submission.audience,
+                  persona_badge=_persona_badge_context(survey, submission, step))
     if len(step_questions) == 2:            # combined profile pair
         matrix = survey['profile_matrix']
         approach_q, scope_q = step_questions

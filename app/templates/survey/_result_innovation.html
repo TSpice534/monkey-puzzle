@@ -6,7 +6,11 @@
    never colour alone, for accessibility and WeasyPrint/email safety.
    Backlog #0011 adds an inline-SVG bell-curve visualisation
    (`innovation.curve_svg`, built by `charts.py::render_innovation_curve_svg`)
-   directly under the heading — additive, the existing text stays as-is. #}
+   directly under the heading — additive, the existing text stays as-is.
+   Backlog #0040 moves the chart's band-name labels out of the SVG into the
+   `curve-legend` list below it (guarded independently on `innovation.bands`,
+   which older/hand-built `innovation` contexts may not carry), since SVG
+   `<text>` shrank along with the responsive viewBox on mobile. #}
 {% if innovation %}
 <div class="card shadow-sm mt-3" style="border-left: 6px solid {{ innovation.colour }};">
   <div class="card-body">
@@ -15,6 +19,16 @@
     <div class="innovation-curve text-center mb-2">
       {{ innovation.curve_svg | safe }}
     </div>
+    {% endif %}
+    {% if innovation.bands %}
+    <ul class="curve-legend list-unstyled d-flex flex-wrap justify-content-center gap-3 mt-2 mb-2 small">
+      {% for band in innovation.bands %}
+      <li class="d-flex align-items-center gap-2{% if band.is_current %} fw-bold{% endif %}">
+        <span class="curve-legend-swatch" style="background-color: {{ band.colour }};" aria-hidden="true"></span>
+        {{ band.name }}{% if band.is_current %}<span class="visually-hidden"> (your band)</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
     {% endif %}
     <p class="mb-1">
       <span style="display:inline-block; width:0.9rem; height:0.9rem; border-radius:50%;

@@ -159,8 +159,7 @@
 
 .grid-cell--muted {
   border-color: #eee;
-  color: #ced4da;
-  opacity: 0.7;
+  color: #6c757d;
 }
 
 /* Relationship colour-coding (backlog #0031) — cells whose persona is one of
@@ -280,6 +279,53 @@
   height: 1.5rem;
 }
 
+/* Persona visual identity carried into the home page + survey flow
+   (backlog #0042). No per-persona colours exist in survey.yaml (only
+   innovation_curve.bands do), so identity is carried by icon + name, both
+   tinted/coloured the same way as the existing .persona-icon--card
+   treatment — never colour alone. */
+.persona-icon--preview {
+  width: 2rem;
+  height: 2rem;
+  color: var(--brand-primary);
+}
+
+.persona-icon--badge {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--brand-primary);
+}
+
+/* Home page's static, undifferentiated "One of these is you" persona grid
+   (backlog #0042) — no highlighting, no motion, no persona signal. */
+.persona-preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.persona-preview-grid li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Post-resolution persona badge in the survey step progress area (backlog
+   #0042) — display-only, shown from the step after the combined profile
+   step onward. The reveal plays once, on the first step the badge appears
+   on; prefers-reduced-motion degrades it to an instant snap. */
+@keyframes persona-badge-reveal {
+  from { opacity: 0; transform: translateY(-0.25rem) scale(0.92); }
+  to   { opacity: 1; transform: none; }
+}
+
+.persona-badge--reveal { animation: persona-badge-reveal 300ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .persona-badge--reveal { animation: none; }
+}
+
 /* Triangle selector (`type: triangle`) — a CSS-drawn triangle with three
    clickable corner nodes plus 3 edge midpoint nodes (backlog #0010, between-
    corner picks); selection via native radios + :checked-sibling CSS, same
@@ -391,6 +437,20 @@
   height: auto;
 }
 
+/* Innovation-curve band legend (backlog #0040) — band names used to be SVG
+   <text> inside the chart, so they shrank with the responsive SVG downscale
+   (~6px on a 390px viewport) and ignored the browser's text-size setting.
+   They are now ordinary HTML text below the chart. Modelled on
+   .grid-legend-swatch (_result_grid.html, backlog #0031); the background
+   colour is per-band and comes from survey.yaml via an inline style. */
+.curve-legend-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 0.2rem;
+  flex: 0 0 auto;
+}
+
 /* Mobile layout (backlog #0029) — the app's first and only breakpoint.
    767.98px is Bootstrap 5's `md` boundary, matching the col-sm- and col-md-
    classes already used elsewhere in the templates. */
@@ -436,4 +496,9 @@
      two lines rather than wrapping onto four+ at 320-375px. */
   .grid-legend { font-size: 0.7rem; }
   .grid-legend-swatch { width: 0.75rem; height: 0.75rem; }
+
+  /* Home page persona preview grid (backlog #0042): shrink so all 9 items
+     still read on a 320-390px viewport. */
+  .persona-icon--preview { width: 1.5rem; height: 1.5rem; }
+  .persona-preview-grid { gap: 0.75rem; }
 }

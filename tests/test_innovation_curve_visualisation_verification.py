@@ -98,7 +98,7 @@ def _start_new(client):
     return response.headers['Location'].split('/survey/')[1].split('/step/')[0]
 
 
-def _complete_survey(client, motivation='0', ambition='0', space_to_progress='0', approach='0', scope='0'):
+def _complete_survey(client, motivation='4', ambition='4', space_to_progress='4', approach='0', scope='0'):
     """Walk all 12 real-survey steps to completion. approach='0', scope='0'
     -> accountant (persona modifier +0), so the innovation score is directly
     attributable to the three answered questions. `None` for a question
@@ -127,8 +127,8 @@ def _complete_survey(client, motivation='0', ambition='0', space_to_progress='0'
 # ---------------------------------------------------------------------------
 
 def test_happy_path_curve_svg_renders_on_real_result_page_with_matching_score_and_band(client, db):
-    # motivation idx0 (score1) + ambition idx0 (score1) + space idx0 (score1)
-    # = 3, accountant modifier +0 -> 3 -> Late Majority (band 3-7).
+    # motivation idx4 (score1) + ambition idx4 (score1) + space idx4 (score1)
+    # = 3, accountant modifier +0 -> 3 -> Late Majority (band 3-10).
     token = _complete_survey(client)
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == 3
@@ -148,10 +148,10 @@ def test_happy_path_curve_svg_renders_on_real_result_page_with_matching_score_an
 # ---------------------------------------------------------------------------
 
 def test_boundary_score_2_laggards_late_majority_highlights_correct_band(client, db):
-    # motivation idx0 (1) + ambition idx0 (1) + space skipped (0) = 2,
+    # motivation idx4 (1) + ambition idx4 (1) + space skipped (0) = 2,
     # accountant modifier +0 -> 2 -> Laggards (band 0-2), one below the
     # Late Majority boundary.
-    token = _complete_survey(client, motivation='0', ambition='0', space_to_progress=None)
+    token = _complete_survey(client, motivation='4', ambition='4', space_to_progress=None)
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == 2
     assert submission.innovation_band == 'Laggards'
@@ -163,10 +163,10 @@ def test_boundary_score_2_laggards_late_majority_highlights_correct_band(client,
 
 
 def test_boundary_score_15_early_adopters_innovators_highlights_correct_band(client, db):
-    # motivation idx4 (5) + ambition idx2 (5) + space idx2 (5) = 15,
+    # motivation idx0 (5) + ambition idx0 (5) + space idx0 (5) = 15,
     # accountant modifier +0 -> 15 -> Innovators (band 15), one above the
     # Early Adopters boundary.
-    token = _complete_survey(client, motivation='4', ambition='2', space_to_progress='2')
+    token = _complete_survey(client, motivation='0', ambition='0', space_to_progress='0')
     submission = db.session.query(Submission).filter_by(token=token).one()
     assert submission.innovation_score == 15
     assert submission.innovation_band == 'Innovators'
@@ -224,6 +224,12 @@ def test_curve_svg_renders_inside_the_real_pdf_template(app):
             innovation=innovation, audience=None,
         )
     assert 'Innovation curve — you scored 5 of 15 (Late Majority).' in html
+    # Backlog #0040 — this hand-built `innovation` dict has no 'bands' key
+    # (an older/pre-#0040 context shape); the legend markup must be guarded
+    # out, not raise, when it's missing. (The template's static inline
+    # `.curve-legend-swatch` CSS rule is unconditional, so scope this to the
+    # actual `<ul class="curve-legend...">` markup, not the class name.)
+    assert 'class="curve-legend' not in html
 
 
 def test_curve_svg_is_absent_from_both_email_bodies_even_though_it_is_computed(app):
@@ -258,6 +264,10 @@ def test_curve_svg_is_absent_from_both_email_bodies_even_though_it_is_computed(a
     # established #0002 precedent (it renders its own inline markup, no
     # chart of any kind) — assert specifically that *this* chart is absent.
     assert 'role="img" aria-label="Innovation curve' not in html_body
+    # Backlog #0040 — neither email body includes _result_innovation.html,
+    # so neither should ever gain the curve-legend markup.
+    assert 'curve-legend' not in text_body
+    assert 'curve-legend' not in html_body
 
 
 # ---------------------------------------------------------------------------
@@ -297,3 +307,37 @@ def test_gap_in_band_coverage_falls_back_to_neutral_grey_without_raising():
     assert 'fill="#adb5bd"' in svg  # the neutral-grey fallback for the gap points
     # Every point still gets exactly one bar — the gap doesn't drop points.
     assert svg.count('<rect') == 21
+
+
+# ---------------------------------------------------------------------------
+# 6. HTML band-name legend (backlog #0040) — real survey, real submission
+# ---------------------------------------------------------------------------
+
+def test_result_page_renders_curve_legend_with_all_real_band_names_and_one_current(client, db):
+    token = _complete_survey(client)
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    assert submission.innovation_band == 'Late Majority'
+
+    body = client.get(f'/survey/{token}/result').get_data(as_text=True)
+    assert 'curve-legend' in body
+    for band in _real_bands():
+        assert band['name'] in body
+
+    # Exactly one legend item is bolded for the current band.
+    assert body.count('fw-bold') == 1
+
+
+def test_innovation_context_returns_bands_innovators_first_with_one_current(client, db):
+    from app.survey.loader import load_survey
+    from app.survey.routes import _innovation_context
+
+    token = _complete_survey(client)
+    submission = db.session.query(Submission).filter_by(token=token).one()
+    survey = load_survey(REAL_SURVEY_PATH)
+
+    context = _innovation_context(submission, survey)
+    assert [b['name'] for b in context['bands']] == [
+        'Innovators', 'Early Adopters', 'Early Majority', 'Late Majority', 'Laggards',
+    ]
+    assert sum(1 for b in context['bands'] if b['is_current']) == 1
+    assert next(b for b in context['bands'] if b['is_current'])['name'] == submission.innovation_band

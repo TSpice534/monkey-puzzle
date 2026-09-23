@@ -6,6 +6,67 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.4.2] — 2026-09-23
+
+- Feature: carry persona visual identity into the survey flow (backlog #0042) — the home page
+  (`app/templates/index.html`, `app/main/routes.py`) now shows a static "One of these is you"
+  grid of all 9 persona icons + names (undifferentiated, no highlighting), defensively hidden
+  if `survey.yaml` fails to load. From the survey step after the combined profile step onward
+  (steps 8–11 in the real survey), `_progress.html` shows a small icon + name persona badge
+  ("Your sustainable who", copied from `_persona_card.html`), built by a new
+  `_persona_badge_context` helper in `app/survey/routes.py` using `resolve_profile_persona`
+  (not `classify_submission`, which would render a wrong persona before the profile step is
+  answered) — display-only, `persona_id` persistence is unchanged. The badge plays a ~300ms
+  CSS reveal animation once, on the first step it appears on, degrading to an instant snap
+  under `prefers-reduced-motion: reduce`. No per-persona colours exist in `survey.yaml`, so
+  identity is carried by icon + name tinted `--brand-primary`, never colour alone — new CSS in
+  `app/static/css/theme.css` (`.persona-preview-grid`, `.persona-icon--preview`,
+  `.persona-icon--badge`, `.persona-badge--reveal`).
+- Fix: make the sticky footer actually pin to the bottom of the viewport on short
+  pages (backlog #0041) — `<body>` (`app/templates/base.html`) now has
+  `d-flex flex-column min-vh-100` and `<main>` has `flex-grow-1`, so the footer's
+  existing `mt-auto` (already present, previously a no-op with no flex parent) now
+  works as intended instead of leaving dead whitespace below it.
+- Fix: move the innovation-curve chart's band-name labels out of the SVG into an
+  HTML legend below the chart (backlog #0040) — the labels were hardcoded SVG
+  `<text>` that shrank along with `theme.css`'s responsive downscale of the
+  640-unit viewBox (to ~6px on a 390px viewport) and ignored the browser's
+  text-size/zoom setting. `app/survey/charts.py::render_innovation_curve_svg`
+  no longer draws labels or reserves space for them; `_innovation_context`
+  (`app/survey/routes.py`) now returns a `bands` list, rendered as a
+  `curve-legend` in `_result_innovation.html` (mirroring `_result_grid.html`'s
+  `.grid-legend` pattern), with the current band bolded and a visually-hidden
+  "(your band)" suffix. Duplicated the new `.curve-legend-swatch` CSS rule
+  into `pdf/result.html`'s inline `<style>` (it doesn't load `theme.css`),
+  same precedent as `.persona-icon`.
+- Fix: raise contrast on the result page's 3x3 persona grid's muted (non-selected)
+  cells (backlog #0039) — `.grid-cell--muted` in `app/static/css/theme.css` now uses
+  `color: #6c757d` (was `#ced4da` at `opacity: 0.7`, ~1.49:1 on white), reaching
+  ~4.69:1 to meet the WCAG 4.5:1 minimum for body text. Applies to both desktop and
+  the mobile grid variant, which shares the same rule.
+- Fix: rebalance the `innovation_curve.bands` cutoffs in `content/survey.yaml`
+  (backlog #0038) — Late Majority `3-10` (was `3-7`), Early Majority `11-13`
+  (was `8-12`), Early Adopters `14` (was `13-14`), to better fit the
+  achievable raw-total distribution now that `motivation`/`ambition`/
+  `space_to_progress` score monotonically (backlogs #0036/#0037). Laggards
+  stays `0-2`, permanently unreachable (raw floor is 3), and Innovators stays
+  a single point at `15` by decision — its `max` also doubles as the
+  score-display ceiling from backlog #0012, so it was deliberately left at
+  15 rather than widened to 19.
+- Fix: make the `ambition` and `space_to_progress` questions' scoring monotonic
+  (backlog #0037) — `content/survey.yaml`'s five options on each question now
+  score 5→1 by list position (most ambitious / highest-capacity answer first),
+  replacing the U-shaped `1,3,5,3,1` curve that let the middle option
+  outscore the extremes and contradicted the Innovators band copy. The
+  `innovation_curve.bands` cutoffs (backlog #0038) are still untouched, and
+  max raw total is still 15.
+- Fix: flip the `motivation` question's scoring direction (backlog #0036) —
+  `content/survey.yaml`'s five `motivation` options now score 5→1 (most proactive
+  first, was 1→5), so the most proactive answer contributes the most to the
+  innovation-curve total instead of the least. `ambition`/`space_to_progress`
+  scoring (backlog #0037) and the `innovation_curve.bands` cutoffs (backlog
+  #0038) are untouched.
+
 ## [v0.4.1] — 2026-09-23
 
 - Change: remove the Case studies and Resources sections (with their placeholder links)

@@ -89,9 +89,9 @@ def _input_tag(body, input_id):
 
 def _answer_up_to_grid(client, token, audience_index):
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(audience_index)})
-    client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '0'})
-    client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '0'})
-    client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '0'})
+    client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '4'})
+    client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '4'})
+    client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '4'})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0'})
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
 
@@ -133,9 +133,9 @@ def test_full_11_step_flow_individual_completes_and_classifies_via_profile_pair(
         'accountant', 'implementer', 'inventor', 'architect', 'communicator',
         'advocate', 'connector', 'cooperator', 'entrepreneur',
     }
-    # Innovation-curve result (backlog #0002): motivation/ambition/space_to_progress
-    # all answered index 0 (score 1 each) -> sum 3; entrepreneur modifier +2 -> 5
-    # -> Late Majority (band 3-7).
+    # Innovation-curve result (backlog #0002): motivation answered index 4,
+    # ambition/space_to_progress answered index 4 (score 1 each) -> sum 3;
+    # entrepreneur modifier +2 -> 5 -> Late Majority (band 3-10).
     assert submission.innovation_score == 5
     assert submission.innovation_band == 'Late Majority'
 
@@ -150,7 +150,8 @@ def test_full_11_step_flow_organisation_completes_and_classifies_via_profile_pai
     assert submission.persona_id == 'accountant'
     assert submission.audience == 'organisation'
     # accountant's persona modifier is 0, so the total is just the raw
-    # question-score sum (3) -> Late Majority (band 3-7).
+    # question-score sum (motivation index 4, score 1 each) (3) -> Late
+    # Majority (band 3-10).
     assert submission.innovation_score == 3
     assert submission.innovation_band == 'Late Majority'
 
@@ -177,15 +178,15 @@ def test_all_nine_profile_pairs_resolve_to_the_documented_persona_end_to_end(cli
 
 # ---------------------------------------------------------------------------
 # Innovation-curve scoring + banding (backlog #0002) — a worked high-score
-# example (all sliders at index 4/2/2, inventor's +4 modifier) end-to-end.
+# example (all three sliders at index 0, inventor's +4 modifier) end-to-end.
 # ---------------------------------------------------------------------------
 
 def test_high_scoring_answers_and_inventor_modifier_classify_as_innovators(client, db):
     token = _start_new(client)
     client.post(f'/survey/{token}/step/{STEP_RESPONDENT_TYPE}', data={'respondent_type': str(INDIVIDUAL)})
-    client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '4'})
-    client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '2'})
-    client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '2'})
+    client.post(f'/survey/{token}/step/{STEP_MOTIVATION}', data={'motivation': '0'})
+    client.post(f'/survey/{token}/step/{STEP_AMBITION}', data={'ambition': '0'})
+    client.post(f'/survey/{token}/step/{STEP_SPACE_TO_PROGRESS}', data={'space_to_progress': '0'})
     client.post(f'/survey/{token}/step/{STEP_NEED_MOST}', data={'need_most': '0'})
     client.post(f'/survey/{token}/step/{STEP_HAVE_ENOUGH}', data={'have_enough': '0'})
     client.post(f'/survey/{token}/step/{STEP_PROFILE}', data={'profile_approach': '2', 'profile_scope': '0'})  # -> inventor
@@ -852,7 +853,7 @@ def test_result_page_renders_the_labelled_grid_with_the_chosen_persona(client):
 def test_result_page_renders_the_innovation_band_card_after_the_grid(client):
     """backlog #0002: the innovation-curve card sits directly below 'Your
     position on the grid' (and before the share card)."""
-    token, _ = _complete_survey(client)  # motivation/ambition/space_to_progress=0, entrepreneur -> Late Majority
+    token, _ = _complete_survey(client)  # motivation=4, ambition/space_to_progress=4, entrepreneur -> Late Majority
     response = client.get(f'/survey/{token}/result')
     body = response.get_data(as_text=True)
 
