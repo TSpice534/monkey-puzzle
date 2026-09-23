@@ -853,7 +853,7 @@ def test_result_page_renders_the_labelled_grid_with_the_chosen_persona(client):
 def test_result_page_renders_the_innovation_band_card_after_the_grid(client):
     """backlog #0002: the innovation-curve card sits directly below 'Your
     position on the grid' (and before the share card)."""
-    token, _ = _complete_survey(client)  # motivation/ambition/space_to_progress=0, entrepreneur -> Late Majority
+    token, _ = _complete_survey(client)  # motivation=4, ambition/space_to_progress=0, entrepreneur -> Late Majority
     response = client.get(f'/survey/{token}/result')
     body = response.get_data(as_text=True)
 
