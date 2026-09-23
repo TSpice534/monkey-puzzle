@@ -6,6 +6,18 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: move the innovation-curve chart's band-name labels out of the SVG into an
+  HTML legend below the chart (backlog #0040) — the labels were hardcoded SVG
+  `<text>` that shrank along with `theme.css`'s responsive downscale of the
+  640-unit viewBox (to ~6px on a 390px viewport) and ignored the browser's
+  text-size/zoom setting. `app/survey/charts.py::render_innovation_curve_svg`
+  no longer draws labels or reserves space for them; `_innovation_context`
+  (`app/survey/routes.py`) now returns a `bands` list, rendered as a
+  `curve-legend` in `_result_innovation.html` (mirroring `_result_grid.html`'s
+  `.grid-legend` pattern), with the current band bolded and a visually-hidden
+  "(your band)" suffix. Duplicated the new `.curve-legend-swatch` CSS rule
+  into `pdf/result.html`'s inline `<style>` (it doesn't load `theme.css`),
+  same precedent as `.persona-icon`.
 - Fix: raise contrast on the result page's 3x3 persona grid's muted (non-selected)
   cells (backlog #0039) — `.grid-cell--muted` in `app/static/css/theme.css` now uses
   `color: #6c757d` (was `#ced4da` at `opacity: 0.7`, ~1.49:1 on white), reaching

@@ -390,6 +390,20 @@
   height: auto;
 }
 
+/* Innovation-curve band legend (backlog #0040) — band names used to be SVG
+   <text> inside the chart, so they shrank with the responsive SVG downscale
+   (~6px on a 390px viewport) and ignored the browser's text-size setting.
+   They are now ordinary HTML text below the chart. Modelled on
+   .grid-legend-swatch (_result_grid.html, backlog #0031); the background
+   colour is per-band and comes from survey.yaml via an inline style. */
+.curve-legend-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 0.2rem;
+  flex: 0 0 auto;
+}
+
 /* Mobile layout (backlog #0029) — the app's first and only breakpoint.
    767.98px is Bootstrap 5's `md` boundary, matching the col-sm- and col-md-
    classes already used elsewhere in the templates. */

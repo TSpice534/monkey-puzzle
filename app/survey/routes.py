@@ -81,9 +81,9 @@ def _read_answer(question, form):
 
 
 def _innovation_context(submission, survey):
-    """Return {'band', 'score', 'colour', 'tagline', 'description', 'curve_svg'}
-    for the result surfaces, or None when the survey has no innovation_curve
-    config or this submission has no stored band."""
+    """Return {'band', 'score', 'colour', 'tagline', 'description', 'curve_svg',
+    'bands'} for the result surfaces, or None when the survey has no
+    innovation_curve config or this submission has no stored band."""
     ic_cfg = survey.get('innovation_curve')
     if not ic_cfg or submission.innovation_band is None:
         return None
@@ -97,6 +97,14 @@ def _innovation_context(submission, survey):
         'tagline': band.get('tagline'),
         'description': band.get('description'),
         'curve_svg': render_innovation_curve_svg(submission.innovation_score, ic_cfg['bands']),
+        'bands': [
+            {
+                'name': b['name'],
+                'colour': b['colour'],
+                'is_current': b['name'] == submission.innovation_band,
+            }
+            for b in sorted(ic_cfg['bands'], key=lambda b: b['min'], reverse=True)
+        ],
     }
 
 
