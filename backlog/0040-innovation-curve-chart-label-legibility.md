@@ -2,7 +2,7 @@
 id: 0040
 title: Innovation-curve chart band labels can shrink below legible size
 type: bug
-status: in-progress
+status: shipped
 created: 2026-09-23
 branch: feature/innovation-curve-chart-label-legibility
 ---
