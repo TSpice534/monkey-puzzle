@@ -9,5 +9,17 @@
     sustainability. On completion you will receive personalised results that you can share!
   </p>
   <a class="btn btn-success btn-lg mt-3" href="{{ url_for('survey.start') }}">Begin</a>
+
+  {% if personas %}
+  <p class="text-uppercase small text-muted mb-3 mt-5">One of these is you</p>
+  <ul class="persona-preview-grid list-unstyled">
+    {% for persona in personas.values() %}
+    <li>
+      {% if persona.icon %}<span class="persona-icon persona-icon--preview">{{ persona_icon(persona) }}</span>{% endif %}
+      <span class="d-block small">{{ persona.name }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
 </div>
 {% endblock %}

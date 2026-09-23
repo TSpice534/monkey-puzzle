@@ -1,3 +1,12 @@
+{% if persona_badge %}
+<div class="persona-badge{% if persona_badge.reveal %} persona-badge--reveal{% endif %} d-inline-flex align-items-center gap-2 mb-3">
+  {% if persona_badge.persona.icon %}<span class="persona-icon persona-icon--badge">{{ persona_icon(persona_badge.persona) }}</span>{% endif %}
+  <span class="small">
+    <span class="text-uppercase text-muted d-block">Your sustainable who</span>
+    <span class="fw-semibold">{{ persona_badge.persona.name }}</span>
+  </span>
+</div>
+{% endif %}
 {% set pct = (step / total * 100) | round(0, 'floor') | int %}
 <div class="mb-4">
   <div class="d-flex justify-content-between small text-muted mb-1">
