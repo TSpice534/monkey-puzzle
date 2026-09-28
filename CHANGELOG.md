@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+## [v0.4.3] — 2026-09-28
+
 - Change: fixes from the skipped-checks pass of the design review —
   (1) the result page's 3x3 persona grid no longer forces sideways scrolling at 200% text or on
   very narrow screens: `.persona-grid-wrap` is a container-query context and below 18em of its
