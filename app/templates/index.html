@@ -2,16 +2,8 @@
 
 {% block content %}
 <div class="py-5 text-center">
-  <h1 class="display-5 fw-bold">The Monkey Puzzle</h1>
-  <p class="lead">
-    This short survey is designed to help you capture a snapshot of your current situation,
-    helping you to understand how you or your organisation are currently approaching
-    sustainability. On completion you will receive personalised results that you can share!
-  </p>
-  <a class="btn btn-success btn-lg mt-3" href="{{ url_for('survey.start') }}">Begin</a>
-
   {% if personas %}
-  <p class="text-uppercase small text-muted mb-3 mt-5">One of these is you</p>
+  <h2 class="display-5 fw-bold mb-4">One of these is you</h2>
   <ul class="persona-preview-grid list-unstyled">
     {% for persona in personas.values() %}
     <li>
@@ -21,5 +13,12 @@
     {% endfor %}
   </ul>
   {% endif %}
+
+  <h1 class="display-5 fw-bold mt-5">The Monkey Puzzle</h1>
+  <p class="lead">
+    Complete this short survey to receive your personalised profile around how you or your
+    organisation are currently approaching sustainability!
+  </p>
+  <a class="btn btn-success btn-lg mt-3" href="{{ url_for('survey.start') }}">Begin</a>
 </div>
 {% endblock %}

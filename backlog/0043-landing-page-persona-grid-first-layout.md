@@ -2,9 +2,9 @@
 id: 0043
 title: Landing page: persona grid first, then title and description
 type: change
-status: todo
+status: shipped
 created: 2026-09-28
-branch:
+branch: quickship/landing-page-persona-grid-first
 ---
 
 ## Request

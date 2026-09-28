@@ -299,16 +299,22 @@
 /* Home page's static, undifferentiated "One of these is you" persona grid
    (backlog #0042) — no highlighting, no motion, no persona signal. */
 .persona-preview-grid {
+  --preview-gap: 1.25rem;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1.25rem;
+  gap: var(--preview-gap);
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
+/* Four per row so the 9 personas always wrap 4 / 4 / 1 (backlog #0043). */
 .persona-preview-grid li {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 0 0 calc((100% - 3 * var(--preview-gap)) / 4);
 }
 
 /* Post-resolution persona badge in the survey step progress area (backlog
@@ -500,5 +506,5 @@
   /* Home page persona preview grid (backlog #0042): shrink so all 9 items
      still read on a 320-390px viewport. */
   .persona-icon--preview { width: 1.5rem; height: 1.5rem; }
-  .persona-preview-grid { gap: 0.75rem; }
+  .persona-preview-grid { --preview-gap: 0.75rem; }
 }

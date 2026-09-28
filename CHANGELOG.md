@@ -6,6 +6,12 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: landing page layout (backlog #0043) — `app/templates/index.html` now leads with a
+  display-size "One of these is you" heading and the persona icon grid, followed by "The Monkey
+  Puzzle", new intro copy (replaces the #0016 paragraph) and the Begin button. The grid is
+  capped at four per row in `theme.css` so the 9 personas wrap 4 / 4 / 1 at any width. The
+  heading sits inside the existing `{% if personas %}` guard, `<h1>` stays on the page title.
+
 ## [v0.4.2] — 2026-09-23
 
 - Feature: carry persona visual identity into the survey flow (backlog #0042) — the home page
