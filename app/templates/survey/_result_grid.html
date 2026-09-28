@@ -11,7 +11,7 @@
 <div class="card shadow-sm mt-3">
   <div class="card-body">
     <h2 class="h6">Your position on the grid</h2>
-    <div class="table-responsive">
+    <div class="persona-grid-wrap"><div class="table-responsive">
       <table class="persona-grid persona-grid--result">
         <caption class="visually-hidden">{{ grid_question.x_axis.label }} / {{ grid_question.y_axis.label }}</caption>
         <thead>
@@ -40,6 +40,7 @@
                 {% set has_popover = cell_persona.tagline or cell_persona.description %}
                 <td class="persona-grid-cell-wrap">
                   <div class="grid-cell grid-cell--result {% if is_selected %}grid-cell--selected{% elif rel %}grid-cell--related{% for r in rel %} grid-cell--{{ r }}{% endfor %}{% else %}grid-cell--muted{% endif %}"{% if has_popover %} tabindex="0" data-bs-toggle="popover" data-bs-title="{{ cell_persona.name }}" data-bs-content="{{ cell_persona.tagline | trim }}{% if cell_persona.tagline and cell_persona.description %}&#10;&#10;{% endif %}{{ persona_description(cell_persona, audience) | trim }}"{% endif %}>
+                    <span class="grid-cell-col" aria-hidden="true">{{ grid_question.x_axis.options[x] }}</span>
                     {% if cell_persona.icon %}<span class="persona-icon persona-icon--grid">{{ persona_icon(cell_persona) }}</span>{% endif %}
                     {{ cell_persona.name }}
                     {% if rel %}
@@ -54,7 +55,7 @@
           {% endfor %}
         </tbody>
       </table>
-    </div>
+    </div></div>
     {% if persona.natural_allies or persona.friends or persona.necessity %}
     <ul class="grid-legend list-unstyled d-flex flex-wrap gap-3 mt-3 mb-0 small">
       {% if persona.natural_allies %}

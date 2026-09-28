@@ -1,10 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="py-5 text-center">
+{# Source order is title, intro, Begin, then the persona grid (h1 first for screen
+   readers); flex `order` puts the "One of these is you" grid visually first (#0043).
+   Nothing in the grid is focusable, so tab order is unaffected. #}
+<div class="py-5 text-center d-flex flex-column">
+  <h1 class="display-5 fw-bold mt-5 order-1">The Monkey Puzzle</h1>
+  <p class="lead landing-intro order-1">
+    Complete this short survey to receive your personalised profile around how you or your
+    organisation are currently approaching sustainability!
+  </p>
+  <a class="btn btn-success btn-lg mt-3 align-self-center order-1" href="{{ url_for('survey.start') }}">Begin</a>
+
   {% if personas %}
-  <h2 class="display-5 fw-bold mb-4">One of these is you</h2>
-  <ul class="persona-preview-grid list-unstyled">
+  <h2 class="display-6 fw-bold mb-4">One of these is you</h2>
+  <ul class="persona-preview-grid list-unstyled" role="list">
     {% for persona in personas.values() %}
     <li>
       {% if persona.icon %}<span class="persona-icon persona-icon--preview">{{ persona_icon(persona) }}</span>{% endif %}
@@ -13,12 +23,5 @@
     {% endfor %}
   </ul>
   {% endif %}
-
-  <h1 class="display-5 fw-bold mt-5">The Monkey Puzzle</h1>
-  <p class="lead">
-    Complete this short survey to receive your personalised profile around how you or your
-    organisation are currently approaching sustainability!
-  </p>
-  <a class="btn btn-success btn-lg mt-3" href="{{ url_for('survey.start') }}">Begin</a>
 </div>
 {% endblock %}

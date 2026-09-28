@@ -12,6 +12,14 @@
 
     {% include "survey/_result_why.html" %}
 
+    {# On the web result page (`persona_card_collapsible` set in result.html) the
+       "Now and next" + relationship blocks sit behind a disclosure so the share
+       action isn't buried; the PDF includes this partial unchanged. #}
+    {% if persona_card_collapsible %}
+    <details class="result-more mt-3" id="result-more">
+      <summary>Now and next, and who to work with</summary>
+    {% endif %}
+
     {% include "survey/_result_now_next.html" %}
 
     {% if now_next and (now_next.now or now_next.next) and (persona.natural_allies or persona.friends or persona.necessity) %}
@@ -37,6 +45,10 @@
     <p class="mb-3">
       Collaborating with {{ role_phrase(persona.necessity, personas) }} would be a good way to improve impact.
     </p>
+    {% endif %}
+
+    {% if persona_card_collapsible %}
+    </details>
     {% endif %}
 
   </div>

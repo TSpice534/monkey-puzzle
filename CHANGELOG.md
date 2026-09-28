@@ -6,10 +6,44 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: fixes from the skipped-checks pass of the design review —
+  (1) the result page's 3x3 persona grid no longer forces sideways scrolling at 200% text or on
+  very narrow screens: `.persona-grid-wrap` is a container-query context and below 18em of its
+  own text the table stacks into a list, with each cell repeating its column label
+  (`.grid-cell-col`, hidden otherwise); table markup is unchanged.
+  (2) Dark appearance: `base.html` sets `data-bs-theme` from `prefers-color-scheme` (nonce'd
+  inline script) and declares `color-scheme`; `theme.css` moves its hard-coded colours to
+  variables with a dark override block, adds `--brand-accent` (lighter green for text, borders,
+  outlines on dark surfaces; `--brand-primary` stays the fill colour), and lifts Bootstrap's
+  dim `btn-outline-secondary` in dark; navbar and footer use `bg-body-tertiary`.
+  (3) PDF: explicit sizes so the persona name is larger than its tagline and section headings
+  are bold (Bootstrap's calc()/vw heading sizes rendered too small in WeasyPrint); chart and
+  body text slightly smaller so the innovation card fits on page 1.
+  (4) Email: `rem` sizes replaced with `px`.
+
+- Change: remaining whole-app design-pass items (Medium/Low) — `main .btn` / `main .form-control-sm`
+  get a 44px minimum height; the result grid's relationship categories gain a border-style cue
+  (ally solid, friend dashed, necessity dotted, mirrored in the legend) so they no longer rely on
+  colour alone; the last survey step's button reads "See my result" (was "Finish"); each survey
+  step has a visually hidden `<h1>` ("...question X of Y"); the redundant "N%" is dropped from the
+  progress line; the relationship legend text is 13px on phones (was 11.2px; the grid itself stays 12px, larger overflowed the card); and on the
+  web result page the "Now and next" + relationship blocks sit in a `<details>` (closed on phones,
+  opened by an inline script at >=768px) so the share button is nearer the top; the PDF
+  includes the same persona card unchanged. Files: `app/static/css/theme.css`,
+  `app/templates/survey/{step,_progress,_persona_card,result}.html`.
+
+- Change: whole-app Apple-HIG design pass fixes (Critical + High) — the spectrum "mix" dots and
+  triangle edge dots keep their small look but gain a ~32px transparent `::after` hit area
+  (were 14px, below the 28px minimum control size); triangle corner labels are now 44px tall
+  with 13px text on phones; the footer "Email Us" link is a 44px-tall target (was 17px); the
+  result page keeps "Share on LinkedIn" in the bottom share card (a large button under the
+  persona card was tried and removed). Files: `app/static/css/theme.css`,
+  `app/templates/survey/result.html`.
+
 - Change: landing page layout (backlog #0043) — `app/templates/index.html` now leads with a
   display-size "One of these is you" heading and the persona icon grid, followed by "The Monkey
   Puzzle", new intro copy (replaces the #0016 paragraph) and the Begin button. The grid is
-  capped at four per row in `theme.css` so the 9 personas wrap 4 / 4 / 1 at any width. The
+  a ten-track CSS grid in `theme.css` so the 9 personas sit 4 / 5 (row of four centred over five) on desktop and 3 / 3 / 3 below 768px (names clipped at five across). Source order is title, intro, Begin, then the grid, with flex `order` placing the grid visually first. The
   heading sits inside the existing `{% if personas %}` guard, `<h1>` stays on the page title.
 
 ## [v0.4.2] — 2026-09-23

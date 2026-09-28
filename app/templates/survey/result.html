@@ -4,6 +4,7 @@
    {% block content %} can see it — Jinja block bodies don't share {% set %}
    variables with each other. #}
 {% set result_url = url_for('survey.result', token=submission.token, _external=True) %}
+{% set persona_card_collapsible = true %}
 {% set share_image_url = url_for('survey.share_image', token=submission.token, _external=True) %}
 
 {% block head %}
@@ -79,6 +80,15 @@
 
 {% block scripts %}
 {{ super() }}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  // Closed by default on phones; open on wider screens where there is room.
+  var more = document.getElementById('result-more');
+  if (more && window.matchMedia && window.matchMedia('(min-width: 768px)').matches) {
+    more.open = true;
+  }
+})();
+</script>
 {% if caption %}
 <script nonce="{{ csp_nonce }}">
 (function () {

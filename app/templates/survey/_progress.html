@@ -9,9 +9,8 @@
 {% endif %}
 {% set pct = (step / total * 100) | round(0, 'floor') | int %}
 <div class="mb-4">
-  <div class="d-flex justify-content-between small text-muted mb-1">
+  <div class="small text-muted mb-1">
     <span>Question {{ step }} of {{ total }}</span>
-    <span>{{ pct }}%</span>
   </div>
   <div class="progress" role="progressbar" aria-label="Survey progress"
        aria-valuenow="{{ step }}" aria-valuemin="0" aria-valuemax="{{ total }}">

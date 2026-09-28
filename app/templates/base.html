@@ -3,6 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script nonce="{{ csp_nonce }}">
+    (function () {
+      try {
+        var m = window.matchMedia('(prefers-color-scheme: dark)');
+        var apply = function () { document.documentElement.setAttribute('data-bs-theme', m.matches ? 'dark' : 'light'); };
+        apply();
+        m.addEventListener('change', apply);
+      } catch (e) {}
+    })();
+  </script>
   <title>{% block title %}{% if title %}{{ title }} — {% endif %}The Monkey Puzzle{% endblock %}</title>
 
   <!-- Bootstrap 5.3 -->
@@ -20,7 +31,7 @@
   <a class="visually-hidden-focusable" href="#main-content">Skip to main content</a>
 
   <!-- Navigation -->
-  <nav class="navbar navbar-expand-md navbar-light bg-light border-bottom">
+  <nav class="navbar navbar-expand-md bg-body-tertiary border-bottom">
     <div class="container">
       <a class="navbar-brand" href="{{ url_for('main.index') }}">The Monkey Puzzle</a>
     </div>
@@ -46,7 +57,7 @@
   </main>
 
   <!-- Footer -->
-  <footer class="footer mt-auto py-3 bg-light border-top">
+  <footer class="footer mt-auto py-3 bg-body-tertiary border-top">
     <div class="container d-flex flex-wrap justify-content-between">
       <span class="text-muted small">The Monkey Puzzle &middot; Developed by The Very Good Solutions Company</span>
       <span class="text-muted small"><a href="#" id="footer-email-link">Email Us</a></span>

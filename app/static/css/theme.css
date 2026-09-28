@@ -1,4 +1,12 @@
 :root {
+  --brand-accent: #2e7d32;
+  --surface: #fff;
+  --border: #dee2e6;
+  --muted-border: #eee;
+  --muted-text: #6c757d;
+  --strong-text: #212529;
+  --header-text: #495057;
+  --selected-tint: rgba(46, 125, 50, 0.08);
   --brand-primary: #2e7d32;
   --brand-primary-dark: #1b5e20;
   --rel-ally: #1565c0;
@@ -9,30 +17,65 @@
   --rel-necessity-tint: #f3e6f8;
 }
 
+/* Dark appearance (whole-app design pass). base.html sets data-bs-theme from
+   prefers-color-scheme so Bootstrap's own components follow; these variables cover the
+   custom surfaces. --brand-primary stays the fill colour (buttons, selected cell);
+   --brand-accent is the lighter text/border/outline green used on dark surfaces. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand-accent: #81c784;
+    --surface: #212529;
+    --border: #495057;
+    --muted-border: #343a40;
+    --muted-text: #adb5bd;
+    --strong-text: #f8f9fa;
+    --header-text: #ced4da;
+    --selected-tint: rgba(129, 199, 132, 0.16);
+    --rel-ally: #64b5f6;
+    --rel-ally-tint: rgba(100, 181, 246, 0.18);
+    --rel-friend: #4dd0e1;
+    --rel-friend-tint: rgba(77, 208, 225, 0.16);
+    --rel-necessity: #ce93d8;
+    --rel-necessity-tint: rgba(206, 147, 216, 0.18);
+  }
+
+  /* Bootstrap's dark theme leaves outline-secondary at #6c757d (~3.6:1 on #212529). */
+  .btn-outline-secondary {
+    --bs-btn-color: #adb5bd;
+    --bs-btn-border-color: #adb5bd;
+    --bs-btn-hover-color: #212529;
+    --bs-btn-hover-bg: #adb5bd;
+    --bs-btn-hover-border-color: #adb5bd;
+    --bs-btn-active-color: #212529;
+    --bs-btn-active-bg: #adb5bd;
+    --bs-btn-active-border-color: #adb5bd;
+  }
+}
+
 /* Survey option "cards" — native radio/checkbox inputs styled via the
    :checked + sibling selector so no JS is needed for selection state. */
 .option-card {
   display: block;
   padding: 1rem;
   height: 100%;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   cursor: pointer;
   transition: border-color .15s ease, background-color .15s ease;
 }
 
 .option-card:hover {
-  border-color: var(--brand-primary);
+  border-color: var(--brand-accent);
 }
 
 .option-card-input:checked + .option-card {
-  border-color: var(--brand-primary);
-  background-color: rgba(46, 125, 50, 0.08);
+  border-color: var(--brand-accent);
+  background-color: var(--selected-tint);
   font-weight: 600;
 }
 
 .option-card-input:focus-visible + .option-card {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--brand-accent);
   outline-offset: 2px;
 }
 
@@ -55,7 +98,7 @@
   text-align: center;
   padding: 0.75rem 0.5rem;
   min-height: 4.5rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   cursor: pointer;
   font-size: 0.85rem;
@@ -68,27 +111,38 @@
    (its flanking-option label is visually-hidden but read by screen readers), secondary
    to the full option boxes. Mirrors .triangle-node--edge. */
 .spectrum-node--mix {
+  position: relative;
   flex: 0 0 auto;
   align-self: center;
-  width: 0.85rem;
+  width: 1rem;
   min-height: 0;
-  height: 0.85rem;
+  height: 1rem;
   padding: 0;
   border-radius: 50%;
 }
 
+/* Transparent hit area: the dot keeps its small look, but the tappable region is
+   ~32px, above the 28px minimum control size (whole-app design pass). The ::after
+   is part of the <label>, so a tap on it still selects the radio. */
+.spectrum-node--mix::after,
+.triangle-node--edge::after {
+  content: "";
+  position: absolute;
+  inset: -0.5rem;
+}
+
 .spectrum-node:hover {
-  border-color: var(--brand-primary);
+  border-color: var(--brand-accent);
 }
 
 .spectrum-node-input:checked + .spectrum-node {
-  border-color: var(--brand-primary);
-  background-color: rgba(46, 125, 50, 0.08);
+  border-color: var(--brand-accent);
+  background-color: var(--selected-tint);
   font-weight: 600;
 }
 
 .spectrum-node-input:focus-visible + .spectrum-node {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--brand-accent);
   outline-offset: 2px;
 }
 
@@ -106,7 +160,7 @@
 .persona-grid th {
   font-weight: 500;
   font-size: 0.85rem;
-  color: #495057;
+  color: var(--header-text);
   vertical-align: middle;
 }
 
@@ -123,14 +177,14 @@
   align-items: center;
   justify-content: center;
   min-height: 4.5rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   cursor: pointer;
   transition: border-color .15s ease, background-color .15s ease;
 }
 
 .grid-cell:hover {
-  border-color: var(--brand-primary);
+  border-color: var(--brand-accent);
 }
 
 /* Result-page grid modifiers — static cells, no inputs. The selected cell
@@ -158,8 +212,8 @@
 }
 
 .grid-cell--muted {
-  border-color: #eee;
-  color: #6c757d;
+  border-color: var(--muted-border);
+  color: var(--muted-text);
 }
 
 /* Relationship colour-coding (backlog #0031) — cells whose persona is one of
@@ -172,7 +226,7 @@
 .grid-cell--related {
   border-width: 2px;
   font-weight: 600;
-  color: #212529;
+  color: var(--strong-text);
   opacity: 1;
 }
 
@@ -216,14 +270,30 @@
   background: linear-gradient(135deg, var(--rel-ally-tint) 0 33.33%, var(--rel-friend-tint) 33.33% 66.66%, var(--rel-necessity-tint) 66.66% 100%);
 }
 
+/* Relationship pattern cue (whole-app design pass): colour alone must not carry the
+   category, so each also gets a border style — ally solid, friend dashed, necessity
+   dotted. A cell in several categories takes the style of the first present in
+   ally > friend > necessity order, matching how its border colour is chosen above. */
+.grid-cell--related { border-width: 3px; }
+.grid-cell--ally { border-style: solid; }
+.grid-cell--friend { border-style: dashed; }
+.grid-cell--necessity { border-style: dotted; }
+.grid-cell--ally.grid-cell--friend,
+.grid-cell--ally.grid-cell--necessity { border-style: solid; }
+.grid-cell--friend.grid-cell--necessity { border-style: dashed; }
+
 .grid-legend-swatch {
   display: inline-block;
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 1rem;
+  height: 1rem;
   border-radius: 0.2rem;
-  border: 2px solid;
+  border: 3px solid;
   flex: 0 0 auto;
 }
+
+.grid-legend-swatch--ally { border-style: solid; }
+.grid-legend-swatch--friend { border-style: dashed; }
+.grid-legend-swatch--necessity { border-style: dotted; }
 
 .grid-legend-swatch--ally {
   border-color: var(--rel-ally);
@@ -244,7 +314,7 @@
    triggered on the result-grid cells, initialised in result.html's
    {% block scripts %}. */
 .grid-cell--result:focus-visible {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--brand-accent);
   outline-offset: 2px;
 }
 
@@ -272,7 +342,7 @@
 .persona-icon--card {
   width: 2rem;
   height: 2rem;
-  color: var(--brand-primary);
+  color: var(--brand-accent);
 }
 .persona-icon--grid {
   width: 1.5rem;
@@ -287,34 +357,81 @@
 .persona-icon--preview {
   width: 2rem;
   height: 2rem;
-  color: var(--brand-primary);
+  color: var(--brand-accent);
 }
 
 .persona-icon--badge {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--brand-primary);
+  color: var(--brand-accent);
 }
 
 /* Home page's static, undifferentiated "One of these is you" persona grid
    (backlog #0042) — no highlighting, no motion, no persona signal. */
 .persona-preview-grid {
   --preview-gap: 1.25rem;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
   gap: var(--preview-gap);
-  max-width: 40rem;
+  max-width: 44rem;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* Four per row so the 9 personas always wrap 4 / 4 / 1 (backlog #0043). */
+/* 9 personas as 4 / 5 (backlog #0043): ten half-width tracks, each item spans two,
+   and the first item starts on the second track so the row of four is centred
+   over the row of five. */
 .persona-preview-grid li {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 0 0 calc((100% - 3 * var(--preview-gap)) / 4);
+  grid-column: span 2;
+}
+
+.persona-preview-grid li:first-child {
+  grid-column: 2 / span 2;
+}
+
+/* 44px minimum control height for buttons and small inputs inside the page content
+   (Next/Back, share row, email field); was 31-38px (whole-app design pass). */
+main .btn,
+main .form-control-sm {
+  min-height: 44px;
+}
+
+/* Collapsible "Now and next / who to work with" section on the result card. */
+.result-more > summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  list-style: none;
+}
+
+.result-more > summary::-webkit-details-marker { display: none; }
+
+/* Chevron affordance (display:flex above removes the native disclosure marker). */
+.result-more > summary::after {
+  content: "\25B8";
+  margin-left: 0.5rem;
+  color: var(--brand-accent);
+}
+
+.result-more[open] > summary::after { content: "\25BE"; }
+
+/* Footer "Email Us" link: 44px-tall tap target (was 17px). */
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* Keep the intro copy in line with the grid's width rather than the full container. */
+.landing-intro {
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Post-resolution persona badge in the survey step progress area (backlog
@@ -349,20 +466,23 @@
 .triangle-shape {
   position: absolute;
   inset: 0;
-  background-color: rgba(46, 125, 50, 0.08);
+  background-color: var(--selected-tint);
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--border);
 }
 
 .triangle-node {
   position: absolute;
   transform: translate(-50%, -50%);
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
   padding: 0.5rem 0.75rem;
   min-width: 6rem;
   text-align: center;
-  background-color: #fff;
-  border: 1px solid #dee2e6;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   cursor: pointer;
   font-size: 0.9rem;
@@ -391,11 +511,12 @@
    secondary to the corner picks. */
 .triangle-node--edge {
   min-width: 0;
-  width: 0.85rem;
-  height: 0.85rem;
+  min-height: 0;
+  width: 1rem;
+  height: 1rem;
   padding: 0;
   border-radius: 50%;
-  background-color: #fff;
+  background-color: var(--surface);
 }
 
 .triangle-node--edge-left {
@@ -414,17 +535,17 @@
 }
 
 .triangle-node:hover {
-  border-color: var(--brand-primary);
+  border-color: var(--brand-accent);
 }
 
 .triangle-node-input:checked + .triangle-node {
-  border-color: var(--brand-primary);
-  background-color: rgba(46, 125, 50, 0.08);
+  border-color: var(--brand-accent);
+  background-color: var(--selected-tint);
   font-weight: 600;
 }
 
 .triangle-node-input:focus-visible + .triangle-node {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--brand-accent);
   outline-offset: 2px;
 }
 
@@ -457,6 +578,34 @@
   flex: 0 0 auto;
 }
 
+/* Result grid at large text sizes (whole-app design pass): the 3x3 table cannot reflow,
+   so at 200% text it overflowed and scrolled sideways. Container-query lengths in em
+   resolve against the container's font size, so this switches to a stacked list when the
+   card is narrower than 18em of its own text (about 288px at normal size, ~half that
+   in ems at 200% text). The column label is repeated inside each cell for the list layout. */
+.persona-grid-wrap { container-type: inline-size; }
+.grid-cell-col { display: none; }
+
+@container (max-width: 18em) {
+  .persona-grid, .persona-grid tbody, .persona-grid tr,
+  .persona-grid td, .persona-grid th { display: block; }
+  .persona-grid thead {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .persona-grid { border-spacing: 0; }
+  .persona-grid th[scope="row"] {
+    text-align: left; margin-top: 1rem; font-size: 1rem; font-weight: 600;
+  }
+  .persona-grid td { margin-top: 0.5rem; }
+  .grid-cell-col {
+    display: block; align-self: flex-start; font-weight: 400;
+    font-size: 0.875rem; color: var(--header-text);
+  }
+  .grid-cell { min-height: 0; padding: 0.5rem; }
+  .grid-cell--selected .grid-cell-col { color: inherit; }
+}
+
 /* Mobile layout (backlog #0029) — the app's first and only breakpoint.
    767.98px is Bootstrap 5's `md` boundary, matching the col-sm- and col-md-
    classes already used elsewhere in the templates. */
@@ -469,7 +618,7 @@
   .spectrum-node { flex: 0 0 auto; min-height: 0; padding: 0.75rem; font-size: 0.9rem; }
   /* Re-assert the mix dot AFTER .spectrum-node above — same specificity, later
      rule wins, so without this the dot would inherit the padding/min-height. */
-  .spectrum-node--mix { width: 0.85rem; height: 0.85rem; padding: 0; }
+  .spectrum-node--mix { width: 1rem; height: 1rem; padding: 0; }
 
   /* Triangle widget: corner nodes are translate(-50%,-50%) at left:0/left:100%,
      so half of every corner node's own width always hangs outside the widget's
@@ -482,12 +631,12 @@
   .triangle-node {
     min-width: 4.5rem;
     max-width: 6rem;
-    font-size: 0.72rem;
+    font-size: 0.8125rem;
     line-height: 1.15;
     padding: 0.35rem 0.4rem;
   }
   /* Same later-rule-wins reset as the spectrum mix dot. */
-  .triangle-node--edge { min-width: 0; width: 0.85rem; height: 0.85rem; padding: 0; }
+  .triangle-node--edge { min-width: 0; min-height: 0; width: 1rem; height: 1rem; padding: 0; }
 
   /* Result-page 3x3 grid: three persona names (min-content ~95px each) plus a
      row-header column exceed a phone's content width, so the table stretched
@@ -495,16 +644,20 @@
      _result_grid.html as a backstop. */
   .persona-grid { border-spacing: 0.25rem; font-size: 0.75rem; }
   .persona-grid th { font-size: 0.75rem; }
+  /* 3px related borders (pattern cue) + 13px text overflowed the card at 375px. */
+  .grid-cell--related { border-width: 2px; }
   .grid-cell { min-height: 3.5rem; }
   .grid-cell--result { font-size: 0.75rem; overflow-wrap: break-word; }
   .persona-icon--grid { width: 1rem; height: 1rem; }
   /* Relationship legend (backlog #0031): shrink so the key stays on one or
      two lines rather than wrapping onto four+ at 320-375px. */
-  .grid-legend { font-size: 0.7rem; }
-  .grid-legend-swatch { width: 0.75rem; height: 0.75rem; }
+  .grid-legend { font-size: 0.8125rem; }
+  .grid-legend-swatch { width: 0.875rem; height: 0.875rem; }
 
   /* Home page persona preview grid (backlog #0042): shrink so all 9 items
      still read on a 320-390px viewport. */
   .persona-icon--preview { width: 1.5rem; height: 1.5rem; }
-  .persona-preview-grid { --preview-gap: 0.75rem; }
+  .persona-preview-grid { --preview-gap: 0.75rem; grid-template-columns: repeat(6, 1fr); }
+  /* Phones: 3 / 3 / 3 — five across left ~50-60px columns, clipping the names. */
+  .persona-preview-grid li:first-child { grid-column: span 2; }
 }

@@ -3,24 +3,24 @@
 <head><meta charset="utf-8"></head>
 <body style="font-family: Arial, Helvetica, sans-serif; color: #212529;">
   {% from "survey/_macros.html" import persona_description %}
-  <p style="text-transform: uppercase; font-size: 0.75rem; color: #6c757d; letter-spacing: 1px;">
+  <p style="text-transform: uppercase; font-size: 12px; color: #6c757d; letter-spacing: 1px;">
     Your sustainable who
   </p>
-  <h1 style="font-size: 1.5rem; margin: 0 0 0.5rem 0;">{{ persona.name }}</h1>
-  <p style="font-size: 1.1rem; color: #495057;">{{ persona.tagline }}</p>
+  <h1 style="font-size: 24px; margin: 0 0 8px 0;">{{ persona.name }}</h1>
+  <p style="font-size: 18px; color: #495057;">{{ persona.tagline }}</p>
   <p>{{ persona_description(persona, audience) }}</p>
   {% if now_next and (now_next.now or now_next.next) %}
   {% if now_next.now %}<p>{{ now_next.now }}</p>{% endif %}
   {% if now_next.next %}<p>{{ now_next.next }}</p>{% endif %}
   {% endif %}
   {% if innovation %}
-  <p style="margin-top:1rem;">
+  <p style="margin-top:16px;">
     <strong>Your focus group on the innovation curve:</strong>
-    <span style="display:inline-block; width:0.7rem; height:0.7rem; border-radius:50%;
+    <span style="display:inline-block; width:11px; height:11px; border-radius:50%;
                  background-color:{{ innovation.colour }};"></span>
     {{ innovation.band }}
   </p>
-  {% if innovation.tagline %}<p style="font-size:1.05rem; color:#495057; margin:0 0 0.5rem 0;">{{ innovation.tagline }}</p>{% endif %}
+  {% if innovation.tagline %}<p style="font-size:17px; color:#495057; margin:0 0 8px 0;">{{ innovation.tagline }}</p>{% endif %}
   {% if innovation.description %}<p>{{ innovation.description }}</p>{% endif %}
   {% endif %}
   <p>Your full results are attached as a PDF.</p>
@@ -28,6 +28,6 @@
     You can also revisit your result online any time:<br>
     <a href="{{ result_url }}">{{ result_url }}</a>
   </p>
-  <p style="color: #6c757d; font-size: 0.8rem;">— The Monkey Puzzle</p>
+  <p style="color: #6c757d; font-size: 13px;">— The Monkey Puzzle</p>
 </body>
 </html>
