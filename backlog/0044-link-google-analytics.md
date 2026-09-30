@@ -24,8 +24,16 @@ Sourced from docs plus a few targeted greps of `app/__init__.py`, `base.html` an
 - Deploy: set the env var in the `monkeypuzzle` systemd unit on the VPS and document it in `DEPLOY.md`. Manual step for Tom.
 
 ## Notes
-Open questions for Tom:
-- Consent: UK PECR means GA cookies need opt-in. Consent banner with Consent Mode v2 (default denied), or a cookieless / no-consent setup? Big effect on scope.
-- Privacy: result pages use token URLs (`/result/<token>`). Tokens must not be sent to Google. Override `page_location` / redact the path.
+Decision (2026-09-30): GA4 with an unobtrusive consent banner, not cookieless.
+
+Scope:
+- GA4 via gtag, loaded only after the visitor accepts. Consent Mode v2 with `analytics_storage` defaulting to denied. No GA request or cookie before consent.
+- Small, low-key banner (bottom strip, Accept / Decline equally prominent, no dark patterns). Choice stored in a first-party cookie or localStorage, with a way to change it later (footer link).
+- Banner script must carry `csp_nonce`, or be a static file under `'self'`. Keep the survey step pages light: they are currently scriptless (see CONTEXT.md, #0013).
+- Redact `/result/<token>` before anything goes to Google (override `page_location` / `page_path`).
+- CSP widening and the GA snippet only when `GA_MEASUREMENT_ID` is set.
+- Add a short privacy note (what GA collects, cookies used, how to withdraw), linked from the banner and footer. No privacy page exists yet.
+
+Still open:
 - Who owns the GA4 property and measurement ID, Tom or Rob/Andrew?
-- GA4 only, or GTM?
+- GA4 only, or GTM? (Default: GA4 only, simpler CSP.)
