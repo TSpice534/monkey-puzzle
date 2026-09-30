@@ -45,3 +45,4 @@
 | 0041 | Footer's mt-auto doesn't do anything (no flex parent on body) | bug | todo | 2026-09-23 |
 | 0042 | Carry some of the result page's visual identity into the survey flow | change | shipped | 2026-09-23 |
 | 0043 | Landing page: persona grid first, then title and description | change | shipped | 2026-09-28 |
+| 0044 | Link Monkey Puzzle to Google Analytics | feature | todo | 2026-09-30 |
