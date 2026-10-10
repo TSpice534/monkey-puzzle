@@ -50,10 +50,10 @@
 | 0046 | Unify primary button green with brand-primary | change | shipped | 2026-10-10 |
 | 0047 | Add privacy link, favicon and home-page meta description | feature | todo | 2026-10-10 |
 | 0048 | Email field: add autocomplete and ellipsis placeholder | change | shipped | 2026-10-10 |
-| 0049 | Result page: make the persona card the hero | change | todo | 2026-10-10 |
-| 0050 | Result page: one primary share action, others secondary | change | todo | 2026-10-10 |
-| 0051 | Innovation curve: highlighted bar and legend visibility | change | todo | 2026-10-10 |
-| 0052 | Pressed states and text-wrap polish | change | todo | 2026-10-10 |
+| 0049 | Result page: make the persona card the hero | change | in-progress | 2026-10-10 |
+| 0050 | Result page: one primary share action, others secondary | change | in-progress | 2026-10-10 |
+| 0051 | Innovation curve: highlighted bar and legend visibility | change | in-progress | 2026-10-10 |
+| 0052 | Pressed states and text-wrap polish | change | in-progress | 2026-10-10 |
 | 0053 | Redesign share card and certificate | change | todo | 2026-10-10 |
 | 0054 | Certificate hardcodes tomspice.co.uk/monkey-puzzle | change | todo | 2026-10-10 |
 | 0055 | Replace placeholder persona icons with a consistent set | change | todo | 2026-10-10 |
