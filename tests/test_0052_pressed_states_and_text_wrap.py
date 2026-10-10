@@ -27,6 +27,16 @@ def test_no_preference_block_once_and_before_mobile():
     assert css.index(NO_PREF) < css.index('@media (max-width: 767.98px)')
 
 
+def test_no_preference_block_after_base_triangle_rule_and_before_container_and_mobile():
+    # Same specificity as the base rules, so source order decides the transition list.
+    css = _read('app', 'static', 'css', 'theme.css')
+    pos = css.index(NO_PREF)
+    # Top-level (column 0) base rule only; the block's own indented selector list is excluded.
+    assert pos > max(m.start() for m in re.finditer(r'^\.triangle-node \{', css, re.M))
+    assert pos < css.index('@container (max-width: 18em)')
+    assert pos < css.index('@media (max-width: 767.98px)')
+
+
 def test_active_rules_scale_inside_block():
     block = _block()
     for sel in ('.option-card:active', '.spectrum-node:active',
