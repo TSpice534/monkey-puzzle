@@ -59,3 +59,4 @@
 | 0055 | Replace placeholder persona icons with a consistent set | change | todo | 2026-10-10 |
 | 0056 | Landing page intro: say how long it takes and what happens to answers | feature | todo | 2026-10-10 |
 | 0057 | Review Laggards tagline and exclamation-mark tone | change | todo | 2026-10-10 |
+| 0058 | Guard the result PDF at one page with a test, and colour the PDF icon | change | todo | 2026-10-10 |

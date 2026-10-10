@@ -7,7 +7,7 @@ description: A friendly, calm, single-brand survey and result experience on Boot
 colors:
   # Brand
   brand-primary: "#2e7d32"        # Fill: selected grid cell, certificate and share-card accent. White text 5.13:1.
-  button-success: "#198754"       # Bootstrap btn-success, used for Begin, Next and other primary buttons (measured in the running app). White text 4.53:1. Not the same green as brand-primary.
+  button-success: "#2e7d32"       # Primary buttons (Begin, Next and others) use brand-primary.
   brand-primary-dark: "#1b5e20"   # Selected-cell border. White text 7.87:1.
   brand-accent-light: "#2e7d32"   # Text, border and outline green on light surfaces (same value as primary).
   brand-accent-dark: "#81c784"    # Text, border and outline green on dark surfaces. 7.67:1 on #212529.
@@ -68,7 +68,7 @@ components:
   triangle: "CSS-drawn triangle, three corner nodes plus three round edge-midpoint nodes. Max width 320px."
   persona-grid: "Static, labelled 3x3 result grid reconstructed from two answers. Selected cell = brand-primary fill, white bold text, tick prefix, soft shadow. Muted cells use muted-border and muted-text."
   relationship-cells: "Ally = solid border, blue. Friend = dashed border, teal. Necessity = dotted border, purple. A persona in more than one category gets a diagonal tint split and the more prominent border style. A legend sits below the grid."
-  persona-card: "Hero card: selected-tint background, accent border, inline line-art SVG icon (colour = brand accent; 64px, 56px on phones stacked above the name, 48px in the PDF), larger bold name, eyebrow in header-text, tagline, description. Collapsible 'Now and next / who to work with' section via details/summary, 44px min height."
+  persona-card: "Hero card: selected-tint background, accent border, inline line-art SVG icon (colour = brand accent; 64px, 56px on phones stacked above the name, 36px in the PDF), larger bold name, eyebrow in header-text, tagline, description. Collapsible 'Now and next / who to work with' section via details/summary, 44px min height."
   result-sections: "Sections below the hero (grid, innovation, share) are borderless with no fill or shadow, 2rem apart. The innovation card keeps its band-colour left border."
   persona-badge: "Appears in the survey progress area after persona resolution, 300ms reveal animation, disabled under prefers-reduced-motion."
   innovation-card: "Card with 6px left border in band colour. Band legend with swatches (aria-hidden) beside text names."
@@ -93,7 +93,7 @@ This is a single-brand product. There is no per-client theming. Rob and Andrew r
 3. **Visible focus everywhere.** 2px accent outline with 2px offset on every interactive element, including the hidden-input sibling pattern. Never remove an outline without replacing it.
 4. **Targets are generous.** 44px minimum for buttons, small inputs, `summary` and footer links. Small visual controls (the mix dots) get a transparent hit area of about 32px.
 5. **Light and dark are first-class.** `base.html` sets `data-bs-theme` from `prefers-color-scheme`. Any new custom surface defines both values in `:root` variables. Don't hardcode `#fff` or `#212529` in components. Re-check Bootstrap components that dark mode leaves low-contrast (as was done for `.btn-outline-secondary`).
-6. **One green family, used sparingly.** `brand-primary` is the selected-cell fill and share-card accent; primary buttons currently use Bootstrap `#198754` (see gaps). `brand-accent` is the text, border and outline colour and swaps to a lighter green on dark. Relationship colours deliberately avoid green, muted grey and the band ramp so nothing collides.
+6. **One green family, used sparingly.** `brand-primary` is the selected-cell fill and share-card accent; primary buttons use it too. `brand-accent` is the text, border and outline colour and swaps to a lighter green on dark. Relationship colours deliberately avoid green, muted grey and the band ramp so nothing collides.
 7. **Motion is optional.** Only the persona badge reveal animates. Anything new must respect `prefers-reduced-motion: reduce`.
 8. **Results are multi-surface.** A result change is not done until it works on the web page, the PDF, the email copy, the OG share card and the certificate. Inline SVG and email styles do not inherit `theme.css`.
 9. **Content is data.** Don't hardcode persona names, taglines, band names, colours or cutoffs in templates or CSS. Design for the longest plausible text (long taglines, nine personas).
@@ -119,8 +119,6 @@ This is a single-brand product. There is no per-client theming. Rob and Andrew r
 - **Laggards tagline** reads "You are a Laggard. Wanker." This is content in `survey.yaml`, so it's Rob and Andrew's call, but it clashes with the "know yourself" framing and will appear on the share card.
 - Persona icons are placeholder line art (backlog #0005). A real illustration set would raise the quality of the result page and share card more than any colour change.
 
-- **Two greens.** Primary buttons render `#198754` (Bootstrap `btn-success`) while the selected cell, icons and share card use `#2e7d32`. Pick one, ideally by overriding `btn-success` or switching buttons to a `--brand-primary` variant.
-- **Footer "Email Us" link** is Bootstrap blue `#0d6efd` on `#f8f9fa`, 4.26:1, fails AA (axe-core, measured in the running app). It is also the only blue on the site.
 - **Secondary actions look disabled.** All result-page share actions are grey outline buttons, and "Email me a copy" is a filled grey `btn-secondary`. There is no primary action on the page whose purpose is sharing.
 
 ## Borrowed from the reference library
