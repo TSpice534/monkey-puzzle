@@ -2,9 +2,9 @@
 id: 0046
 title: Unify primary button green with brand-primary
 type: change
-status: todo
+status: shipped
 created: 2026-10-10
-branch:
+branch: quickship/unify-primary-button-green
 ---
 
 ## Request

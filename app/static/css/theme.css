@@ -52,6 +52,26 @@
   }
 }
 
+/* Primary button green (backlog #0046): Bootstrap's btn-success is #198754 while the rest of
+   the app (selected grid cell, icons, share card) uses --brand-primary (#2e7d32). Map
+   btn-success onto the brand tokens so Begin/Next match. White text is 5.13:1 on the fill
+   and 7.87:1 on the hover/active fill, in both appearances. */
+.btn-success {
+  --bs-btn-bg: var(--brand-primary);
+  --bs-btn-border-color: var(--brand-primary);
+  --bs-btn-color: #fff;
+  --bs-btn-hover-bg: var(--brand-primary-dark);
+  --bs-btn-hover-border-color: var(--brand-primary-dark);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--brand-primary-dark);
+  --bs-btn-active-border-color: var(--brand-primary-dark);
+  --bs-btn-active-color: #fff;
+  --bs-btn-focus-shadow-rgb: 46, 125, 50;
+  --bs-btn-disabled-bg: var(--brand-primary);
+  --bs-btn-disabled-border-color: var(--brand-primary);
+  --bs-btn-disabled-color: #fff;
+}
+
 /* Survey option "cards" — native radio/checkbox inputs styled via the
    :checked + sibling selector so no JS is needed for selection state. */
 .option-card {
