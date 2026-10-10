@@ -49,7 +49,7 @@
 | 0045 | Footer 'Email Us' link fails contrast (4.26:1) | bug | todo | 2026-10-10 |
 | 0046 | Unify primary button green with brand-primary | change | todo | 2026-10-10 |
 | 0047 | Add privacy link, favicon and home-page meta description | feature | todo | 2026-10-10 |
-| 0048 | Email field: add autocomplete and ellipsis placeholder | change | todo | 2026-10-10 |
+| 0048 | Email field: add autocomplete and ellipsis placeholder | change | shipped | 2026-10-10 |
 | 0049 | Result page: make the persona card the hero | change | todo | 2026-10-10 |
 | 0050 | Result page: one primary share action, others secondary | change | todo | 2026-10-10 |
 | 0051 | Innovation curve: highlighted bar and legend visibility | change | todo | 2026-10-10 |

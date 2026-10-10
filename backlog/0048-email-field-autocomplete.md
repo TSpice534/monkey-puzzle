@@ -2,9 +2,9 @@
 id: 0048
 title: Email field: add autocomplete and ellipsis placeholder
 type: change
-status: todo
+status: shipped
 created: 2026-10-10
-branch:
+branch: quickship/email-field-autocomplete
 ---
 
 ## Request
@@ -17,3 +17,5 @@ Add `autocomplete="email"` and `inputmode` to the result-page email field and en
 Route: `/quick-ship`. Tiny. Batch with the privacy and favicon item if convenient.
 
 Source: design review of 2026-10-10 (Playwright walkthrough, axe-core, apple-design, web-design-guidelines, redesign and taste audits). Design reference: DESIGN.md at the repo root.
+
+Shipped without the placeholder ellipsis: the convention applies to prompts such as "Search…", not example values.

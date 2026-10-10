@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: the result page's "Email me a copy" field now sets `autocomplete="email"`, `inputmode="email"` and `spellcheck="false"`, per the Web Interface Guidelines forms rules. The placeholder stays an example address without an ellipsis, since the ellipsis convention is for prompts like "Search…". Backlog #0048.
+
 ## [v0.4.3] — 2026-09-28
 
 - Change: fixes from the skipped-checks pass of the design review —
