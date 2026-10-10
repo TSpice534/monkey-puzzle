@@ -2,7 +2,7 @@
 id: 0050
 title: Result page: one primary share action, others secondary
 type: change
-status: in-progress
+status: shipped
 created: 2026-10-10
 branch: feature/batch-result-page-polish
 ---
