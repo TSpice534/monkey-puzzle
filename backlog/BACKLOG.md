@@ -52,7 +52,7 @@
 | 0048 | Email field: add autocomplete and ellipsis placeholder | change | shipped | 2026-10-10 |
 | 0049 | Result page: make the persona card the hero | change | shipped | 2026-10-10 |
 | 0050 | Result page: one primary share action, others secondary | change | shipped | 2026-10-10 |
-| 0051 | Innovation curve: highlighted bar and legend visibility | change | in-progress | 2026-10-10 |
+| 0051 | Innovation curve: highlighted bar and legend visibility | change | shipped | 2026-10-10 |
 | 0052 | Pressed states and text-wrap polish | change | in-progress | 2026-10-10 |
 | 0053 | Redesign share card and certificate | change | todo | 2026-10-10 |
 | 0054 | Certificate hardcodes tomspice.co.uk/monkey-puzzle | change | todo | 2026-10-10 |
@@ -61,3 +61,4 @@
 | 0057 | Review Laggards tagline and exclamation-mark tone | change | todo | 2026-10-10 |
 | 0058 | Guard the result PDF at one page with a test, and colour the PDF icon | change | todo | 2026-10-10 |
 | 0059 | Result page caption textarea cuts off the LinkedIn caption | change | todo | 2026-10-10 |
+| 0060 | Check whether pale legend swatches, band dot and card stripe need outlines | change | todo | 2026-10-10 |

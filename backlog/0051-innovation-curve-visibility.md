@@ -2,7 +2,7 @@
 id: 0051
 title: Innovation curve: highlighted bar and legend visibility
 type: change
-status: in-progress
+status: shipped
 created: 2026-10-10
 branch: feature/batch-result-page-polish
 ---
