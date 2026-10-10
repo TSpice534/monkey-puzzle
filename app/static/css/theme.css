@@ -72,6 +72,33 @@
   --bs-btn-disabled-color: #fff;
 }
 
+/* Secondary buttons (backlog #0050): result-page share actions other than LinkedIn.
+   Bootstrap's btn-outline-success is #198754; map it onto the brand tokens.
+   --brand-accent swaps to the lighter green in dark, so no dark override is needed.
+   Text is 5.13:1 on white and 7.67:1 (#81c784) on #212529; white on the hover fill is 5.13:1. */
+.btn-outline-success {
+  --bs-btn-color: var(--brand-accent);
+  --bs-btn-border-color: var(--brand-accent);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--brand-primary);
+  --bs-btn-hover-border-color: var(--brand-primary);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--brand-primary);
+  --bs-btn-active-border-color: var(--brand-primary);
+  --bs-btn-focus-shadow-rgb: 46, 125, 50;
+}
+
+/* Line breaking (backlog #0052). Progressive enhancement: browsers without text-wrap
+   support ignore it. :where() keeps specificity at zero so any class rule (white-space,
+   .text-nowrap) still wins. Web only: the PDF and email do not load theme.css. */
+:where(p, li) {
+  text-wrap: pretty;
+}
+
+:where(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
+  text-wrap: balance;
+}
+
 /* Survey option "cards" — native radio/checkbox inputs styled via the
    :checked + sibling selector so no JS is needed for selection state. */
 .option-card {
@@ -348,7 +375,8 @@
 
 /* Persona icons (backlog #0005) — inline SVG marks on the persona card
    heading and each labelled result-grid cell. SVG files carry no intrinsic
-   size; sized here. Colour inherits via currentColor except on the card. */
+   size; sized here. Colour inherits via currentColor except on the card.
+   The card icon is the 64px hero mark (#0049). */
 .persona-icon {
   display: inline-block;
   line-height: 0;
@@ -360,8 +388,9 @@
   height: 100%;
 }
 .persona-icon--card {
-  width: 2rem;
-  height: 2rem;
+  width: 4rem;
+  height: 4rem;
+  flex: 0 0 auto;
   color: var(--brand-accent);
 }
 .persona-icon--grid {
@@ -439,6 +468,39 @@ main .form-control-sm {
 }
 
 .result-more[open] > summary::after { content: "\25BE"; }
+
+/* Result hero persona card (backlog #0049) */
+.persona-hero {
+  --bs-card-bg: var(--selected-tint);
+  --bs-card-border-color: var(--brand-accent);
+  --bs-card-spacer-y: 1.5rem;
+  --bs-card-spacer-x: 1.5rem;
+}
+.persona-hero__head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.persona-hero__title { min-width: 0; }
+.persona-hero__eyebrow { color: var(--header-text); }
+.persona-hero__name {
+  font-size: clamp(1.75rem, 1.35rem + 1.5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 0;
+  overflow-wrap: break-word;
+}
+
+/* Quieten the sections below the hero: no border, fill or shadow, more space.
+   !important beats Bootstrap's !important .shadow-sm / .mt-3 utilities.
+   The innovation card's inline border-left (band colour) still wins. */
+.result-page > .card:not(.persona-hero) {
+  --bs-card-border-color: transparent;
+  --bs-card-bg: transparent;
+  box-shadow: none !important;
+  margin-top: 2rem !important;
+}
 
 /* Footer "Email Us" link: 44px-tall tap target (was 17px). */
 .footer a {
@@ -605,6 +667,12 @@ main .form-control-sm {
   height: auto;
 }
 
+/* Highlighted bar outline (backlog #0051). charts.py sets stroke="#212529" for the PDF;
+   here it follows --strong-text so it flips light in dark appearance. */
+.innovation-curve .curve-bar--current {
+  stroke: var(--strong-text);
+}
+
 /* Innovation-curve band legend (backlog #0040) — band names used to be SVG
    <text> inside the chart, so they shrank with the responsive SVG downscale
    (~6px on a 390px viewport) and ignored the browser's text-size setting.
@@ -617,6 +685,45 @@ main .form-control-sm {
   height: 0.9rem;
   border-radius: 0.2rem;
   flex: 0 0 auto;
+}
+
+/* Band legend layout (backlog #0051): moved off Bootstrap's !important flex utilities so
+   the phone breakpoint can switch it to a grid. Same look as before on wider screens. */
+.curve-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+}
+
+/* Press feedback (backlog #0052): a 0.98 scale while pressed, on the native-input
+   cards/nodes, focusable result-grid cells and buttons. Only for people who have not
+   asked for reduced motion. Transform only; transition lists are explicit (DESIGN.md
+   rule 7), restating each element's existing transitions plus transform. */
+@media (prefers-reduced-motion: no-preference) {
+  .option-card,
+  .spectrum-node,
+  .grid-cell--result,
+  .triangle-node {
+    transition: border-color .15s ease, background-color .15s ease, transform .1s ease-out;
+  }
+
+  .btn {
+    transition: color .15s ease-in-out, background-color .15s ease-in-out,
+      border-color .15s ease-in-out, box-shadow .15s ease-in-out, transform .1s ease-out;
+  }
+
+  .option-card:active,
+  .spectrum-node:active,
+  .grid-cell--result[tabindex="0"]:active,
+  .btn:active {
+    transform: scale(0.98);
+  }
+
+  /* Triangle nodes are positioned with translate(-50%, -50%); keep it or they jump. */
+  .triangle-node:active {
+    transform: translate(-50%, -50%) scale(0.98);
+  }
 }
 
 /* Result grid at large text sizes (whole-app design pass): the 3x3 table cannot reflow,
@@ -694,10 +801,25 @@ main .form-control-sm {
      two lines rather than wrapping onto four+ at 320-375px. */
   .grid-legend { font-size: 0.8125rem; }
   .grid-legend-swatch { width: 0.875rem; height: 0.875rem; }
+  /* Curve legend (#0051): equal columns so names line up instead of one band
+     ending alone and centred on its own row. 2 columns at 320-430px. */
+  .curve-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.5rem 1rem;
+    max-width: 20rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
   /* Home page persona preview grid (backlog #0042): shrink so all 9 items
      still read on a 320-390px viewport. */
   .persona-icon--preview { width: 1.5rem; height: 1.5rem; }
+
+  /* Hero (#0049): stack icon over the name so long names fit at 320px. */
+  .persona-hero { --bs-card-spacer-y: 1.25rem; --bs-card-spacer-x: 1rem; }
+  .persona-hero__head { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .persona-icon--card { width: 3.5rem; height: 3.5rem; }
   .persona-preview-grid { --preview-gap: 0.75rem; grid-template-columns: repeat(6, 1fr); }
   /* Phones: 3 / 3 / 3 — five across left ~50-60px columns, clipping the names. */
   .persona-preview-grid li:first-child { grid-column: span 2; }

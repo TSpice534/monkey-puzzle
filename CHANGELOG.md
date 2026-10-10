@@ -6,6 +6,14 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: option cards, spectrum and triangle choices, result-grid cells and buttons now shrink slightly while pressed, unless reduced motion is on. Headings use balanced line breaks and paragraphs avoid leaving one word alone on the last line (result taglines and descriptions on phones). Browsers that do not support this ignore it. The PDF and email are unchanged. Backlog #0052.
+
+- Change: the innovation curve's highlighted bar now has a thin dark outline, so your bar is visible in the pale bands (yellow, light green, amber) on the web page and in the PDF. In dark appearance the outline is light. On phones the band legend lines up in equal columns instead of leaving one band name alone on its own row. Band colours and copy are unchanged. Backlog #0051.
+
+- Change: the result page has one primary share action. "Share on LinkedIn" is now a solid brand-green button. Download PDF, Download certificate, Copy caption and Email me a copy are green outline buttons, and "Email me a copy" is no longer a filled grey button that looked disabled. Bootstrap's btn-outline-success is mapped to the brand tokens and works in light and dark. Links, form actions and labels are unchanged. Backlog #0050.
+
+- Change: the result page's persona card is now the hero. It has a 64px icon (56px on phones, 36px in the PDF), a larger bold name, a green-tinted background and an accent border. The grid, innovation and share sections below it lose their box, fill and shadow and sit 2rem apart (the innovation card keeps its band-colour left border). The web page and the PDF changed; the email did not. Backlog #0049.
+
 - Fix: the footer "Email Us" link now uses the brand green (underlined) instead of Bootstrap's default blue, which was 4.26:1 on the footer background and failed AA. It keeps its 44px tap target and swaps to the lighter green in dark appearance. Backlog #0045.
 
 - Change: primary buttons (Begin, Next) now use the brand green (`--brand-primary`, #2e7d32) instead of Bootstrap's `btn-success` #198754, so they match the selected grid cell, icons and share card. White text is 5.13:1 on the fill. Backlog #0046.

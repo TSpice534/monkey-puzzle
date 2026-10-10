@@ -1,12 +1,14 @@
-{# Self-contained persona card — kept as its own partial so a later share/PDF
-   phase can reuse it without touching this markup. #}
+{# Hero persona card (#0049), reused by the PDF. Web styles live in theme.css, PDF styles in pdf/result.html. #}
 {% from "survey/_macros.html" import persona_description, role_phrase %}
-<div class="card shadow-sm">
+<div class="card shadow-sm persona-hero">
   <div class="card-body">
-    <p class="text-uppercase small text-muted mb-1">Your sustainable who</p>
-    <h1 class="h3">
-      {% if persona.icon %}<span class="persona-icon persona-icon--card">{{ persona_icon(persona) }}</span> {% endif %}{{ persona.name }}
-    </h1>
+    <div class="persona-hero__head">
+      {% if persona.icon %}<span class="persona-icon persona-icon--card">{{ persona_icon(persona) }}</span>{% endif %}
+      <div class="persona-hero__title">
+        <p class="persona-hero__eyebrow text-uppercase small mb-1">Your sustainable who</p>
+        <h1 class="h3 persona-hero__name">{{ persona.name }}</h1>
+      </div>
+    </div>
     <p class="lead">{{ persona.tagline }}</p>
     <p>{{ persona_description(persona, audience) }}</p>
 

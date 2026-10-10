@@ -110,6 +110,12 @@ def render_certificate_svg(persona: dict, band: str = None, band_colour: str = N
 
 
 UNHIGHLIGHTED_BAR_OPACITY = 0.35
+# Thin dark outline on the respondent's highlighted bar (backlog #0051), so it reads in
+# the pale bands. Fixed hex because the SVG is also rendered by WeasyPrint (PDF), which
+# loads no theme.css; on the web, theme.css overrides it with var(--strong-text) so it
+# flips to the light text colour in dark appearance. #212529 is 15.4:1 on white.
+HIGHLIGHT_BAR_STROKE = '#212529'
+HIGHLIGHT_BAR_STROKE_WIDTH = 3
 
 
 def render_innovation_curve_svg(score, bands, width: int = 640, height: int = 240) -> str:
@@ -118,8 +124,9 @@ def render_innovation_curve_svg(score, bands, width: int = 640, height: int = 24
     `bands`' full range (16 bars for the real survey's 0–15 range), with
     heights following a symmetric Gaussian envelope so the silhouette reads
     as a bell curve/hump, and the respondent's exact score highlighted in
-    its band's full colour at full opacity (every other bar keeps its bold
-    band colour but is rendered at `UNHIGHLIGHTED_BAR_OPACITY`).
+    its band's full colour at full opacity plus a thin dark outline (#0051;
+    every other bar keeps its bold band colour but is rendered at
+    `UNHIGHLIGHTED_BAR_OPACITY`, with no outline).
     Bars are drawn Innovators-left, Laggards-right (highest score first) to
     match the reference diffusion diagram.
 
@@ -181,9 +188,13 @@ def render_innovation_curve_svg(score, bands, width: int = 640, height: int = 24
         bar_h = min_h + (max_h - min_h) * math.exp(-((i - center) ** 2) / (2 * sigma ** 2))
         x = i * bar_slot + bar_gap / 2
         y = baseline_y - bar_h
+        highlight_attrs = (
+            f' class="curve-bar--current" stroke="{HIGHLIGHT_BAR_STROKE}" '
+            f'stroke-width="{HIGHLIGHT_BAR_STROKE_WIDTH}"'
+        ) if is_highlight else ''
         bars_svg.append(
             f'<rect x="{x:.2f}" y="{y:.2f}" width="{bar_width:.2f}" height="{bar_h:.2f}" '
-            f'fill="{colour}" fill-opacity="{opacity}" />'
+            f'fill="{colour}" fill-opacity="{opacity}"{highlight_attrs} />'
         )
 
     # ------------------------------------------------------------------
