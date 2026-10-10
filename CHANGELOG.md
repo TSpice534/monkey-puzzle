@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: the result page has one primary share action. "Share on LinkedIn" is now a solid brand-green button. Download PDF, Download certificate, Copy caption and Email me a copy are green outline buttons, and "Email me a copy" is no longer a filled grey button that looked disabled. Bootstrap's btn-outline-success is mapped to the brand tokens and works in light and dark. Links, form actions and labels are unchanged. Backlog #0050.
+
 - Change: the result page's persona card is now the hero. It has a 64px icon (56px on phones, 36px in the PDF), a larger bold name, a green-tinted background and an accent border. The grid, innovation and share sections below it lose their box, fill and shadow and sit 2rem apart (the innovation card keeps its band-colour left border). The web page and the PDF changed; the email did not. Backlog #0049.
 
 - Fix: the footer "Email Us" link now uses the brand green (underlined) instead of Bootstrap's default blue, which was 4.26:1 on the footer background and failed AA. It keeps its 44px tap target and swaps to the lighter green in dark appearance. Backlog #0045.

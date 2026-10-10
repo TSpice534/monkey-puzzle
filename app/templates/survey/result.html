@@ -34,15 +34,15 @@
     <div class="card-body">
       <h2 class="h6">Share or save your result</h2>
       <div class="d-flex flex-wrap gap-2 mb-3">
-        <a class="btn btn-outline-secondary btn-sm"
+        <a class="btn btn-success"
            href="https://www.linkedin.com/sharing/share-offsite/?url={{ result_url | urlencode }}"
            target="_blank" rel="noopener">
           Share on LinkedIn
         </a>
-        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('survey.download_pdf', token=submission.token) }}">
+        <a class="btn btn-outline-success btn-sm" href="{{ url_for('survey.download_pdf', token=submission.token) }}">
           Download PDF
         </a>
-        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('survey.download_certificate', token=submission.token) }}">
+        <a class="btn btn-outline-success btn-sm" href="{{ url_for('survey.download_certificate', token=submission.token) }}">
           Download certificate
         </a>
       </div>
@@ -53,7 +53,7 @@
           Post the certificate to LinkedIn with this caption:
         </label>
         <textarea class="form-control form-control-sm" id="share-caption" rows="3" readonly>{{ caption }}</textarea>
-        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="copy-caption" hidden
+        <button type="button" class="btn btn-outline-success btn-sm mt-2" id="copy-caption" hidden
                 data-default-label="Copy caption" data-copied-label="Copied!">Copy caption</button>
       </div>
       {% endif %}
@@ -66,7 +66,7 @@
                  placeholder="you@example.com" autocomplete="email" inputmode="email" spellcheck="false" required>
         </div>
         <div class="col">
-          <button type="submit" class="btn btn-secondary btn-sm">Email me a copy</button>
+          <button type="submit" class="btn btn-outline-success btn-sm">Email me a copy</button>
         </div>
       </form>
     </div>

@@ -70,6 +70,8 @@ components:
   relationship-cells: "Ally = solid border, blue. Friend = dashed border, teal. Necessity = dotted border, purple. A persona in more than one category gets a diagonal tint split and the more prominent border style. A legend sits below the grid."
   persona-card: "Hero card: selected-tint background, accent border, inline line-art SVG icon (colour = brand accent; 64px, 56px on phones stacked above the name, 36px in the PDF), larger bold name, eyebrow in header-text, tagline, description. Collapsible 'Now and next / who to work with' section via details/summary, 44px min height."
   result-sections: "Sections below the hero (grid, innovation, share) are borderless with no fill or shadow, 2rem apart. The innovation card keeps its band-colour left border."
+  share-actions: "Result share section has one primary action, 'Share on LinkedIn' (btn-success, brand-primary fill, full size). Download PDF, Download certificate, Copy caption (directly under the caption) and Email me a copy are secondary: btn-outline-success remapped to brand-accent text and border, brand-primary fill with white text on hover. btn-sm, 44px min height. No filled grey buttons."
+  footer-link: "Footer links use brand-accent and are underlined (colour is never the only cue). 44px min height. Hover/focus darken to brand-primary-dark in light and thicken the underline in dark."
   persona-badge: "Appears in the survey progress area after persona resolution, 300ms reveal animation, disabled under prefers-reduced-motion."
   innovation-card: "Card with 6px left border in band colour. Band legend with swatches (aria-hidden) beside text names."
   charts: "Radar fingerprint and innovation bell-curve are server-rendered SVG (charts.py). Band-name text labels live in HTML, not in the SVG, so they do not shrink with the viewBox."
@@ -93,7 +95,7 @@ This is a single-brand product. There is no per-client theming. Rob and Andrew r
 3. **Visible focus everywhere.** 2px accent outline with 2px offset on every interactive element, including the hidden-input sibling pattern. Never remove an outline without replacing it.
 4. **Targets are generous.** 44px minimum for buttons, small inputs, `summary` and footer links. Small visual controls (the mix dots) get a transparent hit area of about 32px.
 5. **Light and dark are first-class.** `base.html` sets `data-bs-theme` from `prefers-color-scheme`. Any new custom surface defines both values in `:root` variables. Don't hardcode `#fff` or `#212529` in components. Re-check Bootstrap components that dark mode leaves low-contrast (as was done for `.btn-outline-secondary`).
-6. **One green family, used sparingly.** `brand-primary` is the selected-cell fill and share-card accent; primary buttons use it too. `brand-accent` is the text, border and outline colour and swaps to a lighter green on dark. Relationship colours deliberately avoid green, muted grey and the band ramp so nothing collides.
+6. **One green family, used sparingly.** `brand-primary` is the selected-cell fill and share-card accent; primary buttons use it too; secondary buttons use `brand-accent` outlines. `brand-accent` is the text, border and outline colour and swaps to a lighter green on dark. Relationship colours deliberately avoid green, muted grey and the band ramp so nothing collides.
 7. **Motion is optional.** Only the persona badge reveal animates. Anything new must respect `prefers-reduced-motion: reduce`.
 8. **Results are multi-surface.** A result change is not done until it works on the web page, the PDF, the email copy, the OG share card and the certificate. Inline SVG and email styles do not inherit `theme.css`.
 9. **Content is data.** Don't hardcode persona names, taglines, band names, colours or cutoffs in templates or CSS. Design for the longest plausible text (long taglines, nine personas).
@@ -118,8 +120,6 @@ This is a single-brand product. There is no per-client theming. Rob and Andrew r
 - **Friend teal `#00838f` on its tint is 3.84:1.** Fine for borders, below 4.5:1 for any text in that colour. Keep cell label text in `strong-text`.
 - **Laggards tagline** reads "You are a Laggard. Wanker." This is content in `survey.yaml`, so it's Rob and Andrew's call, but it clashes with the "know yourself" framing and will appear on the share card.
 - Persona icons are placeholder line art (backlog #0005). A real illustration set would raise the quality of the result page and share card more than any colour change.
-
-- **Secondary actions look disabled.** All result-page share actions are grey outline buttons, and "Email me a copy" is a filled grey `btn-secondary`. There is no primary action on the page whose purpose is sharing.
 
 ## Borrowed from the reference library
 

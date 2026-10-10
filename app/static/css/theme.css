@@ -72,6 +72,22 @@
   --bs-btn-disabled-color: #fff;
 }
 
+/* Secondary buttons (backlog #0050): result-page share actions other than LinkedIn.
+   Bootstrap's btn-outline-success is #198754; map it onto the brand tokens.
+   --brand-accent swaps to the lighter green in dark, so no dark override is needed.
+   Text is 5.13:1 on white and 7.67:1 (#81c784) on #212529; white on the hover fill is 5.13:1. */
+.btn-outline-success {
+  --bs-btn-color: var(--brand-accent);
+  --bs-btn-border-color: var(--brand-accent);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--brand-primary);
+  --bs-btn-hover-border-color: var(--brand-primary);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--brand-primary);
+  --bs-btn-active-border-color: var(--brand-primary);
+  --bs-btn-focus-shadow-rgb: 46, 125, 50;
+}
+
 /* Survey option "cards" — native radio/checkbox inputs styled via the
    :checked + sibling selector so no JS is needed for selection state. */
 .option-card {
