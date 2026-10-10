@@ -427,6 +427,27 @@ main .form-control-sm {
   min-height: 44px;
 }
 
+/* Footer link colour (backlog #0045): Bootstrap's default link blue is 4.26:1 on the footer's
+   #f8f9fa, under AA. --brand-accent is 4.86:1 there and swaps to the lighter green (6.6:1)
+   on the dark footer. Underlined so it does not rely on colour alone. */
+.footer a {
+  color: var(--brand-accent);
+  text-decoration: underline;
+}
+
+.footer a:hover,
+.footer a:focus-visible {
+  color: var(--brand-primary-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  .footer a:hover,
+  .footer a:focus-visible {
+    color: var(--brand-accent);
+    text-decoration-thickness: 2px;
+  }
+}
+
 /* Keep the intro copy in line with the grid's width rather than the full container. */
 .landing-intro {
   max-width: 40rem;

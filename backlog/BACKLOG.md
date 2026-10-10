@@ -46,7 +46,7 @@
 | 0042 | Carry some of the result page's visual identity into the survey flow | change | shipped | 2026-09-23 |
 | 0043 | Landing page: persona grid first, then title and description | change | shipped | 2026-09-28 |
 | 0044 | Link Monkey Puzzle to Google Analytics | feature | todo | 2026-09-30 |
-| 0045 | Footer 'Email Us' link fails contrast (4.26:1) | bug | todo | 2026-10-10 |
+| 0045 | Footer 'Email Us' link fails contrast (4.26:1) | bug | shipped | 2026-10-10 |
 | 0046 | Unify primary button green with brand-primary | change | todo | 2026-10-10 |
 | 0047 | Add privacy link, favicon and home-page meta description | feature | todo | 2026-10-10 |
 | 0048 | Email field: add autocomplete and ellipsis placeholder | change | todo | 2026-10-10 |
