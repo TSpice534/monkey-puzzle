@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: the result page's persona card is now the hero. It has a 64px icon (56px on phones, 48px in the PDF), a larger bold name, a green-tinted background and an accent border. The grid, innovation and share sections below it lose their box, fill and shadow and sit 2rem apart (the innovation card keeps its band-colour left border). The web page and the PDF changed; the email did not. Backlog #0049.
+
 - Fix: the footer "Email Us" link now uses the brand green (underlined) instead of Bootstrap's default blue, which was 4.26:1 on the footer background and failed AA. It keeps its 44px tap target and swaps to the lighter green in dark appearance. Backlog #0045.
 
 - Change: primary buttons (Begin, Next) now use the brand green (`--brand-primary`, #2e7d32) instead of Bootstrap's `btn-success` #198754, so they match the selected grid cell, icons and share card. White text is 5.13:1 on the fill. Backlog #0046.

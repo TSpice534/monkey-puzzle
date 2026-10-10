@@ -348,7 +348,8 @@
 
 /* Persona icons (backlog #0005) — inline SVG marks on the persona card
    heading and each labelled result-grid cell. SVG files carry no intrinsic
-   size; sized here. Colour inherits via currentColor except on the card. */
+   size; sized here. Colour inherits via currentColor except on the card.
+   The card icon is the 64px hero mark (#0049). */
 .persona-icon {
   display: inline-block;
   line-height: 0;
@@ -360,8 +361,9 @@
   height: 100%;
 }
 .persona-icon--card {
-  width: 2rem;
-  height: 2rem;
+  width: 4rem;
+  height: 4rem;
+  flex: 0 0 auto;
   color: var(--brand-accent);
 }
 .persona-icon--grid {
@@ -439,6 +441,39 @@ main .form-control-sm {
 }
 
 .result-more[open] > summary::after { content: "\25BE"; }
+
+/* Result hero persona card (backlog #0049) */
+.persona-hero {
+  --bs-card-bg: var(--selected-tint);
+  --bs-card-border-color: var(--brand-accent);
+  --bs-card-spacer-y: 1.5rem;
+  --bs-card-spacer-x: 1.5rem;
+}
+.persona-hero__head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.persona-hero__title { min-width: 0; }
+.persona-hero__eyebrow { color: var(--header-text); }
+.persona-hero__name {
+  font-size: clamp(1.75rem, 1.35rem + 1.5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 0;
+  overflow-wrap: break-word;
+}
+
+/* Quieten the sections below the hero: no border, fill or shadow, more space.
+   !important beats Bootstrap's !important .shadow-sm / .mt-3 utilities.
+   The innovation card's inline border-left (band colour) still wins. */
+.result-page > .card:not(.persona-hero) {
+  --bs-card-border-color: transparent;
+  --bs-card-bg: transparent;
+  box-shadow: none !important;
+  margin-top: 2rem !important;
+}
 
 /* Footer "Email Us" link: 44px-tall tap target (was 17px). */
 .footer a {
@@ -698,6 +733,11 @@ main .form-control-sm {
   /* Home page persona preview grid (backlog #0042): shrink so all 9 items
      still read on a 320-390px viewport. */
   .persona-icon--preview { width: 1.5rem; height: 1.5rem; }
+
+  /* Hero (#0049): stack icon over the name so long names fit at 320px. */
+  .persona-hero { --bs-card-spacer-y: 1.25rem; --bs-card-spacer-x: 1rem; }
+  .persona-hero__head { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .persona-icon--card { width: 3.5rem; height: 3.5rem; }
   .persona-preview-grid { --preview-gap: 0.75rem; grid-template-columns: repeat(6, 1fr); }
   /* Phones: 3 / 3 / 3 — five across left ~50-60px columns, clipping the names. */
   .persona-preview-grid li:first-child { grid-column: span 2; }
