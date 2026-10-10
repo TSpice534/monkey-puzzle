@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: primary buttons (Begin, Next) now use the brand green (`--brand-primary`, #2e7d32) instead of Bootstrap's `btn-success` #198754, so they match the selected grid cell, icons and share card. White text is 5.13:1 on the fill. Backlog #0046.
+
 ## [v0.4.3] — 2026-09-28
 
 - Change: fixes from the skipped-checks pass of the design review —
