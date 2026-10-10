@@ -53,7 +53,7 @@
 | 0049 | Result page: make the persona card the hero | change | shipped | 2026-10-10 |
 | 0050 | Result page: one primary share action, others secondary | change | shipped | 2026-10-10 |
 | 0051 | Innovation curve: highlighted bar and legend visibility | change | shipped | 2026-10-10 |
-| 0052 | Pressed states and text-wrap polish | change | in-progress | 2026-10-10 |
+| 0052 | Pressed states and text-wrap polish | change | shipped | 2026-10-10 |
 | 0053 | Redesign share card and certificate | change | todo | 2026-10-10 |
 | 0054 | Certificate hardcodes tomspice.co.uk/monkey-puzzle | change | todo | 2026-10-10 |
 | 0055 | Replace placeholder persona icons with a consistent set | change | todo | 2026-10-10 |

@@ -2,7 +2,7 @@
 id: 0052
 title: Pressed states and text-wrap polish
 type: change
-status: in-progress
+status: shipped
 created: 2026-10-10
 branch: feature/batch-result-page-polish
 ---
