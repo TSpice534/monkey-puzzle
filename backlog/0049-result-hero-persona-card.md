@@ -2,7 +2,7 @@
 id: 0049
 title: Result page: make the persona card the hero
 type: change
-status: in-progress
+status: shipped
 created: 2026-10-10
 branch: feature/batch-result-page-polish
 ---

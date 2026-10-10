@@ -50,7 +50,7 @@
 | 0046 | Unify primary button green with brand-primary | change | shipped | 2026-10-10 |
 | 0047 | Add privacy link, favicon and home-page meta description | feature | todo | 2026-10-10 |
 | 0048 | Email field: add autocomplete and ellipsis placeholder | change | shipped | 2026-10-10 |
-| 0049 | Result page: make the persona card the hero | change | in-progress | 2026-10-10 |
+| 0049 | Result page: make the persona card the hero | change | shipped | 2026-10-10 |
 | 0050 | Result page: one primary share action, others secondary | change | in-progress | 2026-10-10 |
 | 0051 | Innovation curve: highlighted bar and legend visibility | change | in-progress | 2026-10-10 |
 | 0052 | Pressed states and text-wrap polish | change | in-progress | 2026-10-10 |
