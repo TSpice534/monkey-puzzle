@@ -22,7 +22,7 @@
       background-color: #2e7d32;
       color: #fff;
       padding: 16px 24px;
-      margin: -1.5cm -1.5cm 24px -1.5cm;
+      margin: -1.5cm -1.5cm 14px -1.5cm;
     }
     .pdf-header h1 {
       font-size: 1.2rem;
@@ -31,19 +31,24 @@
     }
     /* Explicit sizes: Bootstrap's h3/h6 use calc()/vw values WeasyPrint renders too small,
        which left the persona name smaller than its tagline. */
-    h1.h3 { font-size: 1.7rem; font-weight: 700; margin-bottom: 0.4rem; }
+    h1.h3 { font-size: 1.7rem; font-weight: 700; margin-bottom: 0.2rem; }
     .lead { font-size: 1.05rem; }
     h2.h6 { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
     /* Slightly smaller chart so the innovation card can share page 1 with the persona card. */
-    .innovation-curve svg { width: 45%; height: auto; }
+    .innovation-curve svg { width: 40%; height: auto; }
+    /* Block (not Bootstrap's flex column) so WeasyPrint sizes cards to their content. */
+    .card { display: block; }
     .persona-icon { display: inline-block; line-height: 0; vertical-align: middle; }
     .persona-icon svg { display: block; width: 100%; height: 100%; }
-    .persona-icon--card { width: 3rem; height: 3rem; flex: 0 0 auto; color: #2e7d32; }
+    .persona-icon--card { width: 2.25rem; height: 2.25rem; flex: 0 0 auto; color: #2e7d32; }
     /* Hero card rules duplicated from theme.css (#0049) because WeasyPrint
        does not load theme.css. Hardcoded light values. */
     .persona-hero { background-color: rgba(46, 125, 50, 0.08); border: 1px solid #2e7d32; }
-    .persona-hero .card-body { padding: 1.25rem; }
-    .persona-hero__head { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .persona-hero .card-body { padding: 0.9rem 1rem; }
+    .persona-hero p { margin-bottom: 0.5rem; }
+    .persona-hero hr { margin: 0.6rem 0 !important; }
+    .persona-hero .mb-3 { margin-bottom: 0.4rem !important; }
+    .persona-hero__head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
     .persona-hero__eyebrow { color: #495057; }
     /* Duplicated from theme.css (backlog #0040) — this template doesn't load
        theme.css, same precedent as .persona-icon above. */

@@ -157,7 +157,7 @@ def test_pdf_template_carries_hero_styles_with_hardcoded_values(app):
         )
     assert 'persona-hero' in html
     assert '.persona-hero__head' in html
-    assert '.persona-icon--card { width: 3rem' in re.sub(r'\s+', ' ', html)
+    assert '.persona-icon--card { width: 2.25rem' in re.sub(r'\s+', ' ', html)
     style = html[html.index('<style'):html.index('</style>')]
     assert 'var(--' not in style
 
