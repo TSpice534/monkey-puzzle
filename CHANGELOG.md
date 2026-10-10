@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Fix: the footer "Email Us" link now uses the brand green (underlined) instead of Bootstrap's default blue, which was 4.26:1 on the footer background and failed AA. It keeps its 44px tap target and swaps to the lighter green in dark appearance. Backlog #0045.
+
 ## [v0.4.3] — 2026-09-28
 
 - Change: fixes from the skipped-checks pass of the design review —

@@ -2,9 +2,9 @@
 id: 0045
 title: Footer 'Email Us' link fails contrast (4.26:1)
 type: bug
-status: todo
+status: shipped
 created: 2026-10-10
-branch:
+branch: quickship/footer-email-link-contrast
 ---
 
 ## Request
