@@ -656,6 +656,12 @@ main .form-control-sm {
   height: auto;
 }
 
+/* Highlighted bar outline (backlog #0051). charts.py sets stroke="#212529" for the PDF;
+   here it follows --strong-text so it flips light in dark appearance. */
+.innovation-curve .curve-bar--current {
+  stroke: var(--strong-text);
+}
+
 /* Innovation-curve band legend (backlog #0040) — band names used to be SVG
    <text> inside the chart, so they shrank with the responsive SVG downscale
    (~6px on a 390px viewport) and ignored the browser's text-size setting.
@@ -668,6 +674,15 @@ main .form-control-sm {
   height: 0.9rem;
   border-radius: 0.2rem;
   flex: 0 0 auto;
+}
+
+/* Band legend layout (backlog #0051): moved off Bootstrap's !important flex utilities so
+   the phone breakpoint can switch it to a grid. Same look as before on wider screens. */
+.curve-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
 }
 
 /* Result grid at large text sizes (whole-app design pass): the 3x3 table cannot reflow,
@@ -745,6 +760,16 @@ main .form-control-sm {
      two lines rather than wrapping onto four+ at 320-375px. */
   .grid-legend { font-size: 0.8125rem; }
   .grid-legend-swatch { width: 0.875rem; height: 0.875rem; }
+  /* Curve legend (#0051): equal columns so names line up instead of one band
+     ending alone and centred on its own row. 2 columns at 320-430px. */
+  .curve-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.5rem 1rem;
+    max-width: 20rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
   /* Home page persona preview grid (backlog #0042): shrink so all 9 items
      still read on a 320-390px viewport. */

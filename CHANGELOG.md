@@ -6,6 +6,8 @@ All notable changes are documented here. Add a bullet to `Unreleased` after ever
 
 ## Unreleased
 
+- Change: the innovation curve's highlighted bar now has a thin dark outline, so your bar is visible in the pale bands (yellow, light green, amber) on the web page and in the PDF. In dark appearance the outline is light. On phones the band legend lines up in equal columns instead of leaving one band name alone on its own row. Band colours and copy are unchanged. Backlog #0051.
+
 - Change: the result page has one primary share action. "Share on LinkedIn" is now a solid brand-green button. Download PDF, Download certificate, Copy caption and Email me a copy are green outline buttons, and "Email me a copy" is no longer a filled grey button that looked disabled. Bootstrap's btn-outline-success is mapped to the brand tokens and works in light and dark. Links, form actions and labels are unchanged. Backlog #0050.
 
 - Change: the result page's persona card is now the hero. It has a 64px icon (56px on phones, 36px in the PDF), a larger bold name, a green-tinted background and an accent border. The grid, innovation and share sections below it lose their box, fill and shadow and sit 2rem apart (the innovation card keeps its band-colour left border). The web page and the PDF changed; the email did not. Backlog #0049.

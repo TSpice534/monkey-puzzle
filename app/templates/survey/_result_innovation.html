@@ -10,7 +10,8 @@
    Backlog #0040 moves the chart's band-name labels out of the SVG into the
    `curve-legend` list below it (guarded independently on `innovation.bands`,
    which older/hand-built `innovation` contexts may not carry), since SVG
-   `<text>` shrank along with the responsive viewBox on mobile. #}
+   `<text>` shrank along with the responsive viewBox on mobile.
+   Backlog #0051: outlined highlighted bar, legend layout moved to `.curve-legend`. #}
 {% if innovation %}
 <div class="card shadow-sm mt-3" style="border-left: 6px solid {{ innovation.colour }};">
   <div class="card-body">
@@ -21,7 +22,7 @@
     </div>
     {% endif %}
     {% if innovation.bands %}
-    <ul class="curve-legend list-unstyled d-flex flex-wrap justify-content-center gap-3 mt-2 mb-2 small">
+    <ul class="curve-legend list-unstyled mt-2 mb-2 small">
       {% for band in innovation.bands %}
       <li class="d-flex align-items-center gap-2{% if band.is_current %} fw-bold{% endif %}">
         <span class="curve-legend-swatch" style="background-color: {{ band.colour }};" aria-hidden="true"></span>

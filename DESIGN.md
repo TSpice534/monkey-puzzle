@@ -73,8 +73,8 @@ components:
   share-actions: "Result share section has one primary action, 'Share on LinkedIn' (btn-success, brand-primary fill, full size). Download PDF, Download certificate, Copy caption (directly under the caption) and Email me a copy are secondary: btn-outline-success remapped to brand-accent text and border, brand-primary fill with white text on hover. btn-sm, 44px min height. No filled grey buttons."
   footer-link: "Footer links use brand-accent and are underlined (colour is never the only cue). 44px min height. Hover/focus darken to brand-primary-dark in light and thicken the underline in dark."
   persona-badge: "Appears in the survey progress area after persona resolution, 300ms reveal animation, disabled under prefers-reduced-motion."
-  innovation-card: "Card with 6px left border in band colour. Band legend with swatches (aria-hidden) beside text names."
-  charts: "Radar fingerprint and innovation bell-curve are server-rendered SVG (charts.py). Band-name text labels live in HTML, not in the SVG, so they do not shrink with the viewBox."
+  innovation-card: "Card with 6px left border in band colour (decorative; band also named in text). Band legend with swatches (aria-hidden) beside text names: centred wrapping row on wider screens, equal-column grid on phones."
+  charts: "Radar fingerprint and innovation bell-curve are server-rendered SVG (charts.py). Band-name text labels live in HTML, not in the SVG, so they do not shrink with the viewBox. The respondent's bar is full opacity with a 3-unit strong-text outline (#212529 in the SVG, var(--strong-text) on the web so it flips in dark)."
   share-card: "1200x630 PNG (og:image) and 1200x1200 certificate PNG, rendered by cairosvg. Accent = band colour, falling back to #2e7d32."
   pdf: "WeasyPrint render from pdf/result.html."
   email: "Opt-in result copy. Inline styles only, no theme.css."
@@ -114,7 +114,7 @@ This is a single-brand product. There is no per-client theming. Rob and Andrew r
 
 ## Known gaps to fix when touched
 
-- **Band swatches fail 3:1 against white** (WCAG 1.4.11) when used as a graphic: yellow `#f1c40f` is 1.66:1, light green `#7cb342` 2.50:1, amber `#e67e22` 2.85:1. They always sit beside a text band name, so meaning survives, but the card's 6px left border and the bell-curve bars can be nearly invisible in those bands. Candidate fix: add a dark outline to swatches and bars, or darker band colours. These colours are Rob and Andrew's to retune, so propose rather than change.
+- **Band swatches fail 3:1 against white** (WCAG 1.4.11) when used as a graphic: yellow `#f1c40f` is 1.66:1, light green `#7cb342` 2.50:1, amber `#e67e22` 2.85:1. The respondent's highlighted bar now has a dark outline (#0051), so it is visible in every band. The swatches, the band dot, the card's left stripe and the unhighlighted bars still use the raw band colours and still fail 3:1 in the pale bands, always beside a text name. Darker band colours remain Rob and Andrew's call, to propose rather than change.
 - **Never put white text on a band colour.** White on yellow is 1.66:1 and on light green 2.50:1. Use dark text on the light bands (black on yellow is 12.64:1).
 - **Share card and certificate use the band colour as the accent** (`render_certificate_svg`). Check text contrast on the yellow and light-green bands.
 - **Friend teal `#00838f` on its tint is 3.84:1.** Fine for borders, below 4.5:1 for any text in that colour. Keep cell label text in `strong-text`.
