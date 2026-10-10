@@ -48,6 +48,7 @@ typography:
   triangle-node: { fontSize: 0.9rem }
   grid-header: { fontSize: 0.85rem, fontWeight: 500 }
   grid-cell-result: { fontSize: 0.9rem, fontWeight: 600, selected: 700 }
+  text-wrap: "Headings (h1-h6, .h1-.h6) balance; p and li pretty. Set with :where() so specificity stays zero. Web only (theme.css); the PDF and email are unchanged. Progressive enhancement."
 
 rounded:
   card: 0.5rem
@@ -96,7 +97,7 @@ This is a single-brand product. There is no per-client theming. Rob and Andrew r
 4. **Targets are generous.** 44px minimum for buttons, small inputs, `summary` and footer links. Small visual controls (the mix dots) get a transparent hit area of about 32px.
 5. **Light and dark are first-class.** `base.html` sets `data-bs-theme` from `prefers-color-scheme`. Any new custom surface defines both values in `:root` variables. Don't hardcode `#fff` or `#212529` in components. Re-check Bootstrap components that dark mode leaves low-contrast (as was done for `.btn-outline-secondary`).
 6. **One green family, used sparingly.** `brand-primary` is the selected-cell fill and share-card accent; primary buttons use it too; secondary buttons use `brand-accent` outlines. `brand-accent` is the text, border and outline colour and swaps to a lighter green on dark. Relationship colours deliberately avoid green, muted grey and the band ramp so nothing collides.
-7. **Motion is optional.** Only the persona badge reveal animates. Anything new must respect `prefers-reduced-motion: reduce`.
+7. **Motion is optional.** The only motion is the persona badge reveal and a 0.98 press scale (`:active`) on option cards, spectrum and triangle nodes, focusable result-grid cells and buttons. Press feedback lives only inside `@media (prefers-reduced-motion: no-preference)`. The badge reveal is switched off under `reduce`. Animate `transform` and `opacity` only. List transition properties, never `transition: all`.
 8. **Results are multi-surface.** A result change is not done until it works on the web page, the PDF, the email copy, the OG share card and the certificate. Inline SVG and email styles do not inherit `theme.css`.
 9. **Content is data.** Don't hardcode persona names, taglines, band names, colours or cutoffs in templates or CSS. Design for the longest plausible text (long taglines, nine personas).
 10. **Scriptless by default.** CSP blocks inline scripts without the nonce. Prefer HTML and CSS (`details/summary`, `:checked`) over JavaScript.
